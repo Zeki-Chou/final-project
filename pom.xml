@@ -9,9 +9,9 @@
         <version>1.11.0.RELEASE</version>
     </parent>
     <groupId>com.hand.fexam</groupId>
-    <artifactId>fexam-xxxxx</artifactId>
+    <artifactId>fexam-47359</artifactId>
     <version>1.0.0-snapshot</version>
-    <name>fexam-xxxxx</name>
+    <name>fexam-47359</name>
 
     <dependencies>
         <!-- hzero starter -->
