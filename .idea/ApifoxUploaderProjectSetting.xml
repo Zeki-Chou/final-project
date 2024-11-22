@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ApifoxUploaderProjectSetting">
+    <option name="apifoxAccessToken" value="APS-s2MxmvJRfLKJft5wLM5nlGbjt7pg6zUo" />
+    <option name="apifoxProjectIds">
+      <array>
+        <option value="# ModuleName:ProjectID" />
+        <option value="inja-ipd-pay:3720773,付款申请服务" />
+        <option value="inja-ipd-settle:3720773,对账服务" />
+        <option value="inja-ipd-procure:3720773,采购服务" />
+        <option value="inja-ipd-inv:3720773,库存管理与成本管理服务" />
+        <option value="inja-ipd-sale:3720773,销售服务" />
+        <option value="inja-ipd-fufill:3720773,履约服务" />
+        <option value="inja-ipd-common:3720773,公共服务" />
+        <option value="springboot_train:5284514,SpringbootTrain" />
+        <option value="demo-21995:5284514,HzeroDemo-21995" />
+      </array>
+    </option>
+    <option name="yapiTokens" value="" />
+  </component>
+</project>
