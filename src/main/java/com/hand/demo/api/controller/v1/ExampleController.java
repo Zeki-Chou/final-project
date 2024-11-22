@@ -42,6 +42,7 @@ public class ExampleController extends BaseController {
     @GetMapping("/{id}")
     public ResponseEntity<Example> hello(@PathVariable Long id) {
         return Results.success(exampleRepository.selectByPrimaryKey(id));
+
     }
 
 
