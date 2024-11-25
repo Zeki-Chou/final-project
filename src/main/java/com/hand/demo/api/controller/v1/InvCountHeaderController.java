@@ -79,9 +79,12 @@ public class InvCountHeaderController extends BaseController {
     @ApiOperation(value = "删除")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @DeleteMapping
-    public ResponseEntity<?> remove(@RequestBody List<InvCountHeader> invCountHeaders) {
-        SecurityTokenHelper.validToken(invCountHeaders);
-        invCountHeaderRepository.batchDeleteByPrimaryKey(invCountHeaders);
+    public ResponseEntity<?> remove(
+            @PathVariable Long organizationId,
+            @RequestBody List<InvCountHeaderDTO> invCountHeaders
+    ) {
+//        SecurityTokenHelper.validToken(invCountHeaders);
+        invCountHeaderService.checkAndRemove(invCountHeaders);
         return Results.success();
     }
 

@@ -161,7 +161,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             throw new CommonException(errors.toString());
         }
 
-        invCountHeaderRepository.batchDelete(new ArrayList<>(headerDTOList));
+        invCountHeaderRepository.batchDeleteByPrimaryKey(new ArrayList<>(headerDTOList));
         return infoDTO;
     }
 
