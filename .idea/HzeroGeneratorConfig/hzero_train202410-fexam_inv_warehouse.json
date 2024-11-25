@@ -158,6 +158,15 @@
     "length" : 30,
     "ext" : { }
   }, {
+    "name" : "companyId",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : false,
+    "length" : 0,
+    "ext" : { }
+  }, {
     "name" : "createdBy",
     "comment" : null,
     "type" : null,

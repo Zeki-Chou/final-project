@@ -1,5 +1,6 @@
 package com.hand.demo.api.controller.v1;
 
+import com.alibaba.fastjson.JSON;
 import com.hand.demo.api.dto.InvCountHeaderDTO;
 import com.hand.demo.api.dto.InvCountInfoDTO;
 import com.hand.demo.domain.entity.InvCountLine;
@@ -9,6 +10,7 @@ import com.hand.demo.domain.repository.InvWarehouseRepository;
 import com.hand.demo.infra.constant.Constants;
 import com.hand.demo.infra.util.Utils;
 import io.choerodon.core.domain.Page;
+import io.choerodon.core.exception.CommonException;
 import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.mybatis.pagehelper.annotation.SortDefault;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
@@ -16,6 +18,9 @@ import io.choerodon.mybatis.pagehelper.domain.Sort;
 import io.choerodon.swagger.annotation.Permission;
 import io.swagger.annotations.ApiOperation;
 import org.hzero.boot.apaas.common.userinfo.infra.feign.IamRemoteService;
+import org.hzero.boot.platform.lov.adapter.LovAdapter;
+import org.hzero.boot.platform.lov.dto.LovValueDTO;
+import org.hzero.core.base.BaseConstants;
 import org.hzero.core.base.BaseController;
 import org.hzero.core.util.Results;
 import org.hzero.mybatis.helper.SecurityTokenHelper;
@@ -45,23 +50,11 @@ import java.util.stream.Stream;
 @RequestMapping("/v1/{organizationId}/inv-count-headers")
 public class InvCountHeaderController extends BaseController {
 
-
-    private InvCountHeaderRepository invCountHeaderRepository;
-    private InvCountHeaderService invCountHeaderService;
-    private IamRemoteService iamRemoteService;
-    private InvWarehouseRepository invWarehouseRepository;
-
-    // TODO: add lov adapter
-
-    public InvCountHeaderController(
-            InvCountHeaderRepository invCountHeaderRepository,
-            InvCountHeaderService invCountHeaderService,
-            IamRemoteService iamRemoteService
-    ) {
-        this.invCountHeaderRepository = invCountHeaderRepository;
-        this.invCountHeaderService = invCountHeaderService;
-        this.iamRemoteService = iamRemoteService;
-    }
+    private final InvCountHeaderRepository invCountHeaderRepository;
+    private final InvCountHeaderService invCountHeaderService;
+    private final IamRemoteService iamRemoteService;
+    private final InvWarehouseRepository invWarehouseRepository;
+    private final LovAdapter lovAdapter;
 
     // temporary
     enum UpdateStatus {
@@ -69,6 +62,19 @@ public class InvCountHeaderController extends BaseController {
         INCOUNTING,
         WITHDRAWN,
         REJECTED,
+    }
+
+    public InvCountHeaderController(
+            InvCountHeaderRepository invCountHeaderRepository,
+            InvCountHeaderService invCountHeaderService,
+            IamRemoteService iamRemoteService,
+            InvWarehouseRepository invWarehouseRepository, LovAdapter lovAdapter
+    ) {
+        this.invCountHeaderRepository = invCountHeaderRepository;
+        this.invCountHeaderService = invCountHeaderService;
+        this.iamRemoteService = iamRemoteService;
+        this.invWarehouseRepository = invWarehouseRepository;
+        this.lovAdapter = lovAdapter;
     }
 
     @ApiOperation(value = "列表")
@@ -92,12 +98,15 @@ public class InvCountHeaderController extends BaseController {
     @ApiOperation(value = "创建或更新")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping
-    public ResponseEntity<List<InvCountHeader>> save(@PathVariable Long organizationId, @RequestBody List<InvCountHeader> invCountHeaders) {
-        validObject(invCountHeaders, InvCountHeader.class);
-        SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
-        invCountHeaders.forEach(item -> item.setTenantId(organizationId));
-        invCountHeaderService.saveData(invCountHeaders);
-        return Results.success(invCountHeaders);
+    public ResponseEntity<List<InvCountHeaderDTO>> save(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeaders) {
+        InvCountInfoDTO invCountInfoDTO = manualSaveCheck(invCountHeaders);
+        if (invCountInfoDTO.getErrSize() > 0) {
+            throw new CommonException(JSON.toJSONString(invCountInfoDTO));
+        }
+        List<InvCountHeaderDTO> invCountHeaderDTOS = invCountInfoDTO.getValidHeaderDTOS();
+        invCountHeaderDTOS.forEach(item -> item.setTenantId(organizationId));
+        List<InvCountHeaderDTO> result = invCountHeaderService.manualSave(invCountHeaderDTOS);
+        return Results.success(result);
     }
 
     @ApiOperation(value = "删除")
@@ -110,72 +119,65 @@ public class InvCountHeaderController extends BaseController {
     }
 
     private InvCountInfoDTO manualSaveCheck(List<InvCountHeaderDTO> invCountHeaderDTOS) {
+        // not null and not blank validation
         validObject(invCountHeaderDTOS, InvCountHeader.class);
+        // token validation when update
+        SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaderDTOS);
+
         InvCountInfoDTO invCountInfoDTO = new InvCountInfoDTO();
+        InvWarehouse warehouseRecord = new InvWarehouse();
+        warehouseRecord.setIsWmsWarehouse(BaseConstants.Flag.YES);
 
-        List<InvWarehouse> warehouses = invWarehouseRepository.selectAll();
-
-        List<Long> warehouseWMSIds = warehouses
+        List<Long> warehouseWMSIds = invWarehouseRepository
+                                        .selectList(warehouseRecord)
                                         .stream()
-                                        .filter(warehouse -> warehouse.getIsWmsWarehouse() == 1)
                                         .map(InvWarehouse::getWarehouseId)
                                         .collect(Collectors.toList());
 
-        // TODO: change with lov adapter
-        List<String> validUpdateStatuses = Stream.of(UpdateStatus.values())
-                                                .map(Enum::name)
-                                                .collect(Collectors.toList());
+        List<String> validUpdateStatuses = lovAdapter.queryLovValue(Constants.InvCountHeader.STATUS_LOV_CODE,BaseConstants.DEFAULT_TENANT_ID)
+                                    .stream()
+                                    .map(LovValueDTO::getValue)
+                                    .collect(Collectors.toList());
+
+        String draftValue = UpdateStatus.DRAFT.name();
+
+        List<String> validUpdateStatusSupervisorWMS = validUpdateStatuses
+                .stream()
+                .filter(status -> !status.equals(draftValue))
+                .collect(Collectors.toList());
 
         List<InvCountHeaderDTO> invalidHeaderDTOS = new ArrayList<>();
         List<InvCountHeaderDTO> validHeaderDTOS = new ArrayList<>();
 
+        JSONObject iamJSONObject = Utils.getIamJSONObject(iamRemoteService);
+        Long userId = iamJSONObject.getLong("id");
+
         for (InvCountHeaderDTO invCountHeaderDTO: invCountHeaderDTOS) {
 
-            if (invCountHeaderDTO.getCountHeaderId() == null) {
-                validHeaderDTOS.add(invCountHeaderDTO);
-                continue;
-            }
-
-            boolean valid = true;
-
-            if (!validUpdateStatuses.contains(invCountHeaderDTO.getCountStatus())) {
-                // set error message
-                valid = false;
-                invCountHeaderDTO.setErrorMessage(Constants.InvCountHeader.UPDATE_STATUS_INVALID);
-                invalidHeaderDTOS.add(invCountHeaderDTO);
-            }
-
-            // TODO: change with lov adapter
-            JSONObject iamJSONObject = Utils.getIamJSONObject(iamRemoteService);
-
-            String draftValue = UpdateStatus.DRAFT.name();
-            //TODO: use iam remote json object to get the value
-            Long userId = 0L;
-
-            if (draftValue.equals(invCountHeaderDTO.getCountStatus()) &&
-                    userId.equals(invCountHeaderDTO.getCreatedBy())) {
-                valid = false;
-                invCountHeaderDTO.setErrorMessage(Constants.InvCountHeader.UPDATE_ACCESS_INVALID);
-                invalidHeaderDTOS.add(invCountHeaderDTO);
-            }
-
-            List<String> validUpdateStatusSupervisorWMS = validUpdateStatuses
-                    .stream()
-                    .filter(status -> !status.equals(draftValue))
-                    .collect(Collectors.toList());
-
             List<Long> headerCounterIds = Arrays.stream(invCountHeaderDTO.getSupervisorIds().split(","))
-                                                .map(Long::valueOf)
-                                                .collect(Collectors.toList());
+                    .map(Long::valueOf)
+                    .collect(Collectors.toList());
 
             List<Long> supervisorIds = Arrays.stream(invCountHeaderDTO.getCounterIds().split(","))
                     .map(Long::valueOf)
                     .collect(Collectors.toList());
 
-            if (validUpdateStatusSupervisorWMS.contains(invCountHeaderDTO.getCountStatus())) {
-                //TODO: find out how to find operator
+            if (invCountHeaderDTO.getCountHeaderId() == null) {
+                validHeaderDTOS.add(invCountHeaderDTO);
+            } else if (!validUpdateStatuses.contains(invCountHeaderDTO.getCountStatus())) {
+
+                invCountHeaderDTO.setErrorMessage(Constants.InvCountHeader.UPDATE_STATUS_INVALID);
+                invalidHeaderDTOS.add(invCountHeaderDTO);
+
+            } else if (draftValue.equals(invCountHeaderDTO.getCountStatus()) &&
+                    userId.equals(invCountHeaderDTO.getCreatedBy())) {
+
+                invCountHeaderDTO.setErrorMessage(Constants.InvCountHeader.UPDATE_ACCESS_INVALID);
+                invalidHeaderDTOS.add(invCountHeaderDTO);
+
+            } else if (validUpdateStatusSupervisorWMS.contains(invCountHeaderDTO.getCountStatus())) {
+
                 if (warehouseWMSIds.contains(invCountHeaderDTO.getWarehouseId()) && !supervisorIds.contains(userId)) {
-                    valid = false;
                     invCountHeaderDTO.setErrorMessage(Constants.InvCountHeader.WAREHOUSE_SUPERVISOR_INVALID);
                     invalidHeaderDTOS.add(invCountHeaderDTO);
                 }
@@ -184,13 +186,11 @@ public class InvCountHeaderController extends BaseController {
                     !supervisorIds.contains(userId) &&
                     !invCountHeaderDTO.getCreatedBy().equals(userId))
                 {
-                    valid = false;
                     invCountHeaderDTO.setErrorMessage(Constants.InvCountHeader.ACCESS_UPDATE_STATUS_INVALID);
                     invalidHeaderDTOS.add(invCountHeaderDTO);
                 }
-            }
 
-            if (valid) {
+            } else {
                 validHeaderDTOS.add(invCountHeaderDTO);
             }
         }

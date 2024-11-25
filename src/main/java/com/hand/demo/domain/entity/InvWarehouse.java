@@ -22,7 +22,7 @@ import lombok.Setter;
  * (InvWarehouse)实体类
  *
  * @author Allan
- * @since 2024-11-25 10:35:13
+ * @since 2024-11-25 13:59:17
  */
 
 @Getter
@@ -33,7 +33,7 @@ import lombok.Setter;
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 @Table(name = "fexam_inv_warehouse")
 public class InvWarehouse extends AuditDomain {
-    private static final long serialVersionUID = -57711578306279929L;
+    private static final long serialVersionUID = 723261191564775728L;
 
     public static final String FIELD_WAREHOUSE_ID = "warehouseId";
     public static final String FIELD_ATTRIBUTE1 = "attribute1";
@@ -52,6 +52,7 @@ public class InvWarehouse extends AuditDomain {
     public static final String FIELD_ATTRIBUTE8 = "attribute8";
     public static final String FIELD_ATTRIBUTE9 = "attribute9";
     public static final String FIELD_ATTRIBUTE_CATEGORY = "attributeCategory";
+    public static final String FIELD_COMPANY_ID = "companyId";
     public static final String FIELD_IS_WMS_WAREHOUSE = "isWmsWarehouse";
     public static final String FIELD_TENANT_ID = "tenantId";
     public static final String FIELD_WAREHOUSE_CODE = "warehouseCode";
@@ -91,6 +92,10 @@ public class InvWarehouse extends AuditDomain {
     private String attribute9;
 
     private String attributeCategory;
+
+    @ApiModelProperty(value = "", required = true)
+    @NotNull
+    private Long companyId;
 
     private Integer isWmsWarehouse;
 

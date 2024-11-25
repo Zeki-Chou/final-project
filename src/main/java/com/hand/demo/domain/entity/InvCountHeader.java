@@ -116,6 +116,8 @@ public class InvCountHeader extends AuditDomain {
 
     private String attributeCategory;
 
+    @ApiModelProperty(value = "", required = true)
+    @NotBlank
     private Long companyId;
 
     @ApiModelProperty(value = "", required = true)
@@ -140,6 +142,8 @@ public class InvCountHeader extends AuditDomain {
     @NotBlank
     private String countType;
 
+    @ApiModelProperty(value = "", required = true)
+    @NotBlank
     private String counterIds;
 
     private Integer delFlag;
@@ -162,12 +166,16 @@ public class InvCountHeader extends AuditDomain {
 
     private String sourceSystem;
 
+    @ApiModelProperty(value = "", required = true)
+    @NotBlank
     private String supervisorIds;
 
     @ApiModelProperty(value = "", required = true)
     @NotNull
     private Long tenantId;
 
+    @ApiModelProperty(value = "", required = true)
+    @NotBlank
     private Long warehouseId;
 
     private Long workflowId;
