@@ -27,31 +27,6 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         this.invCountHeaderRepository = invCountHeaderRepository;
     }
 
-    enum Status {
-        DRAFT,
-        INCOUNTING,
-        PROCESSING,
-        WITHDRAWN,
-        APPROVED,
-        REJECTED,
-        CONFIRMED
-    }
-
-    enum Dimension {
-        SKU,
-        LOT
-    }
-
-    enum CountType {
-        MONTH,
-        YEAR
-    }
-
-    enum CountMode {
-        VISIBLE_COUNT,
-        UNVISIBLE_COUNT
-    }
-
     @Override
     public Page<InvCountHeader> selectList(PageRequest pageRequest, InvCountHeader invCountHeader) {
         return PageHelper.doPageAndSort(pageRequest, () -> invCountHeaderRepository.selectList(invCountHeader));

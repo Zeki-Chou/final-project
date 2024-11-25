@@ -1,5 +1,9 @@
 package com.hand.demo.api.controller.v1;
 
+import com.hand.demo.api.dto.InvCountHeaderDTO;
+import com.hand.demo.api.dto.InvCountInfoDTO;
+import com.hand.demo.infra.constant.Constants;
+import com.hand.demo.infra.util.Utils;
 import io.choerodon.core.domain.Page;
 import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.mybatis.pagehelper.annotation.SortDefault;
@@ -7,9 +11,11 @@ import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 import io.choerodon.mybatis.pagehelper.domain.Sort;
 import io.choerodon.swagger.annotation.Permission;
 import io.swagger.annotations.ApiOperation;
+import org.hzero.boot.apaas.common.userinfo.infra.feign.IamRemoteService;
 import org.hzero.core.base.BaseController;
 import org.hzero.core.util.Results;
 import org.hzero.mybatis.helper.SecurityTokenHelper;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +24,10 @@ import com.hand.demo.domain.entity.InvCountHeader;
 import com.hand.demo.domain.repository.InvCountHeaderRepository;
 import springfox.documentation.annotations.ApiIgnore;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * (InvCountHeader)表控制层
@@ -31,11 +40,29 @@ import java.util.List;
 @RequestMapping("/v1/{organizationId}/inv-count-headers")
 public class InvCountHeaderController extends BaseController {
 
-    @Autowired
-    private InvCountHeaderRepository invCountHeaderRepository;
 
-    @Autowired
+    private InvCountHeaderRepository invCountHeaderRepository;
     private InvCountHeaderService invCountHeaderService;
+    private IamRemoteService iamRemoteService;
+
+    // TODO: add lov adapter
+
+    public InvCountHeaderController(
+            InvCountHeaderRepository invCountHeaderRepository
+            , InvCountHeaderService invCountHeaderService,
+            IamRemoteService iamRemoteService
+    ) {
+        this.invCountHeaderRepository = invCountHeaderRepository;
+        this.invCountHeaderService = invCountHeaderService;
+        this.iamRemoteService = iamRemoteService;
+    }
+
+    enum UpdateStatus {
+        DRAFT,
+        INCOUNTING,
+        WITHDRAWN,
+        REJECTED,
+    }
 
     @ApiOperation(value = "列表")
     @Permission(level = ResourceLevel.ORGANIZATION)
@@ -73,6 +100,56 @@ public class InvCountHeaderController extends BaseController {
         SecurityTokenHelper.validToken(invCountHeaders);
         invCountHeaderRepository.batchDeleteByPrimaryKey(invCountHeaders);
         return Results.success();
+    }
+
+    private InvCountInfoDTO manualSaveCheck(List<InvCountHeaderDTO> invCountHeaderDTOS) {
+        validObject(invCountHeaderDTOS, InvCountHeader.class);
+        InvCountInfoDTO invCountInfoDTO = new InvCountInfoDTO();
+
+        // TODO: change with lov adapter
+        List<String> validUpdateStatuses = Stream.of(UpdateStatus.values())
+                                                .map(Enum::name)
+                                                .collect(Collectors.toList());
+
+        List<InvCountHeaderDTO> invalidHeaderDTOS = new ArrayList<>();
+
+
+        for (InvCountHeaderDTO invCountHeaderDTO: invCountHeaderDTOS) {
+            if (invCountHeaderDTO.getCountHeaderId() == null) {
+                continue;
+            }
+
+            if (!validUpdateStatuses.contains(invCountHeaderDTO.getCountStatus())) {
+                // set error message
+                invCountHeaderDTO.setErrorMessage(Constants.InvCountHeader.UPDATE_STATUS_INVALID);
+                invalidHeaderDTOS.add(invCountHeaderDTO);
+            }
+
+
+            // TODO: change with lov adapter
+            JSONObject iamJSONObject = Utils.getIamJSONObject(iamRemoteService);
+
+            String draftValue = UpdateStatus.DRAFT.name();
+            //TODO: use iam remote json object to get the value
+            Long creator = 0L;
+
+            if (draftValue.equals(invCountHeaderDTO.getCountStatus()) &&
+                    creator.equals(invCountHeaderDTO.getCreatedBy())) {
+                invCountHeaderDTO.setErrorMessage(Constants.InvCountHeader.UPDATE_ACCESS_INVALID);
+                invalidHeaderDTOS.add(invCountHeaderDTO);
+            }
+
+            List<String> validUpdateStatusSupervisorWMS = validUpdateStatuses
+                    .stream()
+                    .filter(status -> !status.equals(draftValue))
+                    .collect(Collectors.toList());
+
+//            if (validUpdateStatusSupervisorWMS.contains(invCountHeaderDTO.getCountStatus())) {
+//
+//            }
+        }
+
+        return invCountInfoDTO;
     }
 
 }

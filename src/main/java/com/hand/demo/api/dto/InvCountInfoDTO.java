@@ -1,5 +1,10 @@
 package com.hand.demo.api.dto;
 
-public class InvCountInfoDTO {
+import lombok.Data;
 
+import java.util.List;
+
+@Data
+public class InvCountInfoDTO {
+    List<InvCountHeaderDTO> errors;
 }
