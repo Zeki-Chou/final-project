@@ -24,6 +24,7 @@ import com.hand.demo.app.service.InvCountHeaderService;
 import org.springframework.stereotype.Service;
 import com.hand.demo.domain.entity.InvCountHeader;
 
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -66,7 +67,6 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                     line.setDelFlag(0);
                 })
                 .collect(Collectors.toList());
-        List<InvCountHeaderDTO> updateList = invCountHeaders.stream().filter(line -> line.getCountHeaderId() != null).collect(Collectors.toList());
 
         Map<String, String> variableMap = new HashMap<>();
         variableMap.put("customSegment", "-");
@@ -77,8 +77,46 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             headerDTO.setCountNumber(applyHeaderNumbers.get(i));
         }
 
+        List<InvCountHeaderDTO> updateList = invCountHeaders.stream().filter(line -> line.getCountHeaderId() != null).collect(Collectors.toList());
+        List<InvCountHeaderDTO> headerInDatabaseDTO = getHeaderDTOsFromDb(updateList);
+
+        Map<Long, InvCountHeaderDTO> headerById = headerInDatabaseDTO.stream().collect(Collectors.toMap(InvCountHeaderDTO::getCountHeaderId, Function.identity()));
+
+        for (InvCountHeaderDTO headerDTO : updateList) {
+            InvCountHeaderDTO currHeader = headerById.get(headerDTO.getCountHeaderId());
+            if (currHeader != null) {
+                String countStatus = currHeader.getCountStatus();
+                if (countStatus.equals(InvCountHeaderConstants.COUNT_STATUS_DRAFT)) {
+                    invCountHeaderRepository.updateOptional(
+                            headerDTO,
+                            getNonNullFields(headerDTO,
+                                    InvCountHeader.FIELD_COMPANY_ID,
+                                    InvCountHeaderDTO.FIELD_DEPARTMENT_ID,
+                                    InvCountHeaderDTO.FIELD_WAREHOUSE_ID,
+                                    InvCountHeaderDTO.FIELD_COUNT_DIMENSION,
+                                    InvCountHeaderDTO.FIELD_COUNT_TYPE,
+                                    InvCountHeaderDTO.FIELD_COUNT_MODE,
+                                    InvCountHeaderDTO.FIELD_COUNT_TIME_STR,
+                                    InvCountHeaderDTO.FIELD_COUNTER_IDS,
+                                    InvCountHeaderDTO.FIELD_SUPERVISOR_IDS,
+                                    InvCountHeaderDTO.FIELD_SNAPSHOT_MATERIAL_IDS,
+                                    InvCountHeaderDTO.FIELD_SNAPSHOT_BATCH_IDS,
+                                    InvCountHeaderDTO.FIELD_REMARK
+                            )
+                    );
+                } else if (countStatus.equals(InvCountHeaderConstants.COUNT_STATUS_INCOUNTING)
+                        || countStatus.equals(InvCountHeaderConstants.COUNT_STATUS_REJECTED)) {
+                    invCountHeaderRepository.updateOptional(headerDTO,
+                            getNonNullFields(headerDTO,
+                                    InvCountHeaderDTO.FIELD_REMARK,
+                                    InvCountHeaderDTO.FIELD_REASON));
+                }
+            }
+        }
+
+
         invCountHeaderRepository.batchInsertSelective(new ArrayList<>(insertList));
-        invCountHeaderRepository.batchUpdateByPrimaryKeySelective(new ArrayList<>(updateList));
+//        invCountHeaderRepository.batchUpdateByPrimaryKeySelective(new ArrayList<>(updateList));
     }
 
     @Override
@@ -129,9 +167,11 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         List<String> allowedCountStatusList = getAllowedLovValues();
 
 
-        for(InvCountHeaderDTO headerDTO : headerDTOList) {
+        List<InvCountHeaderDTO> headerInDatabaseDTO = getHeaderDTOsFromDb(headerDTOList);
+
+        for(InvCountHeaderDTO headerDTO : headerInDatabaseDTO) {
             if (headerDTO.getCountHeaderId() == null) {
-                return null;
+                continue;
             }
 
             String countStatus = headerDTO.getCountStatus();
@@ -236,5 +276,47 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         headerDTO.setErrorMessage(errorMessage);
         infoDTO.getErrorList().add(headerDTO);
     }
+
+    private List<InvCountHeaderDTO> getHeaderDTOsFromDb(List<InvCountHeaderDTO> headerList) {
+        Set<Long> headerIds = headerList.stream()
+                .map(header -> (header != null) ? header.getCountHeaderId() : null)
+                .collect(Collectors.toSet());
+
+        List<InvCountHeader> headerInDatabase = new ArrayList<>();
+        if (!headerIds.isEmpty()) {
+            Condition headerCondition = new Condition(InvCountHeader.class);
+            Condition.Criteria headerCriteria = headerCondition.createCriteria();
+            headerCriteria.andIn(InvCountHeaderDTO.FIELD_COUNT_HEADER_ID, headerIds);
+            headerInDatabase = invCountHeaderRepository.selectByCondition(headerCondition);
+        }
+
+        return headerInDatabase.stream()
+                .map(header -> {
+                    InvCountHeaderDTO countHeaderDTO = new InvCountHeaderDTO();
+                    BeanUtils.copyProperties(header, countHeaderDTO);
+                    return countHeaderDTO;
+                })
+                .collect(Collectors.toList());
+    }
+
+    private String[] getNonNullFields(InvCountHeaderDTO dto, String... fieldNames) {
+        List<String> nonNullFields = new ArrayList<>();
+        for (String fieldName : fieldNames) {
+            try {
+                Field field = dto.getClass().getSuperclass().getDeclaredField(fieldName);
+                field.setAccessible(true);
+                if (field.get(dto) != null) {
+                    nonNullFields.add(fieldName);
+
+                }
+            } catch (Exception e) {
+                System.out.println("wkwkwkwkwk: " + e.getMessage());
+                return null;
+            }
+        }
+        return nonNullFields.toArray(new String[0]);
+    }
+
+
 }
 

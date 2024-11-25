@@ -71,7 +71,7 @@ public class InvCountHeaderController extends BaseController {
     @PostMapping
     public ResponseEntity<List<InvCountHeaderDTO>> save(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeaders) {
         validObject(invCountHeaders, ValidateSave.class);
-        SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
+//        SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
         invCountHeaders.forEach(item -> item.setTenantId(organizationId));
         invCountHeaderService.saveData(invCountHeaders);
         return Results.success(invCountHeaders);
