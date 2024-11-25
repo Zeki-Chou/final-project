@@ -1,9 +1,10 @@
 package com.hand.demo.app.service.impl;
 
-import com.hand.demo.api.dto.InvCountHeaderDTO;
-import com.hand.demo.api.dto.InvCountInfoDTO;
+import com.hand.demo.api.dto.*;
+import com.hand.demo.domain.entity.InvCountLine;
+import com.hand.demo.domain.entity.InvMaterial;
 import com.hand.demo.domain.entity.InvWarehouse;
-import com.hand.demo.domain.repository.InvWarehouseRepository;
+import com.hand.demo.domain.repository.*;
 import com.hand.demo.infra.constant.InvCountHeaderConstants;
 import io.choerodon.core.domain.Page;
 import io.choerodon.core.exception.CommonException;
@@ -16,11 +17,11 @@ import org.hzero.boot.platform.lov.adapter.LovAdapter;
 import org.hzero.boot.platform.lov.dto.LovValueDTO;
 import org.hzero.core.base.BaseConstants;
 import org.hzero.mybatis.domian.Condition;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.hand.demo.app.service.InvCountHeaderService;
 import org.springframework.stereotype.Service;
 import com.hand.demo.domain.entity.InvCountHeader;
-import com.hand.demo.domain.repository.InvCountHeaderRepository;
 
 import java.util.*;
 import java.util.function.Function;
@@ -39,10 +40,16 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
     private InvWarehouseRepository invWarehouseRepository;
 
+    private InvCountLineRepository invCountLineRepository;
+
+    private InvMaterialRepository invMaterialRepository;
+
+    private InvBatchRepository invBatchRepository;
+
     private final LovAdapter lovAdapter;
 
     @Override
-    public Page<InvCountHeader> selectList(PageRequest pageRequest, InvCountHeader invCountHeader) {
+    public Page<InvCountHeaderDTO> selectList(PageRequest pageRequest, InvCountHeaderDTO invCountHeader) {
         return PageHelper.doPageAndSort(pageRequest, () -> invCountHeaderRepository.selectList(invCountHeader));
     }
 
@@ -52,6 +59,47 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         List<InvCountHeader> updateList = invCountHeaders.stream().filter(line -> line.getCountHeaderId() != null).collect(Collectors.toList());
         invCountHeaderRepository.batchInsertSelective(insertList);
         invCountHeaderRepository.batchUpdateByPrimaryKeySelective(updateList);
+    }
+
+    @Override
+    public InvCountHeaderDTO detail(Long countHeaderId) {
+        InvCountHeaderDTO invCountHeaderDTO = invCountHeaderRepository.selectByPrimary(countHeaderId);
+        List<InvCountLineDTO> invCountLineDTOList = invCountLineRepository
+                .select(InvCountLineDTO.FIELD_COUNT_HEADER_ID, countHeaderId)
+                .stream()
+                .map(line -> {
+                    InvCountLineDTO lineDTO = new InvCountLineDTO();
+                    BeanUtils.copyProperties(line, lineDTO);
+                    return lineDTO;
+                }).collect(Collectors.toList());
+
+//        List<Long> snapshotMaterialIds = parseCommaSeperatedIds(invCountHeaderDTO.getSnapshotMaterialIds().toString());
+        List<SnapshotMaterialDTO> snapshotMaterialList = invMaterialRepository
+                .selectByIds(invCountHeaderDTO.getSnapshotMaterialIds().toString())
+                .stream()
+                .map(material -> new SnapshotMaterialDTO()
+                        .setId(material.getMaterialId())
+                        .setCode(material.getCategoryCode()))
+                .collect(Collectors.toList());
+
+        List<SnapshotBatchDTO> snapshotBatchList = invBatchRepository
+                .selectByIds(invCountHeaderDTO.getSnapshotBatchIds().toString())
+                .stream()
+                .map(batch -> new SnapshotBatchDTO()
+                        .setId(batch.getBatchId())
+                        .setBatchCode(batch.getBatchCode()))
+                .collect(Collectors.toList());
+
+        Map<Long, InvWarehouse> invWarehouseById = getWarehouseMappedById(Collections.singletonList(invCountHeaderDTO));
+
+        Integer isWMSWarehouse = invWarehouseById.get(invCountHeaderDTO.getWarehouseId()).getIsWmsWarehouse();
+
+        invCountHeaderDTO
+                .setSnapshotMaterialList(snapshotMaterialList)
+                .setSnapshotBatchList(snapshotBatchList)
+                .setIsWMSwarehouse(isWMSWarehouse)
+                .setInvCountLineDTOList(invCountLineDTOList);
+        return invCountHeaderDTO;
     }
 
     @Override

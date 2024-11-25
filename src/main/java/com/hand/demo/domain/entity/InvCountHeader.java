@@ -78,44 +78,63 @@ public class InvCountHeader extends AuditDomain {
     public static final String FIELD_WAREHOUSE_ID = "warehouseId";
     public static final String FIELD_WORKFLOW_ID = "workflowId";
 
+    @ApiModelProperty(hidden = true)
     @Id
     @GeneratedValue
     private Long countHeaderId;
 
+    @ApiModelProperty(hidden = true)
     private Date approvedTime;
 
+    @ApiModelProperty(hidden = true)
     private String attribute1;
 
+    @ApiModelProperty(hidden = true)
     private String attribute10;
 
+    @ApiModelProperty(hidden = true)
     private String attribute11;
 
+    @ApiModelProperty(hidden = true)
     private String attribute12;
 
+    @ApiModelProperty(hidden = true)
     private String attribute13;
 
+    @ApiModelProperty(hidden = true)
     private String attribute14;
 
+    @ApiModelProperty(hidden = true)
     private String attribute15;
 
+    @ApiModelProperty(hidden = true)
     private String attribute2;
 
+    @ApiModelProperty(hidden = true)
     private String attribute3;
 
+    @ApiModelProperty(hidden = true)
     private String attribute4;
 
+    @ApiModelProperty(hidden = true)
     private String attribute5;
 
+    @ApiModelProperty(hidden = true)
     private String attribute6;
 
+    @ApiModelProperty(hidden = true)
     private String attribute7;
 
+    @ApiModelProperty(hidden = true)
     private String attribute8;
 
+    @ApiModelProperty(hidden = true)
     private String attribute9;
 
+    @ApiModelProperty(hidden = true)
     private String attributeCategory;
 
+    @ApiModelProperty(hidden = true)
     private Long companyId;
 
     @ApiModelProperty(value = "", required = true)
@@ -134,44 +153,57 @@ public class InvCountHeader extends AuditDomain {
     @NotBlank
     private String countStatus;
 
+    @ApiModelProperty(hidden = true)
     private String countTimeStr;
 
     @ApiModelProperty(value = "", required = true)
     @NotBlank
     private String countType;
 
+    @ApiModelProperty(hidden = true)
     private Object counterIds;
 
+    @ApiModelProperty(hidden = true)
     private Integer delFlag;
 
+    @ApiModelProperty(hidden = true)
     private Long departmentId;
 
+    @ApiModelProperty(hidden = true)
     private String reason;
 
+    @ApiModelProperty(hidden = true)
     private String relatedWmsOrderCode;
 
+    @ApiModelProperty(hidden = true)
     private String remark;
 
+    @ApiModelProperty(hidden = true)
     private Object snapshotBatchIds;
 
+    @ApiModelProperty(hidden = true)
     private Object snapshotMaterialIds;
 
+    @ApiModelProperty(hidden = true)
     private String sourceCode;
 
+    @ApiModelProperty(hidden = true)
     private Long sourceId;
 
+    @ApiModelProperty(hidden = true)
     private String sourceSystem;
 
+    @ApiModelProperty(hidden = true)
     private Object supervisorIds;
 
-    @ApiModelProperty(value = "", required = true)
+    @ApiModelProperty(value = "", required = true, hidden = true)
     @NotNull
     private Long tenantId;
 
+    @ApiModelProperty(hidden = true)
     private Long warehouseId;
 
+    @ApiModelProperty(hidden = true)
     private Long workflowId;
-
-
 }
 

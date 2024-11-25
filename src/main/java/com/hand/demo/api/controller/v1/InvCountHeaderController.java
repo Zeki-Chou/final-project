@@ -1,5 +1,6 @@
 package com.hand.demo.api.controller.v1;
 
+import com.hand.demo.api.dto.InvCountHeaderDTO;
 import io.choerodon.core.domain.Page;
 import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.mybatis.pagehelper.annotation.SortDefault;
@@ -7,6 +8,7 @@ import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 import io.choerodon.mybatis.pagehelper.domain.Sort;
 import io.choerodon.swagger.annotation.Permission;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.hzero.core.base.BaseController;
 import org.hzero.core.util.Results;
 import org.hzero.mybatis.helper.SecurityTokenHelper;
@@ -40,18 +42,26 @@ public class InvCountHeaderController extends BaseController {
     @ApiOperation(value = "列表")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping
-    public ResponseEntity<Page<InvCountHeader>> list(InvCountHeader invCountHeader, @PathVariable Long organizationId,
-                                                     @ApiIgnore @SortDefault(value = InvCountHeader.FIELD_COUNT_HEADER_ID,
-                                                             direction = Sort.Direction.DESC) PageRequest pageRequest) {
-        Page<InvCountHeader> list = invCountHeaderService.selectList(pageRequest, invCountHeader);
+    public ResponseEntity<Page<InvCountHeaderDTO>> list(
+            InvCountHeaderDTO invCountHeader,
+            @PathVariable Long organizationId,
+            @ApiIgnore
+            @Parameter(hidden = true)
+            @SortDefault(
+                    value = InvCountHeaderDTO.FIELD_CREATION_DATE,
+                    direction = Sort.Direction.DESC
+            ) PageRequest pageRequest) {
+        Page<InvCountHeaderDTO> list = invCountHeaderService.selectList(pageRequest, invCountHeader);
         return Results.success(list);
     }
 
     @ApiOperation(value = "明细")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping("/{countHeaderId}/detail")
-    public ResponseEntity<InvCountHeader> detail(@PathVariable Long countHeaderId) {
-        InvCountHeader invCountHeader = invCountHeaderRepository.selectByPrimary(countHeaderId);
+    public ResponseEntity<InvCountHeaderDTO> detail(
+            @PathVariable Long organizationId,
+            @PathVariable Long countHeaderId) {
+        InvCountHeaderDTO invCountHeader = invCountHeaderService.detail(countHeaderId);
         return Results.success(invCountHeader);
     }
 

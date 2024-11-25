@@ -51,68 +51,11 @@
         fich.object_version_number
     </sql>
 
-    <select id = "selectList" resultType = "com.hand.demo.domain.entity.InvCountHeader">
+    <select id = "selectList" resultType = "com.hand.demo.api.dto.InvCountHeaderDTO">
         select
         <include refid = "BaseSql"/>
         from fexam_inv_count_header fich
         <where>
-            <if test="countHeaderId !=null">
-                and fich.count_header_id = #{countHeaderId,jdbcType = INTEGER}
-            </if>
-            <if test="approvedTime !=null">
-                and fich.approved_time = #{approvedTime,jdbcType = TIMESTAMP}
-            </if>
-            <if test="attribute1 !=null">
-                and fich.attribute1 = #{attribute1,jdbcType = VARCHAR}
-            </if>
-            <if test="attribute10 !=null">
-                and fich.attribute10 = #{attribute10,jdbcType = VARCHAR}
-            </if>
-            <if test="attribute11 !=null">
-                and fich.attribute11 = #{attribute11,jdbcType = VARCHAR}
-            </if>
-            <if test="attribute12 !=null">
-                and fich.attribute12 = #{attribute12,jdbcType = VARCHAR}
-            </if>
-            <if test="attribute13 !=null">
-                and fich.attribute13 = #{attribute13,jdbcType = VARCHAR}
-            </if>
-            <if test="attribute14 !=null">
-                and fich.attribute14 = #{attribute14,jdbcType = VARCHAR}
-            </if>
-            <if test="attribute15 !=null">
-                and fich.attribute15 = #{attribute15,jdbcType = VARCHAR}
-            </if>
-            <if test="attribute2 !=null">
-                and fich.attribute2 = #{attribute2,jdbcType = VARCHAR}
-            </if>
-            <if test="attribute3 !=null">
-                and fich.attribute3 = #{attribute3,jdbcType = VARCHAR}
-            </if>
-            <if test="attribute4 !=null">
-                and fich.attribute4 = #{attribute4,jdbcType = VARCHAR}
-            </if>
-            <if test="attribute5 !=null">
-                and fich.attribute5 = #{attribute5,jdbcType = VARCHAR}
-            </if>
-            <if test="attribute6 !=null">
-                and fich.attribute6 = #{attribute6,jdbcType = VARCHAR}
-            </if>
-            <if test="attribute7 !=null">
-                and fich.attribute7 = #{attribute7,jdbcType = VARCHAR}
-            </if>
-            <if test="attribute8 !=null">
-                and fich.attribute8 = #{attribute8,jdbcType = VARCHAR}
-            </if>
-            <if test="attribute9 !=null">
-                and fich.attribute9 = #{attribute9,jdbcType = VARCHAR}
-            </if>
-            <if test="attributeCategory !=null">
-                and fich.attribute_category = #{attributeCategory,jdbcType = VARCHAR}
-            </if>
-            <if test="companyId !=null">
-                and fich.company_id = #{companyId,jdbcType = INTEGER}
-            </if>
             <if test="countDimension !=null">
                 and fich.count_dimension = #{countDimension,jdbcType = VARCHAR}
             </if>
@@ -120,61 +63,16 @@
                 and fich.count_mode = #{countMode,jdbcType = VARCHAR}
             </if>
             <if test="countNumber !=null">
-                and fich.count_number = #{countNumber,jdbcType = VARCHAR}
+                and fich.count_number like concat('%', #{countNumber}, '%'
             </if>
             <if test="countStatus !=null">
                 and fich.count_status = #{countStatus,jdbcType = VARCHAR}
             </if>
-            <if test="countTimeStr !=null">
-                and fich.count_time_str = #{countTimeStr,jdbcType = VARCHAR}
-            </if>
             <if test="countType !=null">
                 and fich.count_type = #{countType,jdbcType = VARCHAR}
             </if>
-            <if test="counterIds !=null">
-                and fich.counter_ids = #{counterIds,jdbcType = OTHER}
-            </if>
-            <if test="delFlag !=null">
-                and fich.del_flag = #{delFlag,jdbcType = INTEGER}
-            </if>
-            <if test="departmentId !=null">
-                and fich.department_id = #{departmentId,jdbcType = INTEGER}
-            </if>
-            <if test="reason !=null">
-                and fich.reason = #{reason,jdbcType = VARCHAR}
-            </if>
-            <if test="relatedWmsOrderCode !=null">
-                and fich.related_wms_order_code = #{relatedWmsOrderCode,jdbcType = VARCHAR}
-            </if>
-            <if test="remark !=null">
-                and fich.remark = #{remark,jdbcType = VARCHAR}
-            </if>
-            <if test="snapshotBatchIds !=null">
-                and fich.snapshot_batch_ids = #{snapshotBatchIds,jdbcType = OTHER}
-            </if>
-            <if test="snapshotMaterialIds !=null">
-                and fich.snapshot_material_ids = #{snapshotMaterialIds,jdbcType = OTHER}
-            </if>
-            <if test="sourceCode !=null">
-                and fich.source_code = #{sourceCode,jdbcType = VARCHAR}
-            </if>
-            <if test="sourceId !=null">
-                and fich.source_id = #{sourceId,jdbcType = INTEGER}
-            </if>
-            <if test="sourceSystem !=null">
-                and fich.source_system = #{sourceSystem,jdbcType = VARCHAR}
-            </if>
-            <if test="supervisorIds !=null">
-                and fich.supervisor_ids = #{supervisorIds,jdbcType = OTHER}
-            </if>
-            <if test="tenantId !=null">
-                and fich.tenant_id = #{tenantId,jdbcType = INTEGER}
-            </if>
-            <if test="warehouseId !=null">
-                and fich.warehouse_id = #{warehouseId,jdbcType = INTEGER}
-            </if>
-            <if test="workflowId !=null">
-                and fich.workflow_id = #{workflowId,jdbcType = INTEGER}
+            <if test="supervisor != null">
+                and FIND_IN_SET(#{supervisor,jdbcType=VARCHAR}, fich.supervisor_ids)
             </if>
         </where>
     </select>
