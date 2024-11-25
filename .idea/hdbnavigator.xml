@@ -20,6 +20,9 @@
   <component name="HDBNavigator.Project.DatasetFilterManager">
     <filter-actions connection-id="b8908dc1-6777-45a9-94e1-16255ea9dbd6" dataset="hzero_train202410.fexam_iam_company" active-filter-id="" />
   </component>
+  <component name="HDBNavigator.Project.ExecutionManager">
+    <retain-sticky-names value="false" />
+  </component>
   <component name="HDBNavigator.Project.ObjectQuickFilterManager">
     <last-used-operator value="EQUAL" />
     <filters />

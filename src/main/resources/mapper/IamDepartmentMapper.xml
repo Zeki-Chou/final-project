@@ -88,8 +88,17 @@
             <if test="attributeCategory !=null">
                 and fid.attribute_category = #{attributeCategory,jdbcType = VARCHAR}
             </if>
+            <if test="companyId !=null">
+                and fid.company_id = #{companyId,jdbcType = INTEGER}
+            </if>
             <if test="departmentCode !=null">
                 and fid.department_code = #{departmentCode,jdbcType = VARCHAR}
+            </if>
+            <if test="departmentName !=null">
+                and fid.department_name = #{departmentName,jdbcType = VARCHAR}
+            </if>
+            <if test="tenantId !=null">
+                and fid.tenant_id = #{tenantId,jdbcType = INTEGER}
             </if>
         </where>
     </select>

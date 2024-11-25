@@ -9,7 +9,7 @@ import java.util.List;
  * (InvMaterial)资源库
  *
  * @author
- * @since 2024-11-25 11:48:38
+ * @since 2024-11-25 13:43:52
  */
 public interface InvMaterialRepository extends BaseRepository<InvMaterial> {
     /**

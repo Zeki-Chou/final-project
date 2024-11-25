@@ -24,7 +24,7 @@ import java.util.List;
  * (InvBatch)表控制层
  *
  * @author
- * @since 2024-11-25 08:22:59
+ * @since 2024-11-25 13:43:35
  */
 
 @RestController("invBatchController.v1")
@@ -37,7 +37,7 @@ public class InvBatchController extends BaseController {
     @Autowired
     private InvBatchService invBatchService;
 
-    @ApiOperation(value = "List")
+    @ApiOperation(value = "列表")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping
     public ResponseEntity<Page<InvBatch>> list(InvBatch invBatch, @PathVariable Long organizationId,
@@ -47,7 +47,7 @@ public class InvBatchController extends BaseController {
         return Results.success(list);
     }
 
-    @ApiOperation(value = "Detail")
+    @ApiOperation(value = "明细")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping("/{batchId}/detail")
     public ResponseEntity<InvBatch> detail(@PathVariable Long batchId) {
@@ -55,7 +55,7 @@ public class InvBatchController extends BaseController {
         return Results.success(invBatch);
     }
 
-    @ApiOperation(value = "Save")
+    @ApiOperation(value = "创建或更新")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping
     public ResponseEntity<List<InvBatch>> save(@PathVariable Long organizationId, @RequestBody List<InvBatch> invBatchs) {
@@ -66,7 +66,7 @@ public class InvBatchController extends BaseController {
         return Results.success(invBatchs);
     }
 
-    @ApiOperation(value = "Remove")
+    @ApiOperation(value = "删除")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @DeleteMapping
     public ResponseEntity<?> remove(@RequestBody List<InvBatch> invBatchs) {

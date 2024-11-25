@@ -29,7 +29,7 @@ import java.util.List;
  */
 
 @RestController("invCountLineController.v1")
-@RequestMapping("/v1/{organizationId}/inv-count-lines")
+@RequestMapping("/v1/{organizationId}/inv-count-lines-exam")
 public class InvCountLineController extends BaseController {
 
     @Autowired
@@ -38,7 +38,7 @@ public class InvCountLineController extends BaseController {
     @Autowired
     private InvCountLineService invCountLineService;
 
-    @ApiOperation(value = "List")
+    @ApiOperation(value = "List Line Exam")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping
     public ResponseEntity<Page<InvCountLineDTO>> list(InvCountLineDTO invCountLine, @PathVariable Long organizationId,
@@ -48,7 +48,7 @@ public class InvCountLineController extends BaseController {
         return Results.success(list);
     }
 
-    @ApiOperation(value = "Detail")
+    @ApiOperation(value = "Detail Line Exam")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping("/{countLineId}/detail")
     public ResponseEntity<InvCountLine> detail(@PathVariable Long countLineId) {
@@ -56,7 +56,7 @@ public class InvCountLineController extends BaseController {
         return Results.success(invCountLine);
     }
 
-    @ApiOperation(value = "Save")
+    @ApiOperation(value = "Save Line Exam")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping
     public ResponseEntity<List<InvCountLineDTO>> save(@PathVariable Long organizationId, @RequestBody List<InvCountLineDTO> invCountLines) {
@@ -67,7 +67,7 @@ public class InvCountLineController extends BaseController {
         return Results.success(invCountLines);
     }
 
-    @ApiOperation(value = "Remove")
+    @ApiOperation(value = "Remove Line Exam")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @DeleteMapping
     public ResponseEntity<?> remove(@RequestBody List<InvCountLine> invCountLines) {

@@ -9,7 +9,7 @@ import java.util.List;
  * (IamDepartment)资源库
  *
  * @author
- * @since 2024-11-25 11:47:11
+ * @since 2024-11-25 13:43:25
  */
 public interface IamDepartmentRepository extends BaseRepository<IamDepartment> {
     /**

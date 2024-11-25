@@ -14,7 +14,7 @@ import java.util.List;
  * (InvBatch)资源库
  *
  * @author
- * @since 2024-11-25 08:22:59
+ * @since 2024-11-25 13:43:35
  */
 @Component
 public class InvBatchRepositoryImpl extends BaseRepositoryImpl<InvBatch> implements InvBatchRepository {

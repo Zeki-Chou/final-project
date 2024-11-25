@@ -24,7 +24,7 @@ import java.util.List;
  * (InvStock)表控制层
  *
  * @author
- * @since 2024-11-25 08:21:03
+ * @since 2024-11-25 13:44:00
  */
 
 @RestController("invStockController.v1")
@@ -37,7 +37,7 @@ public class InvStockController extends BaseController {
     @Autowired
     private InvStockService invStockService;
 
-    @ApiOperation(value = "List")
+    @ApiOperation(value = "列表")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping
     public ResponseEntity<Page<InvStock>> list(InvStock invStock, @PathVariable Long organizationId,
@@ -47,7 +47,7 @@ public class InvStockController extends BaseController {
         return Results.success(list);
     }
 
-    @ApiOperation(value = "Detail")
+    @ApiOperation(value = "明细")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping("/{stockId}/detail")
     public ResponseEntity<InvStock> detail(@PathVariable Long stockId) {
@@ -55,7 +55,7 @@ public class InvStockController extends BaseController {
         return Results.success(invStock);
     }
 
-    @ApiOperation(value = "Save")
+    @ApiOperation(value = "创建或更新")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping
     public ResponseEntity<List<InvStock>> save(@PathVariable Long organizationId, @RequestBody List<InvStock> invStocks) {
@@ -66,7 +66,7 @@ public class InvStockController extends BaseController {
         return Results.success(invStocks);
     }
 
-    @ApiOperation(value = "Remove")
+    @ApiOperation(value = "删除")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @DeleteMapping
     public ResponseEntity<?> remove(@RequestBody List<InvStock> invStocks) {

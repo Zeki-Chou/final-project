@@ -22,7 +22,7 @@ import lombok.Setter;
  * (IamDepartment)实体类
  *
  * @author
- * @since 2024-11-25 11:47:11
+ * @since 2024-11-25 13:43:25
  */
 
 @Getter
@@ -33,7 +33,7 @@ import lombok.Setter;
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 @Table(name = "fexam_iam_department")
 public class IamDepartment extends AuditDomain {
-    private static final long serialVersionUID = 309645515520121260L;
+    private static final long serialVersionUID = -92114677084524362L;
 
     public static final String FIELD_DEPARTMENT_ID = "departmentId";
     public static final String FIELD_ATTRIBUTE1 = "attribute1";

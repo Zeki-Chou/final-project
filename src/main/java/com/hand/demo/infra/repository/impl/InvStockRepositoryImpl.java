@@ -14,7 +14,7 @@ import java.util.List;
  * (InvStock)资源库
  *
  * @author
- * @since 2024-11-25 08:21:03
+ * @since 2024-11-25 13:43:59
  */
 @Component
 public class InvStockRepositoryImpl extends BaseRepositoryImpl<InvStock> implements InvStockRepository {

@@ -9,7 +9,7 @@ import java.util.List;
  * (InvWarehouse)资源库
  *
  * @author
- * @since 2024-11-25 08:25:31
+ * @since 2024-11-25 13:44:05
  */
 public interface InvWarehouseRepository extends BaseRepository<InvWarehouse> {
     /**

@@ -24,7 +24,7 @@ import java.util.List;
  * (InvWarehouse)表控制层
  *
  * @author
- * @since 2024-11-25 08:25:32
+ * @since 2024-11-25 13:44:05
  */
 
 @RestController("invWarehouseController.v1")
@@ -37,7 +37,7 @@ public class InvWarehouseController extends BaseController {
     @Autowired
     private InvWarehouseService invWarehouseService;
 
-    @ApiOperation(value = "List")
+    @ApiOperation(value = "列表")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping
     public ResponseEntity<Page<InvWarehouse>> list(InvWarehouse invWarehouse, @PathVariable Long organizationId,

@@ -32,7 +32,7 @@ import java.util.List;
  */
 
 @RestController("invCountHeaderController.v1")
-@RequestMapping("/v1/{organizationId}/inv-count-headers")
+@RequestMapping("/v1/{organizationId}/inv-count-headers-exam")
 public class InvCountHeaderController extends BaseController {
 
     @Autowired
@@ -41,7 +41,7 @@ public class InvCountHeaderController extends BaseController {
     @Autowired
     private InvCountHeaderService invCountHeaderService;
 
-    @ApiOperation(value = "Get List Header")
+    @ApiOperation(value = "Get List Header Exam")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping
     public ResponseEntity<Page<InvCountHeaderDTO>> list(InvCountHeaderDTO invCountHeader, @PathVariable Long organizationId,
@@ -51,7 +51,7 @@ public class InvCountHeaderController extends BaseController {
         return Results.success(list);
     }
 
-    @ApiOperation(value = "Get Detail")
+    @ApiOperation(value = "Get Detail Header Exam")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping("/{countHeaderId}/detail")
     public ResponseEntity<InvCountHeader> detail(@PathVariable Long countHeaderId) {
@@ -59,7 +59,7 @@ public class InvCountHeaderController extends BaseController {
         return Results.success(invCountHeader);
     }
 
-    @ApiOperation(value = "Save Data")
+    @ApiOperation(value = "Save Header Exam")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping
     public ResponseEntity<List<InvCountHeaderDTO>> save(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeaders) {
@@ -70,11 +70,11 @@ public class InvCountHeaderController extends BaseController {
         if (invCountInfoDTO.getErrMsg() != null) {
             throw new CommonException(JSON.toJSONString(invCountInfoDTO.getListErrMsg()));
         }
-        invCountHeaderService.saveData(invCountHeaders);
+//        invCountHeaderService.saveData(invCountHeaders);
         return Results.success(invCountHeaders);
     }
 
-    @ApiOperation(value = "Remove Data")
+    @ApiOperation(value = "Remove Header Exam")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @DeleteMapping
     public ResponseEntity<?> remove(@RequestBody List<InvCountHeader> invCountHeaders) {

@@ -41,8 +41,6 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     @Autowired
     private IamRemoteService iamRemoteService;
 
-    String remoteResponse = iamRemoteService.selectSelf().getBody();
-
     @Override
     public Page<InvCountHeaderDTO> selectList(PageRequest pageRequest, InvCountHeaderDTO invCountHeader) {
         return PageHelper.doPageAndSort(pageRequest, () -> invCountHeaderRepository.selectList(invCountHeader));
@@ -60,6 +58,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     public InvCountInfoDTO manualSaveCheck(List<InvCountHeaderDTO> invCountHeaderDTOS) {
         List<LovValueDTO> validStatusList = lovAdapter.queryLovValue(InvCountHeaderConstant.INV_COUNTING_COUNT_STATUS,
                 Long.valueOf(BaseConstants.DEFAULT_TENANT_ID));
+        String remoteResponse = iamRemoteService.selectSelf().getBody();
 
         List<String> validStatuses = validStatusList.stream()
                 .map(LovValueDTO::getValue)

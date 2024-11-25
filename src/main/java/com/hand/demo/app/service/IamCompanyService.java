@@ -10,7 +10,7 @@ import java.util.List;
  * (IamCompany)应用服务
  *
  * @author
- * @since 2024-11-25 11:46:46
+ * @since 2024-11-25 13:43:15
  */
 public interface IamCompanyService {
 

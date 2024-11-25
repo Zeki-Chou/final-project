@@ -24,7 +24,7 @@ import java.util.List;
  * (InvMaterial)表控制层
  *
  * @author
- * @since 2024-11-25 11:48:38
+ * @since 2024-11-25 13:43:53
  */
 
 @RestController("invMaterialController.v1")
@@ -37,7 +37,7 @@ public class InvMaterialController extends BaseController {
     @Autowired
     private InvMaterialService invMaterialService;
 
-    @ApiOperation(value = "List")
+    @ApiOperation(value = "列表")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping
     public ResponseEntity<Page<InvMaterial>> list(InvMaterial invMaterial, @PathVariable Long organizationId,
@@ -47,7 +47,7 @@ public class InvMaterialController extends BaseController {
         return Results.success(list);
     }
 
-    @ApiOperation(value = "Detail")
+    @ApiOperation(value = "明细")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping("/{materialId}/detail")
     public ResponseEntity<InvMaterial> detail(@PathVariable Long materialId) {
@@ -55,18 +55,18 @@ public class InvMaterialController extends BaseController {
         return Results.success(invMaterial);
     }
 
-    @ApiOperation(value = "Save")
+    @ApiOperation(value = "创建或更新")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping
     public ResponseEntity<List<InvMaterial>> save(@PathVariable Long organizationId, @RequestBody List<InvMaterial> invMaterials) {
         validObject(invMaterials);
         SecurityTokenHelper.validTokenIgnoreInsert(invMaterials);
-//        invMaterials.forEach(item -> item.setTenantId(organizationId));
+        invMaterials.forEach(item -> item.setTenantId(organizationId));
         invMaterialService.saveData(invMaterials);
         return Results.success(invMaterials);
     }
 
-    @ApiOperation(value = "Remove")
+    @ApiOperation(value = "删除")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @DeleteMapping
     public ResponseEntity<?> remove(@RequestBody List<InvMaterial> invMaterials) {

@@ -158,6 +158,15 @@
     "length" : 30,
     "ext" : { }
   }, {
+    "name" : "companyId",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : false,
+    "length" : 0,
+    "ext" : { }
+  }, {
     "name" : "createdBy",
     "comment" : null,
     "type" : null,
@@ -225,7 +234,7 @@
   "otherColumn" : null,
   "savePackageName" : "com.hand.demo",
   "savePath" : "./src/main/java/com/hand/demo",
-  "saveModelName" : "fexam-xxxxx",
+  "saveModelName" : "fexam-47358",
   "author" : "",
   "level" : "tenant",
   "fullColumnQuery" : true,

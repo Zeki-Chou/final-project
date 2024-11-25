@@ -24,7 +24,7 @@ import lombok.Setter;
  * (InvStock)实体类
  *
  * @author
- * @since 2024-11-25 08:21:02
+ * @since 2024-11-25 13:43:59
  */
 
 @Getter
@@ -35,7 +35,7 @@ import lombok.Setter;
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 @Table(name = "fexam_inv_stock")
 public class InvStock extends AuditDomain {
-    private static final long serialVersionUID = -65828752761370690L;
+    private static final long serialVersionUID = -48929638694521593L;
 
     public static final String FIELD_STOCK_ID = "stockId";
     public static final String FIELD_ATTRIBUTE1 = "attribute1";
