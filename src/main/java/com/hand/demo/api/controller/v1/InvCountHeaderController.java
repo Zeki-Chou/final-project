@@ -3,9 +3,7 @@ package com.hand.demo.api.controller.v1;
 import com.alibaba.fastjson.JSON;
 import com.hand.demo.api.dto.InvCountHeaderDTO;
 import com.hand.demo.api.dto.InvCountInfoDTO;
-import com.hand.demo.domain.entity.InvCountLine;
 import com.hand.demo.domain.entity.InvWarehouse;
-import com.hand.demo.domain.repository.InvCountLineRepository;
 import com.hand.demo.domain.repository.InvWarehouseRepository;
 import com.hand.demo.infra.constant.Constants;
 import com.hand.demo.infra.util.Utils;
@@ -25,7 +23,6 @@ import org.hzero.core.base.BaseController;
 import org.hzero.core.util.Results;
 import org.hzero.mybatis.helper.SecurityTokenHelper;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.hand.demo.app.service.InvCountHeaderService;
@@ -37,7 +34,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * (InvCountHeader)表控制层
