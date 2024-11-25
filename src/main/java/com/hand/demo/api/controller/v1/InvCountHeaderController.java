@@ -2,6 +2,10 @@ package com.hand.demo.api.controller.v1;
 
 import com.hand.demo.api.dto.InvCountHeaderDTO;
 import com.hand.demo.api.dto.InvCountInfoDTO;
+import com.hand.demo.domain.entity.InvCountLine;
+import com.hand.demo.domain.entity.InvWarehouse;
+import com.hand.demo.domain.repository.InvCountLineRepository;
+import com.hand.demo.domain.repository.InvWarehouseRepository;
 import com.hand.demo.infra.constant.Constants;
 import com.hand.demo.infra.util.Utils;
 import io.choerodon.core.domain.Page;
@@ -25,6 +29,7 @@ import com.hand.demo.domain.repository.InvCountHeaderRepository;
 import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -44,12 +49,13 @@ public class InvCountHeaderController extends BaseController {
     private InvCountHeaderRepository invCountHeaderRepository;
     private InvCountHeaderService invCountHeaderService;
     private IamRemoteService iamRemoteService;
+    private InvWarehouseRepository invWarehouseRepository;
 
     // TODO: add lov adapter
 
     public InvCountHeaderController(
-            InvCountHeaderRepository invCountHeaderRepository
-            , InvCountHeaderService invCountHeaderService,
+            InvCountHeaderRepository invCountHeaderRepository,
+            InvCountHeaderService invCountHeaderService,
             IamRemoteService iamRemoteService
     ) {
         this.invCountHeaderRepository = invCountHeaderRepository;
@@ -57,6 +63,7 @@ public class InvCountHeaderController extends BaseController {
         this.iamRemoteService = iamRemoteService;
     }
 
+    // temporary
     enum UpdateStatus {
         DRAFT,
         INCOUNTING,
@@ -106,35 +113,48 @@ public class InvCountHeaderController extends BaseController {
         validObject(invCountHeaderDTOS, InvCountHeader.class);
         InvCountInfoDTO invCountInfoDTO = new InvCountInfoDTO();
 
+        List<InvWarehouse> warehouses = invWarehouseRepository.selectAll();
+
+        List<Long> warehouseWMSIds = warehouses
+                                        .stream()
+                                        .filter(warehouse -> warehouse.getIsWmsWarehouse() == 1)
+                                        .map(InvWarehouse::getWarehouseId)
+                                        .collect(Collectors.toList());
+
         // TODO: change with lov adapter
         List<String> validUpdateStatuses = Stream.of(UpdateStatus.values())
                                                 .map(Enum::name)
                                                 .collect(Collectors.toList());
 
         List<InvCountHeaderDTO> invalidHeaderDTOS = new ArrayList<>();
-
+        List<InvCountHeaderDTO> validHeaderDTOS = new ArrayList<>();
 
         for (InvCountHeaderDTO invCountHeaderDTO: invCountHeaderDTOS) {
+
             if (invCountHeaderDTO.getCountHeaderId() == null) {
+                validHeaderDTOS.add(invCountHeaderDTO);
                 continue;
             }
 
+            boolean valid = true;
+
             if (!validUpdateStatuses.contains(invCountHeaderDTO.getCountStatus())) {
                 // set error message
+                valid = false;
                 invCountHeaderDTO.setErrorMessage(Constants.InvCountHeader.UPDATE_STATUS_INVALID);
                 invalidHeaderDTOS.add(invCountHeaderDTO);
             }
-
 
             // TODO: change with lov adapter
             JSONObject iamJSONObject = Utils.getIamJSONObject(iamRemoteService);
 
             String draftValue = UpdateStatus.DRAFT.name();
             //TODO: use iam remote json object to get the value
-            Long creator = 0L;
+            Long userId = 0L;
 
             if (draftValue.equals(invCountHeaderDTO.getCountStatus()) &&
-                    creator.equals(invCountHeaderDTO.getCreatedBy())) {
+                    userId.equals(invCountHeaderDTO.getCreatedBy())) {
+                valid = false;
                 invCountHeaderDTO.setErrorMessage(Constants.InvCountHeader.UPDATE_ACCESS_INVALID);
                 invalidHeaderDTOS.add(invCountHeaderDTO);
             }
@@ -144,11 +164,40 @@ public class InvCountHeaderController extends BaseController {
                     .filter(status -> !status.equals(draftValue))
                     .collect(Collectors.toList());
 
-//            if (validUpdateStatusSupervisorWMS.contains(invCountHeaderDTO.getCountStatus())) {
-//
-//            }
+            List<Long> headerCounterIds = Arrays.stream(invCountHeaderDTO.getSupervisorIds().split(","))
+                                                .map(Long::valueOf)
+                                                .collect(Collectors.toList());
+
+            List<Long> supervisorIds = Arrays.stream(invCountHeaderDTO.getCounterIds().split(","))
+                    .map(Long::valueOf)
+                    .collect(Collectors.toList());
+
+            if (validUpdateStatusSupervisorWMS.contains(invCountHeaderDTO.getCountStatus())) {
+                //TODO: find out how to find operator
+                if (warehouseWMSIds.contains(invCountHeaderDTO.getWarehouseId()) && !supervisorIds.contains(userId)) {
+                    valid = false;
+                    invCountHeaderDTO.setErrorMessage(Constants.InvCountHeader.WAREHOUSE_SUPERVISOR_INVALID);
+                    invalidHeaderDTOS.add(invCountHeaderDTO);
+                }
+
+                if (!headerCounterIds.contains(userId) &&
+                    !supervisorIds.contains(userId) &&
+                    !invCountHeaderDTO.getCreatedBy().equals(userId))
+                {
+                    valid = false;
+                    invCountHeaderDTO.setErrorMessage(Constants.InvCountHeader.ACCESS_UPDATE_STATUS_INVALID);
+                    invalidHeaderDTOS.add(invCountHeaderDTO);
+                }
+            }
+
+            if (valid) {
+                validHeaderDTOS.add(invCountHeaderDTO);
+            }
         }
 
+        invCountInfoDTO.setInvalidHeaderDTOS(invalidHeaderDTOS);
+        invCountInfoDTO.setValidHeaderDTOS(validHeaderDTOS);
+        invCountInfoDTO.setErrSize(invalidHeaderDTOS.size());
         return invCountInfoDTO;
     }
 
