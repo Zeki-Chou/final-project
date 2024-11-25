@@ -44,5 +44,10 @@ public class ExampleController extends BaseController {
         return Results.success(exampleRepository.selectByPrimaryKey(id));
     }
 
-
+    @ApiOperation(value = "Test API")
+    @Permission(level = ResourceLevel.SITE, permissionLogin = true)
+    @GetMapping("/test")
+    public ResponseEntity<String> test() {
+        return Results.success("Hello, world!");
+    }
 }
