@@ -27,7 +27,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         this.invCountHeaderRepository = invCountHeaderRepository;
     }
 
-    enum InvCountStatus {
+    enum Status {
         DRAFT,
         INCOUNTING,
         PROCESSING,
@@ -35,6 +35,21 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         APPROVED,
         REJECTED,
         CONFIRMED
+    }
+
+    enum Dimension {
+        SKU,
+        LOT
+    }
+
+    enum CountType {
+        MONTH,
+        YEAR
+    }
+
+    enum CountMode {
+        VISIBLE_COUNT,
+        UNVISIBLE_COUNT
     }
 
     @Override
