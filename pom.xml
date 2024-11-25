@@ -108,6 +108,11 @@
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.hzero.boot</groupId>
+            <artifactId>hzero-boot-interface</artifactId>
+        </dependency>
+
     </dependencies>
 
     <repositories>

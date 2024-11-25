@@ -1,25 +1,16 @@
 {
-  "name" : "FexamInvCountHeader",
+  "name" : "FexamInvWarehouse",
   "preName" : "fexam_",
   "modifyPreName" : "",
   "comment" : "",
   "templateGroupName" : "Default",
   "fullColumn" : [ {
-    "name" : "countHeaderId",
+    "name" : "warehouseId",
     "comment" : null,
     "type" : null,
     "shortType" : null,
     "custom" : false,
     "nullAble" : false,
-    "length" : 0,
-    "ext" : { }
-  }, {
-    "name" : "approvedTime",
-    "comment" : null,
-    "type" : null,
-    "shortType" : null,
-    "custom" : false,
-    "nullAble" : true,
     "length" : 0,
     "ext" : { }
   }, {
@@ -172,71 +163,8 @@
     "type" : null,
     "shortType" : null,
     "custom" : false,
-    "nullAble" : true,
+    "nullAble" : false,
     "length" : 0,
-    "ext" : { }
-  }, {
-    "name" : "countDimension",
-    "comment" : null,
-    "type" : null,
-    "shortType" : null,
-    "custom" : false,
-    "nullAble" : false,
-    "length" : 255,
-    "ext" : { }
-  }, {
-    "name" : "countMode",
-    "comment" : null,
-    "type" : null,
-    "shortType" : null,
-    "custom" : false,
-    "nullAble" : false,
-    "length" : 255,
-    "ext" : { }
-  }, {
-    "name" : "countNumber",
-    "comment" : null,
-    "type" : null,
-    "shortType" : null,
-    "custom" : false,
-    "nullAble" : false,
-    "length" : 255,
-    "ext" : { }
-  }, {
-    "name" : "countStatus",
-    "comment" : null,
-    "type" : null,
-    "shortType" : null,
-    "custom" : false,
-    "nullAble" : false,
-    "length" : 255,
-    "ext" : { }
-  }, {
-    "name" : "countTimeStr",
-    "comment" : null,
-    "type" : null,
-    "shortType" : null,
-    "custom" : false,
-    "nullAble" : true,
-    "length" : 255,
-    "ext" : { }
-  }, {
-    "name" : "countType",
-    "comment" : null,
-    "type" : null,
-    "shortType" : null,
-    "custom" : false,
-    "nullAble" : false,
-    "length" : 255,
-    "ext" : { }
-  }, {
-    "name" : "counterIds",
-    "comment" : null,
-    "type" : null,
-    "shortType" : null,
-    "custom" : false,
-    "nullAble" : true,
-    "length" : -1,
     "ext" : { }
   }, {
     "name" : "createdBy",
@@ -257,16 +185,7 @@
     "length" : 0,
     "ext" : { }
   }, {
-    "name" : "delFlag",
-    "comment" : null,
-    "type" : null,
-    "shortType" : null,
-    "custom" : false,
-    "nullAble" : true,
-    "length" : 0,
-    "ext" : { }
-  }, {
-    "name" : "departmentId",
+    "name" : "isWmsWarehouse",
     "comment" : null,
     "type" : null,
     "shortType" : null,
@@ -293,96 +212,6 @@
     "length" : 0,
     "ext" : { }
   }, {
-    "name" : "objectVersionNumber",
-    "comment" : null,
-    "type" : null,
-    "shortType" : null,
-    "custom" : false,
-    "nullAble" : false,
-    "length" : 0,
-    "ext" : { }
-  }, {
-    "name" : "reason",
-    "comment" : null,
-    "type" : null,
-    "shortType" : null,
-    "custom" : false,
-    "nullAble" : true,
-    "length" : 255,
-    "ext" : { }
-  }, {
-    "name" : "relatedWmsOrderCode",
-    "comment" : null,
-    "type" : null,
-    "shortType" : null,
-    "custom" : false,
-    "nullAble" : true,
-    "length" : 255,
-    "ext" : { }
-  }, {
-    "name" : "remark",
-    "comment" : null,
-    "type" : null,
-    "shortType" : null,
-    "custom" : false,
-    "nullAble" : true,
-    "length" : 255,
-    "ext" : { }
-  }, {
-    "name" : "snapshotBatchIds",
-    "comment" : null,
-    "type" : null,
-    "shortType" : null,
-    "custom" : false,
-    "nullAble" : true,
-    "length" : -1,
-    "ext" : { }
-  }, {
-    "name" : "snapshotMaterialIds",
-    "comment" : null,
-    "type" : null,
-    "shortType" : null,
-    "custom" : false,
-    "nullAble" : true,
-    "length" : -1,
-    "ext" : { }
-  }, {
-    "name" : "sourceCode",
-    "comment" : null,
-    "type" : null,
-    "shortType" : null,
-    "custom" : false,
-    "nullAble" : true,
-    "length" : 255,
-    "ext" : { }
-  }, {
-    "name" : "sourceId",
-    "comment" : null,
-    "type" : null,
-    "shortType" : null,
-    "custom" : false,
-    "nullAble" : true,
-    "length" : 0,
-    "ext" : { }
-  }, {
-    "name" : "sourceSystem",
-    "comment" : null,
-    "type" : null,
-    "shortType" : null,
-    "custom" : false,
-    "nullAble" : true,
-    "length" : 255,
-    "ext" : { }
-  }, {
-    "name" : "supervisorIds",
-    "comment" : null,
-    "type" : null,
-    "shortType" : null,
-    "custom" : false,
-    "nullAble" : true,
-    "length" : -1,
-    "ext" : { }
-  }, {
     "name" : "tenantId",
     "comment" : null,
     "type" : null,
@@ -392,22 +221,13 @@
     "length" : 0,
     "ext" : { }
   }, {
-    "name" : "warehouseId",
+    "name" : "warehouseCode",
     "comment" : null,
     "type" : null,
     "shortType" : null,
     "custom" : false,
     "nullAble" : true,
-    "length" : 0,
-    "ext" : { }
-  }, {
-    "name" : "workflowId",
-    "comment" : null,
-    "type" : null,
-    "shortType" : null,
-    "custom" : false,
-    "nullAble" : true,
-    "length" : 0,
+    "length" : 255,
     "ext" : { }
   } ],
   "pkColumn" : null,
