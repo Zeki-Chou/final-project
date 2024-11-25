@@ -13,6 +13,7 @@ import io.choerodon.core.oauth.DetailsHelper;
 import io.choerodon.mybatis.pagehelper.PageHelper;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 import lombok.AllArgsConstructor;
+import org.hzero.boot.platform.code.builder.CodeRuleBuilder;
 import org.hzero.boot.platform.lov.adapter.LovAdapter;
 import org.hzero.boot.platform.lov.dto.LovValueDTO;
 import org.hzero.core.base.BaseConstants;
@@ -48,17 +49,36 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
     private final LovAdapter lovAdapter;
 
+    private final CodeRuleBuilder codeRuleBuilder;
+
     @Override
     public Page<InvCountHeaderDTO> selectList(PageRequest pageRequest, InvCountHeaderDTO invCountHeader) {
         return PageHelper.doPageAndSort(pageRequest, () -> invCountHeaderRepository.selectList(invCountHeader));
     }
 
     @Override
-    public void saveData(List<InvCountHeader> invCountHeaders) {
-        List<InvCountHeader> insertList = invCountHeaders.stream().filter(line -> line.getCountHeaderId() == null).collect(Collectors.toList());
-        List<InvCountHeader> updateList = invCountHeaders.stream().filter(line -> line.getCountHeaderId() != null).collect(Collectors.toList());
-        invCountHeaderRepository.batchInsertSelective(insertList);
-        invCountHeaderRepository.batchUpdateByPrimaryKeySelective(updateList);
+    public void saveData(List<InvCountHeaderDTO> invCountHeaders) {
+        manualSaveCheck(invCountHeaders);
+        List<InvCountHeaderDTO> insertList = invCountHeaders.stream()
+                .filter(line -> line.getCountHeaderId() == null)
+                .peek(line -> {
+                    line.setCountStatus(InvCountHeaderConstants.COUNT_STATUS_DRAFT);
+                    line.setDelFlag(0);
+                })
+                .collect(Collectors.toList());
+        List<InvCountHeaderDTO> updateList = invCountHeaders.stream().filter(line -> line.getCountHeaderId() != null).collect(Collectors.toList());
+
+        Map<String, String> variableMap = new HashMap<>();
+        variableMap.put("customSegment", "-");
+        List<String> applyHeaderNumbers = codeRuleBuilder.generateCode(insertList.size(), InvCountHeaderConstants.COUNT_NUMBER_CODE_RULE, variableMap);
+
+        for (int i = 0; i < insertList.size(); i++) {
+            InvCountHeaderDTO headerDTO = insertList.get(i);
+            headerDTO.setCountNumber(applyHeaderNumbers.get(i));
+        }
+
+        invCountHeaderRepository.batchInsertSelective(new ArrayList<>(insertList));
+        invCountHeaderRepository.batchUpdateByPrimaryKeySelective(new ArrayList<>(updateList));
     }
 
     @Override
@@ -108,7 +128,6 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
         List<String> allowedCountStatusList = getAllowedLovValues();
 
-        Map<Long, InvWarehouse> invWarehouseById = getWarehouseMappedById(headerDTOList);
 
         for(InvCountHeaderDTO headerDTO : headerDTOList) {
             if (headerDTO.getCountHeaderId() == null) {
@@ -122,6 +141,8 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             } else if(countStatus.equals(InvCountHeaderConstants.COUNT_STATUS_DRAFT) && !isCreator(headerDTO.getCreatedBy())) {
                 setErrorCountInfoError(headerDTO, infoDTO, "Document in draft status can only be modified by the document creator.");
             } else if (allowedCountStatusList.contains(countStatus)) {
+                Map<Long, InvWarehouse> invWarehouseById = getWarehouseMappedById(headerDTOList);
+
                 boolean isWMSWarehouse = invWarehouseById.get(headerDTO.getWarehouseId()).getIsWmsWarehouse() == 1;
                 List<Long> parsedSupervisorIds = parseCommaSeperatedIds(headerDTO.getSupervisorIds().toString());
                 List<Long> parsedCounterIds = parseCommaSeperatedIds(headerDTO.getCounterIds().toString());
