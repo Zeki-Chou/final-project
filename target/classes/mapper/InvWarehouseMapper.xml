@@ -21,6 +21,7 @@
         fiw.attribute8,
         fiw.attribute9,
         fiw.attribute_category,
+        fiw.company_id,
         fiw.is_wms_warehouse,
         fiw.tenant_id,
         fiw.warehouse_code,

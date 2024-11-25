@@ -63,15 +63,15 @@ public class InvCountHeaderController extends BaseController {
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping
     public ResponseEntity<List<InvCountHeaderDTO>> save(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeaders) {
-        validObject(invCountHeaders, InvCountHeaderDTO.class);
+        validObject(invCountHeaders);
         SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
         invCountHeaders.forEach(item -> item.setTenantId(organizationId));
         InvCountInfoDTO invCountInfoDTO = invCountHeaderService.manualSaveCheck(invCountHeaders);
-        if (invCountInfoDTO.getErrMsg() != null) {
+        if (!invCountInfoDTO.getErrMsg().isEmpty()) {
             throw new CommonException(JSON.toJSONString(invCountInfoDTO.getListErrMsg()));
         }
-//        invCountHeaderService.saveData(invCountHeaders);
-        return Results.success(invCountHeaders);
+        List<InvCountHeaderDTO> dtos =  invCountHeaderService.manualSave(invCountHeaders);
+        return Results.success(dtos);
     }
 
     @ApiOperation(value = "Remove Header Exam")

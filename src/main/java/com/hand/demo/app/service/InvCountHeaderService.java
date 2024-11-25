@@ -33,5 +33,7 @@ public interface InvCountHeaderService {
     void saveData(List<InvCountHeaderDTO> invCountHeaders);
 
     InvCountInfoDTO manualSaveCheck(List<InvCountHeaderDTO> invCountHeaderDTOS);
+
+    List<InvCountHeaderDTO> manualSave(List<InvCountHeaderDTO> invCountHeaderDTOS);
 }
 

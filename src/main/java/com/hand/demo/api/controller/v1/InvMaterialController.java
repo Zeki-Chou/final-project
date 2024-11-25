@@ -61,7 +61,7 @@ public class InvMaterialController extends BaseController {
     public ResponseEntity<List<InvMaterial>> save(@PathVariable Long organizationId, @RequestBody List<InvMaterial> invMaterials) {
         validObject(invMaterials);
         SecurityTokenHelper.validTokenIgnoreInsert(invMaterials);
-        invMaterials.forEach(item -> item.setTenantId(organizationId));
+//        invMaterials.forEach(item -> item.setTenantId(organizationId));
         invMaterialService.saveData(invMaterials);
         return Results.success(invMaterials);
     }

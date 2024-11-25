@@ -17,6 +17,7 @@ import java.util.Date;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
 /**
  * (InvWarehouse)实体类
@@ -32,6 +33,7 @@ import lombok.Setter;
 @ModifyAudit
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 @Table(name = "fexam_inv_warehouse")
+@Accessors(chain = true)
 public class InvWarehouse extends AuditDomain {
     private static final long serialVersionUID = 269996265871872739L;
 

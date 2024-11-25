@@ -9,6 +9,7 @@ import com.hand.demo.app.service.InvCountLineService;
 import org.springframework.stereotype.Service;
 import com.hand.demo.domain.entity.InvCountLine;
 import com.hand.demo.domain.repository.InvCountLineRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,10 +30,14 @@ public class InvCountLineServiceImpl implements InvCountLineService {
         return PageHelper.doPageAndSort(pageRequest, () -> invCountLineRepository.selectList(invCountLine));
     }
 
+    @Transactional
     @Override
     public void saveData(List<InvCountLineDTO> invCountLines) {
-        List<InvCountLine> insertList = invCountLines.stream().filter(line -> line.getCountLineId() == null).collect(Collectors.toList());
-        List<InvCountLine> updateList = invCountLines.stream().filter(line -> line.getCountLineId() != null).collect(Collectors.toList());
+        List<InvCountLine> insertList = invCountLines.stream().filter(line -> line.getCountLineId() == null)
+                .collect(Collectors.toList());
+        List<InvCountLine> updateList = invCountLines.stream().filter(line -> line.getCountLineId() != null)
+                .collect(Collectors.toList());
+
         invCountLineRepository.batchInsertSelective(insertList);
         invCountLineRepository.batchUpdateByPrimaryKeySelective(updateList);
     }
