@@ -14,7 +14,7 @@ import java.util.List;
  * (InvCountLine)资源库
  *
  * @author Allan
- * @since 2024-11-25 10:30:32
+ * @since 2024-11-25 15:46:33
  */
 @Component
 public class InvCountLineRepositoryImpl extends BaseRepositoryImpl<InvCountLine> implements InvCountLineRepository {

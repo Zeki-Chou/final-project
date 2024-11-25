@@ -17,6 +17,7 @@ public class Constants {
 
         public static final String DEFAULT_COUNT_STATUS = "DRAFT";
 
+
         public static final String UPDATE_STATUS_INVALID = "only draft, in counting, rejected, and withdrawn status can be modified";
         public static final String UPDATE_ACCESS_INVALID = "Document in draft status can only be modified by the document creator";
         public static final String WAREHOUSE_SUPERVISOR_INVALID = "The current warehouse is a WMS warehouse, and only the supervisor is allowed to operate";

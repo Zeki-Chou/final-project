@@ -24,7 +24,7 @@ import lombok.Setter;
  * (InvCountLine)实体类
  *
  * @author Allan
- * @since 2024-11-25 10:30:31
+ * @since 2024-11-25 15:46:33
  */
 
 @Getter
@@ -35,7 +35,7 @@ import lombok.Setter;
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 @Table(name = "fexam_inv_count_line")
 public class InvCountLine extends AuditDomain {
-    private static final long serialVersionUID = 761149992967620871L;
+    private static final long serialVersionUID = 776613220413660542L;
 
     public static final String FIELD_COUNT_LINE_ID = "countLineId";
     public static final String FIELD_ATTRIBUTE1 = "attribute1";
