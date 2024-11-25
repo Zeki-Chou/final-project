@@ -158,6 +158,15 @@
     "length" : 30,
     "ext" : { }
   }, {
+    "name" : "companyId",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : false,
+    "length" : 0,
+    "ext" : { }
+  }, {
     "name" : "createdBy",
     "comment" : null,
     "type" : null,
@@ -185,6 +194,15 @@
     "length" : 255,
     "ext" : { }
   }, {
+    "name" : "departmentName",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 255,
+    "ext" : { }
+  }, {
     "name" : "lastUpdateDate",
     "comment" : null,
     "type" : null,
@@ -195,6 +213,15 @@
     "ext" : { }
   }, {
     "name" : "lastUpdatedBy",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : false,
+    "length" : 0,
+    "ext" : { }
+  }, {
+    "name" : "tenantId",
     "comment" : null,
     "type" : null,
     "shortType" : null,

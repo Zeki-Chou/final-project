@@ -26,7 +26,7 @@ import org.hzero.boot.platform.lov.annotation.LovValue;
  * (InvCountHeader)实体类
  *
  * @author
- * @since 2024-11-25 08:22:36
+ * @since 2024-11-25 10:24:42
  */
 
 @Getter
@@ -37,7 +37,7 @@ import org.hzero.boot.platform.lov.annotation.LovValue;
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 @Table(name = "fexam_inv_count_header")
 public class InvCountHeader extends AuditDomain {
-    private static final long serialVersionUID = 784007074782361451L;
+    private static final long serialVersionUID = -90097368488988849L;
 
     public static final String FIELD_COUNT_HEADER_ID = "countHeaderId";
     public static final String FIELD_APPROVED_TIME = "approvedTime";
@@ -118,6 +118,7 @@ public class InvCountHeader extends AuditDomain {
 
     private String attributeCategory;
 
+    @NotBlank
     private Long companyId;
 
     @ApiModelProperty(value = "", required = true)
@@ -146,7 +147,8 @@ public class InvCountHeader extends AuditDomain {
     @LovValue(value = InvCountHeaderConstant.INV_COUNTING_COUNT_TYPE)
     private String countType;
 
-    private Object counterIds;
+    @NotBlank
+    private String counterIds;
 
     private Integer delFlag;
 
@@ -158,9 +160,9 @@ public class InvCountHeader extends AuditDomain {
 
     private String remark;
 
-    private Object snapshotBatchIds;
+    private String snapshotBatchIds;
 
-    private Object snapshotMaterialIds;
+    private String snapshotMaterialIds;
 
     private String sourceCode;
 
@@ -168,12 +170,14 @@ public class InvCountHeader extends AuditDomain {
 
     private String sourceSystem;
 
-    private Object supervisorIds;
+    @NotBlank
+    private String supervisorIds;
 
     @ApiModelProperty(value = "", required = true)
     @NotNull
     private Long tenantId;
 
+    @NotBlank
     private Long warehouseId;
 
     private Long workflowId;

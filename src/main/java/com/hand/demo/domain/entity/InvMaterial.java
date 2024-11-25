@@ -22,7 +22,7 @@ import lombok.Setter;
  * (InvMaterial)实体类
  *
  * @author
- * @since 2024-11-25 08:21:36
+ * @since 2024-11-25 11:48:38
  */
 
 @Getter
@@ -33,7 +33,7 @@ import lombok.Setter;
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 @Table(name = "fexam_inv_material")
 public class InvMaterial extends AuditDomain {
-    private static final long serialVersionUID = 445320300705962466L;
+    private static final long serialVersionUID = 327251101547236340L;
 
     public static final String FIELD_MATERIAL_ID = "materialId";
     public static final String FIELD_ATTRIBUTE1 = "attribute1";
@@ -53,7 +53,6 @@ public class InvMaterial extends AuditDomain {
     public static final String FIELD_ATTRIBUTE9 = "attribute9";
     public static final String FIELD_ATTRIBUTE_CATEGORY = "attributeCategory";
     public static final String FIELD_BASE_UNIT_CODE = "baseUnitCode";
-    public static final String FIELD_BASE_UNIT_ID = "baseUnitId";
     public static final String FIELD_CATEGORY_CODE = "categoryCode";
     public static final String FIELD_MATERIAL_CODE = "materialCode";
     public static final String FIELD_MATERIAL_NAME = "materialName";
@@ -96,8 +95,6 @@ public class InvMaterial extends AuditDomain {
     private String attributeCategory;
 
     private String baseUnitCode;
-
-    private Long baseUnitId;
 
     private String categoryCode;
 

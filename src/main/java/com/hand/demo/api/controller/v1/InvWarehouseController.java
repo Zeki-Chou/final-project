@@ -37,7 +37,7 @@ public class InvWarehouseController extends BaseController {
     @Autowired
     private InvWarehouseService invWarehouseService;
 
-    @ApiOperation(value = "列表")
+    @ApiOperation(value = "List")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping
     public ResponseEntity<Page<InvWarehouse>> list(InvWarehouse invWarehouse, @PathVariable Long organizationId,

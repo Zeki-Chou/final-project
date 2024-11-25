@@ -37,7 +37,7 @@ public class InvBatchController extends BaseController {
     @Autowired
     private InvBatchService invBatchService;
 
-    @ApiOperation(value = "列表")
+    @ApiOperation(value = "List")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping
     public ResponseEntity<Page<InvBatch>> list(InvBatch invBatch, @PathVariable Long organizationId,
@@ -47,7 +47,7 @@ public class InvBatchController extends BaseController {
         return Results.success(list);
     }
 
-    @ApiOperation(value = "明细")
+    @ApiOperation(value = "Detail")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping("/{batchId}/detail")
     public ResponseEntity<InvBatch> detail(@PathVariable Long batchId) {
@@ -55,7 +55,7 @@ public class InvBatchController extends BaseController {
         return Results.success(invBatch);
     }
 
-    @ApiOperation(value = "创建或更新")
+    @ApiOperation(value = "Save")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping
     public ResponseEntity<List<InvBatch>> save(@PathVariable Long organizationId, @RequestBody List<InvBatch> invBatchs) {
@@ -66,7 +66,7 @@ public class InvBatchController extends BaseController {
         return Results.success(invBatchs);
     }
 
-    @ApiOperation(value = "删除")
+    @ApiOperation(value = "Remove")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @DeleteMapping
     public ResponseEntity<?> remove(@RequestBody List<InvBatch> invBatchs) {

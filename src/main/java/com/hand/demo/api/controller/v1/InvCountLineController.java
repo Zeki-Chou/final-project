@@ -1,5 +1,6 @@
 package com.hand.demo.api.controller.v1;
 
+import com.hand.demo.api.dto.InvCountLineDTO;
 import io.choerodon.core.domain.Page;
 import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.mybatis.pagehelper.annotation.SortDefault;
@@ -37,17 +38,17 @@ public class InvCountLineController extends BaseController {
     @Autowired
     private InvCountLineService invCountLineService;
 
-    @ApiOperation(value = "列表")
+    @ApiOperation(value = "List")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping
-    public ResponseEntity<Page<InvCountLine>> list(InvCountLine invCountLine, @PathVariable Long organizationId,
+    public ResponseEntity<Page<InvCountLineDTO>> list(InvCountLineDTO invCountLine, @PathVariable Long organizationId,
                                                    @ApiIgnore @SortDefault(value = InvCountLine.FIELD_COUNT_LINE_ID,
                                                            direction = Sort.Direction.DESC) PageRequest pageRequest) {
-        Page<InvCountLine> list = invCountLineService.selectList(pageRequest, invCountLine);
+        Page<InvCountLineDTO> list = invCountLineService.selectList(pageRequest, invCountLine);
         return Results.success(list);
     }
 
-    @ApiOperation(value = "明细")
+    @ApiOperation(value = "Detail")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping("/{countLineId}/detail")
     public ResponseEntity<InvCountLine> detail(@PathVariable Long countLineId) {
@@ -55,10 +56,10 @@ public class InvCountLineController extends BaseController {
         return Results.success(invCountLine);
     }
 
-    @ApiOperation(value = "创建或更新")
+    @ApiOperation(value = "Save")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping
-    public ResponseEntity<List<InvCountLine>> save(@PathVariable Long organizationId, @RequestBody List<InvCountLine> invCountLines) {
+    public ResponseEntity<List<InvCountLineDTO>> save(@PathVariable Long organizationId, @RequestBody List<InvCountLineDTO> invCountLines) {
         validObject(invCountLines);
         SecurityTokenHelper.validTokenIgnoreInsert(invCountLines);
         invCountLines.forEach(item -> item.setTenantId(organizationId));
@@ -66,7 +67,7 @@ public class InvCountLineController extends BaseController {
         return Results.success(invCountLines);
     }
 
-    @ApiOperation(value = "删除")
+    @ApiOperation(value = "Remove")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @DeleteMapping
     public ResponseEntity<?> remove(@RequestBody List<InvCountLine> invCountLines) {

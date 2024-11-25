@@ -9,7 +9,7 @@ import java.util.List;
  * (IamCompany)应用服务
  *
  * @author
- * @since 2024-11-25 08:23:56
+ * @since 2024-11-25 11:46:46
  */
 public interface IamCompanyMapper extends BaseMapper<IamCompany> {
     /**

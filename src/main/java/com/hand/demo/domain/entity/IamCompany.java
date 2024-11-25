@@ -22,7 +22,7 @@ import lombok.Setter;
  * (IamCompany)实体类
  *
  * @author
- * @since 2024-11-25 08:23:56
+ * @since 2024-11-25 11:46:46
  */
 
 @Getter
@@ -33,7 +33,7 @@ import lombok.Setter;
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 @Table(name = "fexam_iam_company")
 public class IamCompany extends AuditDomain {
-    private static final long serialVersionUID = 128956720758276412L;
+    private static final long serialVersionUID = 139508211300377905L;
 
     public static final String FIELD_COMPANY_ID = "companyId";
     public static final String FIELD_ATTRIBUTE1 = "attribute1";
@@ -53,6 +53,8 @@ public class IamCompany extends AuditDomain {
     public static final String FIELD_ATTRIBUTE9 = "attribute9";
     public static final String FIELD_ATTRIBUTE_CATEGORY = "attributeCategory";
     public static final String FIELD_COMPANY_CODE = "companyCode";
+    public static final String FIELD_COMPANY_NAME = "companyName";
+    public static final String FIELD_TENANT_ID = "tenantId";
 
     @Id
     @GeneratedValue
@@ -91,6 +93,12 @@ public class IamCompany extends AuditDomain {
     private String attributeCategory;
 
     private String companyCode;
+
+    private String companyName;
+
+    @ApiModelProperty(value = "", required = true)
+    @NotNull
+    private Long tenantId;
 
 
 }

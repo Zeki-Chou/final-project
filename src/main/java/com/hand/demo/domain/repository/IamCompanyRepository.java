@@ -9,7 +9,7 @@ import java.util.List;
  * (IamCompany)资源库
  *
  * @author
- * @since 2024-11-25 08:23:57
+ * @since 2024-11-25 11:46:46
  */
 public interface IamCompanyRepository extends BaseRepository<IamCompany> {
     /**

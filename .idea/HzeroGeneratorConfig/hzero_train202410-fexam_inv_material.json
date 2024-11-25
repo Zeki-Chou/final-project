@@ -167,15 +167,6 @@
     "length" : 255,
     "ext" : { }
   }, {
-    "name" : "baseUnitId",
-    "comment" : null,
-    "type" : null,
-    "shortType" : null,
-    "custom" : false,
-    "nullAble" : true,
-    "length" : 0,
-    "ext" : { }
-  }, {
     "name" : "categoryCode",
     "comment" : null,
     "type" : null,

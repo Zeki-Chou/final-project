@@ -22,7 +22,7 @@ import lombok.Setter;
  * (IamDepartment)实体类
  *
  * @author
- * @since 2024-11-25 08:24:13
+ * @since 2024-11-25 11:47:11
  */
 
 @Getter
@@ -33,7 +33,7 @@ import lombok.Setter;
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 @Table(name = "fexam_iam_department")
 public class IamDepartment extends AuditDomain {
-    private static final long serialVersionUID = 899610790127735429L;
+    private static final long serialVersionUID = 309645515520121260L;
 
     public static final String FIELD_DEPARTMENT_ID = "departmentId";
     public static final String FIELD_ATTRIBUTE1 = "attribute1";
@@ -52,7 +52,10 @@ public class IamDepartment extends AuditDomain {
     public static final String FIELD_ATTRIBUTE8 = "attribute8";
     public static final String FIELD_ATTRIBUTE9 = "attribute9";
     public static final String FIELD_ATTRIBUTE_CATEGORY = "attributeCategory";
+    public static final String FIELD_COMPANY_ID = "companyId";
     public static final String FIELD_DEPARTMENT_CODE = "departmentCode";
+    public static final String FIELD_DEPARTMENT_NAME = "departmentName";
+    public static final String FIELD_TENANT_ID = "tenantId";
 
     @Id
     @GeneratedValue
@@ -90,7 +93,17 @@ public class IamDepartment extends AuditDomain {
 
     private String attributeCategory;
 
+    @ApiModelProperty(value = "", required = true)
+    @NotNull
+    private Long companyId;
+
     private String departmentCode;
+
+    private String departmentName;
+
+    @ApiModelProperty(value = "", required = true)
+    @NotNull
+    private Long tenantId;
 
 
 }

@@ -24,7 +24,7 @@ import java.util.List;
  * (IamCompany)表控制层
  *
  * @author
- * @since 2024-11-25 08:23:57
+ * @since 2024-11-25 11:46:46
  */
 
 @RestController("iamCompanyController.v1")
@@ -37,7 +37,7 @@ public class IamCompanyController extends BaseController {
     @Autowired
     private IamCompanyService iamCompanyService;
 
-    @ApiOperation(value = "列表")
+    @ApiOperation(value = "Get List")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping
     public ResponseEntity<Page<IamCompany>> list(IamCompany iamCompany, @PathVariable Long organizationId,
@@ -47,7 +47,7 @@ public class IamCompanyController extends BaseController {
         return Results.success(list);
     }
 
-    @ApiOperation(value = "明细")
+    @ApiOperation(value = "Detail")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping("/{companyId}/detail")
     public ResponseEntity<IamCompany> detail(@PathVariable Long companyId) {
@@ -55,7 +55,7 @@ public class IamCompanyController extends BaseController {
         return Results.success(iamCompany);
     }
 
-    @ApiOperation(value = "创建或更新")
+    @ApiOperation(value = "Save")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping
     public ResponseEntity<List<IamCompany>> save(@PathVariable Long organizationId, @RequestBody List<IamCompany> iamCompanys) {
@@ -66,7 +66,7 @@ public class IamCompanyController extends BaseController {
         return Results.success(iamCompanys);
     }
 
-    @ApiOperation(value = "删除")
+    @ApiOperation(value = "Remove")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @DeleteMapping
     public ResponseEntity<?> remove(@RequestBody List<IamCompany> iamCompanys) {

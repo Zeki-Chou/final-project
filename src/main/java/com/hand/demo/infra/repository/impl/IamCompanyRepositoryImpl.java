@@ -14,7 +14,7 @@ import java.util.List;
  * (IamCompany)资源库
  *
  * @author
- * @since 2024-11-25 08:23:57
+ * @since 2024-11-25 11:46:46
  */
 @Component
 public class IamCompanyRepositoryImpl extends BaseRepositoryImpl<IamCompany> implements IamCompanyRepository {

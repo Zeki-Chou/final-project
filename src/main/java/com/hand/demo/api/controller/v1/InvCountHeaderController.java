@@ -1,6 +1,10 @@
 package com.hand.demo.api.controller.v1;
 
+import com.alibaba.fastjson.JSON;
+import com.hand.demo.api.dto.InvCountHeaderDTO;
+import com.hand.demo.api.dto.InvCountInfoDTO;
 import io.choerodon.core.domain.Page;
+import io.choerodon.core.exception.CommonException;
 import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.mybatis.pagehelper.annotation.SortDefault;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
@@ -37,17 +41,17 @@ public class InvCountHeaderController extends BaseController {
     @Autowired
     private InvCountHeaderService invCountHeaderService;
 
-    @ApiOperation(value = "列表")
+    @ApiOperation(value = "Get List Header")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping
-    public ResponseEntity<Page<InvCountHeader>> list(InvCountHeader invCountHeader, @PathVariable Long organizationId,
+    public ResponseEntity<Page<InvCountHeaderDTO>> list(InvCountHeaderDTO invCountHeader, @PathVariable Long organizationId,
                                                      @ApiIgnore @SortDefault(value = InvCountHeader.FIELD_COUNT_HEADER_ID,
                                                              direction = Sort.Direction.DESC) PageRequest pageRequest) {
-        Page<InvCountHeader> list = invCountHeaderService.selectList(pageRequest, invCountHeader);
+        Page<InvCountHeaderDTO> list = invCountHeaderService.selectList(pageRequest, invCountHeader);
         return Results.success(list);
     }
 
-    @ApiOperation(value = "明细")
+    @ApiOperation(value = "Get Detail")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping("/{countHeaderId}/detail")
     public ResponseEntity<InvCountHeader> detail(@PathVariable Long countHeaderId) {
@@ -55,18 +59,22 @@ public class InvCountHeaderController extends BaseController {
         return Results.success(invCountHeader);
     }
 
-    @ApiOperation(value = "创建或更新")
+    @ApiOperation(value = "Save Data")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping
-    public ResponseEntity<List<InvCountHeader>> save(@PathVariable Long organizationId, @RequestBody List<InvCountHeader> invCountHeaders) {
-        validObject(invCountHeaders);
+    public ResponseEntity<List<InvCountHeaderDTO>> save(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeaders) {
+        validObject(invCountHeaders, InvCountHeaderDTO.class);
         SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
         invCountHeaders.forEach(item -> item.setTenantId(organizationId));
+        InvCountInfoDTO invCountInfoDTO = invCountHeaderService.manualSaveCheck(invCountHeaders);
+        if (invCountInfoDTO.getErrMsg() != null) {
+            throw new CommonException(JSON.toJSONString(invCountInfoDTO.getListErrMsg()));
+        }
         invCountHeaderService.saveData(invCountHeaders);
         return Results.success(invCountHeaders);
     }
 
-    @ApiOperation(value = "删除")
+    @ApiOperation(value = "Remove Data")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @DeleteMapping
     public ResponseEntity<?> remove(@RequestBody List<InvCountHeader> invCountHeaders) {

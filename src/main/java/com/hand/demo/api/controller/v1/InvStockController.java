@@ -37,7 +37,7 @@ public class InvStockController extends BaseController {
     @Autowired
     private InvStockService invStockService;
 
-    @ApiOperation(value = "列表")
+    @ApiOperation(value = "List")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping
     public ResponseEntity<Page<InvStock>> list(InvStock invStock, @PathVariable Long organizationId,
@@ -47,7 +47,7 @@ public class InvStockController extends BaseController {
         return Results.success(list);
     }
 
-    @ApiOperation(value = "明细")
+    @ApiOperation(value = "Detail")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping("/{stockId}/detail")
     public ResponseEntity<InvStock> detail(@PathVariable Long stockId) {
@@ -55,7 +55,7 @@ public class InvStockController extends BaseController {
         return Results.success(invStock);
     }
 
-    @ApiOperation(value = "创建或更新")
+    @ApiOperation(value = "Save")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping
     public ResponseEntity<List<InvStock>> save(@PathVariable Long organizationId, @RequestBody List<InvStock> invStocks) {
@@ -66,7 +66,7 @@ public class InvStockController extends BaseController {
         return Results.success(invStocks);
     }
 
-    @ApiOperation(value = "删除")
+    @ApiOperation(value = "Remove")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @DeleteMapping
     public ResponseEntity<?> remove(@RequestBody List<InvStock> invStocks) {
