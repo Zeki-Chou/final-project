@@ -1,5 +1,6 @@
 package com.hand.demo.infra.repository.impl;
 
+import com.hand.demo.api.dto.InvCountHeaderDTO;
 import org.apache.commons.collections.CollectionUtils;
 import org.hzero.mybatis.base.impl.BaseRepositoryImpl;
 import org.springframework.stereotype.Component;
@@ -22,15 +23,15 @@ public class InvCountHeaderRepositoryImpl extends BaseRepositoryImpl<InvCountHea
     private InvCountHeaderMapper invCountHeaderMapper;
 
     @Override
-    public List<InvCountHeader> selectList(InvCountHeader invCountHeader) {
+    public List<InvCountHeaderDTO> selectList(InvCountHeaderDTO invCountHeader) {
         return invCountHeaderMapper.selectList(invCountHeader);
     }
 
     @Override
-    public InvCountHeader selectByPrimary(Long countHeaderId) {
-        InvCountHeader invCountHeader = new InvCountHeader();
+    public InvCountHeaderDTO selectByPrimary(Long countHeaderId) {
+        InvCountHeaderDTO invCountHeader = new InvCountHeaderDTO();
         invCountHeader.setCountHeaderId(countHeaderId);
-        List<InvCountHeader> invCountHeaders = invCountHeaderMapper.selectList(invCountHeader);
+        List<InvCountHeaderDTO> invCountHeaders = invCountHeaderMapper.selectList(invCountHeader);
         if (invCountHeaders.size() == 0) {
             return null;
         }

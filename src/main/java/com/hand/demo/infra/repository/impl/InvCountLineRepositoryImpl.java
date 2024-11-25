@@ -1,5 +1,6 @@
 package com.hand.demo.infra.repository.impl;
 
+import com.hand.demo.api.dto.InvCountLineDTO;
 import org.apache.commons.collections.CollectionUtils;
 import org.hzero.mybatis.base.impl.BaseRepositoryImpl;
 import org.springframework.stereotype.Component;
@@ -22,15 +23,15 @@ public class InvCountLineRepositoryImpl extends BaseRepositoryImpl<InvCountLine>
     private InvCountLineMapper invCountLineMapper;
 
     @Override
-    public List<InvCountLine> selectList(InvCountLine invCountLine) {
+    public List<InvCountLineDTO> selectList(InvCountLineDTO invCountLine) {
         return invCountLineMapper.selectList(invCountLine);
     }
 
     @Override
-    public InvCountLine selectByPrimary(Long countLineId) {
-        InvCountLine invCountLine = new InvCountLine();
+    public InvCountLineDTO selectByPrimary(Long countLineId) {
+        InvCountLineDTO invCountLine = new InvCountLineDTO();
         invCountLine.setCountLineId(countLineId);
-        List<InvCountLine> invCountLines = invCountLineMapper.selectList(invCountLine);
+        List<InvCountLineDTO> invCountLines = invCountLineMapper.selectList(invCountLine);
         if (invCountLines.size() == 0) {
             return null;
         }

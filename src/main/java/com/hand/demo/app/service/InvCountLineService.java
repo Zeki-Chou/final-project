@@ -1,5 +1,6 @@
 package com.hand.demo.app.service;
 
+import com.hand.demo.api.dto.InvCountLineDTO;
 import io.choerodon.core.domain.Page;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 import com.hand.demo.domain.entity.InvCountLine;
@@ -21,14 +22,14 @@ public interface InvCountLineService {
      * @param invCountLines 查询条件
      * @return 返回值
      */
-    Page<InvCountLine> selectList(PageRequest pageRequest, InvCountLine invCountLines);
+    Page<InvCountLineDTO> selectList(PageRequest pageRequest, InvCountLineDTO invCountLines);
 
     /**
      * 保存数据
      *
      * @param invCountLines 数据
      */
-    void saveData(List<InvCountLine> invCountLines);
+    void saveData(List<InvCountLineDTO> invCountLines);
 
 }
 

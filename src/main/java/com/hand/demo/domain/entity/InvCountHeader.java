@@ -3,6 +3,7 @@ package com.hand.demo.domain.entity;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.hand.demo.infra.constant.InvCountHeaderConstant;
 import io.choerodon.mybatis.annotation.ModifyAudit;
 import io.choerodon.mybatis.annotation.VersionAudit;
 import io.choerodon.mybatis.domain.AuditDomain;
@@ -19,6 +20,7 @@ import java.util.Date;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.hzero.boot.platform.lov.annotation.LovValue;
 
 /**
  * (InvCountHeader)实体类
@@ -120,10 +122,12 @@ public class InvCountHeader extends AuditDomain {
 
     @ApiModelProperty(value = "", required = true)
     @NotBlank
+    @LovValue(value = InvCountHeaderConstant.INV_COUNTING_COUNT_DIMENSION)
     private String countDimension;
 
     @ApiModelProperty(value = "", required = true)
     @NotBlank
+    @LovValue(value = InvCountHeaderConstant.INV_COUNTING_COUNT_MODE)
     private String countMode;
 
     @ApiModelProperty(value = "", required = true)
@@ -132,12 +136,14 @@ public class InvCountHeader extends AuditDomain {
 
     @ApiModelProperty(value = "", required = true)
     @NotBlank
+    @LovValue(value = InvCountHeaderConstant.INV_COUNTING_COUNT_STATUS)
     private String countStatus;
 
     private String countTimeStr;
 
     @ApiModelProperty(value = "", required = true)
     @NotBlank
+    @LovValue(value = InvCountHeaderConstant.INV_COUNTING_COUNT_TYPE)
     private String countType;
 
     private Object counterIds;

@@ -1,5 +1,6 @@
 package com.hand.demo.app.service.impl;
 
+import com.hand.demo.api.dto.InvCountLineDTO;
 import io.choerodon.core.domain.Page;
 import io.choerodon.mybatis.pagehelper.PageHelper;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
@@ -24,12 +25,12 @@ public class InvCountLineServiceImpl implements InvCountLineService {
     private InvCountLineRepository invCountLineRepository;
 
     @Override
-    public Page<InvCountLine> selectList(PageRequest pageRequest, InvCountLine invCountLine) {
+    public Page<InvCountLineDTO> selectList(PageRequest pageRequest, InvCountLineDTO invCountLine) {
         return PageHelper.doPageAndSort(pageRequest, () -> invCountLineRepository.selectList(invCountLine));
     }
 
     @Override
-    public void saveData(List<InvCountLine> invCountLines) {
+    public void saveData(List<InvCountLineDTO> invCountLines) {
         List<InvCountLine> insertList = invCountLines.stream().filter(line -> line.getCountLineId() == null).collect(Collectors.toList());
         List<InvCountLine> updateList = invCountLines.stream().filter(line -> line.getCountLineId() != null).collect(Collectors.toList());
         invCountLineRepository.batchInsertSelective(insertList);
