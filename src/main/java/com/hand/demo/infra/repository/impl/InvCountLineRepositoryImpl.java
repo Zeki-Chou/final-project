@@ -13,8 +13,8 @@ import java.util.List;
 /**
  * (InvCountLine)资源库
  *
- * @author
- * @since 2024-11-25 10:26:35
+ * @author Allan
+ * @since 2024-11-25 10:30:32
  */
 @Component
 public class InvCountLineRepositoryImpl extends BaseRepositoryImpl<InvCountLine> implements InvCountLineRepository {

@@ -8,8 +8,8 @@ import java.util.List;
 /**
  * (InvCountLine)应用服务
  *
- * @author
- * @since 2024-11-25 10:26:35
+ * @author Allan
+ * @since 2024-11-25 10:30:32
  */
 public interface InvCountLineMapper extends BaseMapper<InvCountLine> {
     /**

@@ -316,7 +316,7 @@
   "savePackageName" : "com.hand.demo",
   "savePath" : "./src/main/java/com/hand/demo",
   "saveModelName" : "fexam-xxxxx",
-  "author" : "",
+  "author" : "Allan",
   "level" : "tenant",
   "fullColumnQuery" : true,
   "useLombok" : true
