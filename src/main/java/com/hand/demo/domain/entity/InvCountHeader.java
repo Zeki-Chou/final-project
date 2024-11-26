@@ -128,7 +128,7 @@ public class InvCountHeader extends AuditDomain {
     @NotBlank
     private String countMode;
 
-    @ApiModelProperty(value = "", required = true)
+    @ApiModelProperty(value = "Support fuzzy search", required = true)
     @NotBlank
     private String countNumber;
 
