@@ -7,12 +7,15 @@ public class Constants {
 
     private Constants() {}
 
+    public static class Iam {
+        public static final String FIELD_ID = "id";
+    }
+
+    public static class codeBuilder {
+        public static final String FIELD_CUSTOM_SEGMENT = "customSegment";
+    }
+
     public static class InvCountHeader {
-        public static final String DEFAULT_COUNT_STATUS = "DRAFT";
-        public static final String INCOUNTING_VALUE = "INCOUNTING";
-        public static final String PROCESSING_VALUE = "PROCESSING";
-        public static final String WITHDRAWN_VALUE = "WITHDRAWN";
-        public static final String REJECTED_VALUE = "Rejected";
 
         public static final String UPDATE_STATUS_INVALID = "only draft, in counting, rejected, and withdrawn status can be modified";
         public static final String UPDATE_ACCESS_INVALID = "Document in draft status can only be modified by the document creator";

@@ -111,9 +111,9 @@ public class InvCountHeaderController extends BaseController {
 
     @ApiOperation(value = "counting order execute")
     @Permission(level = ResourceLevel.ORGANIZATION)
-    @PostMapping
+    @PostMapping("/execute")
     public ResponseEntity<List<InvCountHeaderDTO>> execute(@RequestBody List<InvCountHeaderDTO> invCountHeaders) {
-
+        return Results.success();
     }
 
 }

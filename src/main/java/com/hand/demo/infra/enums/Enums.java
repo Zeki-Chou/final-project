@@ -10,7 +10,9 @@ public class Enums {
             INCOUNTING,
             PROCESSING,
             WITHDRAWN,
-            REJECTED
+            REJECTED,
+            APPROVED,
+            CONFIRMED
         }
     }
 }

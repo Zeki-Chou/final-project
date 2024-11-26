@@ -120,7 +120,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         List<InvCountHeaderDTO> validHeaderDTO = new ArrayList<>();
         List<InvCountHeaderDTO> invalidHeaderDTO = new ArrayList<>();
         JSONObject iamJSONObject = Utils.getIamJSONObject(iamRemoteService);
-        Long currentUser = iamJSONObject.getLong("id");
+        Long currentUser = iamJSONObject.getLong(Constants.Iam.FIELD_ID);
 
         invCountHeaderDTOS.forEach(header -> {
             if (!header.getCountStatus().equals(Enums.InvCountHeader.Status.DRAFT.name())) {
@@ -146,7 +146,6 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         InvCountHeader header = invCountHeaderRepository.selectByPrimary(countHeaderId);
 
         if (header == null) {
-            //TODO: need to find better message
             throw new CommonException("InvCountHeader.notFound");
         }
 
@@ -204,7 +203,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         List<InvCountHeaderDTO> validHeaderDTOS = new ArrayList<>();
 
         JSONObject iamJSONObject = Utils.getIamJSONObject(iamRemoteService);
-        Long userId = iamJSONObject.getLong("id");
+        Long userId = iamJSONObject.getLong(Constants.Iam.FIELD_ID);
 
         // business verifications
         for (InvCountHeaderDTO invCountHeaderDTO: invCountHeaderDTOS) {
@@ -218,8 +217,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                 invCountHeaderDTO.setErrorMessage(Constants.InvCountHeader.UPDATE_STATUS_INVALID);
                 invalidHeaderDTOS.add(invCountHeaderDTO);
 
-            } else if (draftValue.equals(invCountHeaderDTO.getCountStatus()) &&
-                    userId.equals(invCountHeaderDTO.getCreatedBy())) {
+            } else if (draftValue.equals(invCountHeaderDTO.getCountStatus()) && userId.equals(invCountHeaderDTO.getCreatedBy())) {
 
                 invCountHeaderDTO.setErrorMessage(Constants.InvCountHeader.UPDATE_ACCESS_INVALID);
                 invalidHeaderDTOS.add(invCountHeaderDTO);
@@ -231,10 +229,8 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                     invalidHeaderDTOS.add(invCountHeaderDTO);
                 }
 
-                if (!headerCounterIds.contains(userId) &&
-                        !supervisorIds.contains(userId) &&
-                        !invCountHeaderDTO.getCreatedBy().equals(userId))
-                {
+                if (!headerCounterIds.contains(userId)&& !supervisorIds.contains(userId) &&
+                        !invCountHeaderDTO.getCreatedBy().equals(userId)) {
                     invCountHeaderDTO.setErrorMessage(Constants.InvCountHeader.ACCESS_UPDATE_STATUS_INVALID);
                     invalidHeaderDTOS.add(invCountHeaderDTO);
                 }
@@ -256,7 +252,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
      */
     private String generateCountNumber() {
         Map<String, String> variableMap = new HashMap<>();
-        variableMap.put("customSegment", String.valueOf(BaseConstants.DEFAULT_TENANT_ID));
+        variableMap.put(Constants.codeBuilder.FIELD_CUSTOM_SEGMENT, String.valueOf(BaseConstants.DEFAULT_TENANT_ID));
         return codeRuleBuilder.generateCode(Constants.InvCountHeader.CODE_RULE, variableMap);
     }
 
