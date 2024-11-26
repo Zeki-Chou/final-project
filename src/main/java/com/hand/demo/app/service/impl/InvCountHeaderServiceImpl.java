@@ -70,7 +70,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                 .collect(Collectors.toList());
 
         Map<String, String> variableMap = new HashMap<>();
-        variableMap.put("customSegment", "-");
+        variableMap.put("customSegment", DetailsHelper.getUserDetails().getTenantId().toString());
         List<String> applyHeaderNumbers = codeRuleBuilder.generateCode(insertList.size(), InvCountHeaderConstants.COUNT_NUMBER_CODE_RULE, variableMap);
 
         for (int i = 0; i < insertList.size(); i++) {
@@ -167,20 +167,28 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
         List<String> allowedCountStatusList = getAllowedLovValues();
 
-
         List<InvCountHeaderDTO> headerInDatabaseDTO = getHeaderDTOsFromDb(headerDTOList);
 
-        for(InvCountHeaderDTO headerDTO : headerInDatabaseDTO) {
+        Map<Long, InvCountHeaderDTO> headerDTOMap = headerDTOList.stream()
+                .collect(Collectors.toMap(InvCountHeaderDTO::getCountHeaderId, Function.identity()));
+
+        for (InvCountHeaderDTO headerDTO : headerInDatabaseDTO) {
             if (headerDTO.getCountHeaderId() == null) {
+                continue;
+            }
+
+            InvCountHeaderDTO headerDTOFromInput = headerDTOMap.get(headerDTO.getCountHeaderId());
+
+            if (headerDTOFromInput == null) {
                 continue;
             }
 
             String countStatus = headerDTO.getCountStatus();
 
             if(!countStatus.equals(InvCountHeaderConstants.COUNT_STATUS_DRAFT) && allowedCountStatusList.contains(countStatus)) {
-                setErrorCountInfoError(headerDTO, infoDTO, "only draft, in counting, rejected, and withdrawn status can be modified");
+                setErrorCountInfoError(headerDTOFromInput, infoDTO, "only draft, in counting, rejected, and withdrawn status can be modified");
             } else if(countStatus.equals(InvCountHeaderConstants.COUNT_STATUS_DRAFT) && !isCreator(headerDTO.getCreatedBy())) {
-                setErrorCountInfoError(headerDTO, infoDTO, "Document in draft status can only be modified by the document creator.");
+                setErrorCountInfoError(headerDTOFromInput, infoDTO, "Document in draft status can only be modified by the document creator.");
             } else if (allowedCountStatusList.contains(countStatus)) {
                 Map<Long, InvWarehouse> invWarehouseById = getWarehouseMappedById(headerDTOList);
 
@@ -188,9 +196,9 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                 List<Long> parsedSupervisorIds = parseCommaSeperatedIds(headerDTO.getSupervisorIds().toString());
                 List<Long> parsedCounterIds = parseCommaSeperatedIds(headerDTO.getCounterIds().toString());
                 if(isWMSWarehouse && !isSupervisor(parsedSupervisorIds)) {
-                    setErrorCountInfoError(headerDTO, infoDTO, "The current warehouse is a WMS warehouse, and only the supervisor is allowed to operate.");
+                    setErrorCountInfoError(headerDTOFromInput, infoDTO, "The current warehouse is a WMS warehouse, and only the supervisor is allowed to operate.");
                 } else if(!isCounter(parsedCounterIds) && !isSupervisor(parsedSupervisorIds) && !isCreator(headerDTO.getCreatedBy())) {
-                    setErrorCountInfoError(headerDTO, infoDTO, "only the document creator, counter, and supervisor can modify the document for the status  of in counting, rejected, withdrawn.");
+                    setErrorCountInfoError(headerDTOFromInput, infoDTO, "only the document creator, counter, and supervisor can modify the document for the status  of in counting, rejected, withdrawn.");
                 }
             } else {
                 infoDTO.getSuccessList().add(headerDTO);
@@ -210,11 +218,21 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     public InvCountInfoDTO checkAndRemove(List<InvCountHeaderDTO> headerDTOList) {
         InvCountInfoDTO infoDTO = new InvCountInfoDTO();
 
-        for(InvCountHeaderDTO headerDTO : headerDTOList) {
+        List<InvCountHeaderDTO> headerInDatabaseDTO = getHeaderDTOsFromDb(headerDTOList);
+
+        Map<Long, InvCountHeaderDTO> headerDTOMap = headerDTOList.stream()
+                .collect(Collectors.toMap(InvCountHeaderDTO::getCountHeaderId, Function.identity()));
+
+        for(InvCountHeaderDTO headerDTO : headerInDatabaseDTO) {
+            InvCountHeaderDTO headerDTOFromInput = headerDTOMap.get(headerDTO.getCountHeaderId());
+
+            if (headerDTOFromInput == null) {
+                continue;
+            }
             if (!headerDTO.getCountStatus().equals(InvCountHeaderConstants.COUNT_STATUS_DRAFT)) {
-                setErrorCountInfoError(headerDTO, infoDTO, "Only allow draft status to be deleted");
+                setErrorCountInfoError(headerDTOFromInput, infoDTO, "Only allow draft status to be deleted");
             } else if (!getCurrentUser().getUserId().equals(headerDTO.getCreatedBy())) {
-                setErrorCountInfoError(headerDTO, infoDTO, "Only current user is document creator allow delete document");
+                setErrorCountInfoError(headerDTOFromInput, infoDTO, "Only current user is document creator allow delete document");
             }
         }
 
@@ -225,6 +243,12 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
         invCountHeaderRepository.batchDeleteByPrimaryKey(new ArrayList<>(headerDTOList));
         return infoDTO;
+    }
+
+    @Override
+    public InvCountInfoDTO executeCheck(List<InvCountHeaderDTO> headerDTOList) {
+
+        return null;
     }
 
     private List<String> getAllowedLovValues() {
