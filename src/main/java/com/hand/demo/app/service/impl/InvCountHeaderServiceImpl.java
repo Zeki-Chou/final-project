@@ -1,10 +1,14 @@
 package com.hand.demo.app.service.impl;
 
+import com.hand.demo.api.dto.IamUserDTO;
 import com.hand.demo.api.dto.InvCountHeaderDTO;
 import com.hand.demo.api.dto.InvCountInfoDTO;
+import com.hand.demo.api.dto.InvCountLineDTO;
 import com.hand.demo.app.service.InvCountLineService;
+import com.hand.demo.domain.entity.InvBatch;
+import com.hand.demo.domain.entity.InvMaterial;
 import com.hand.demo.domain.entity.InvWarehouse;
-import com.hand.demo.domain.repository.InvWarehouseRepository;
+import com.hand.demo.domain.repository.*;
 import com.hand.demo.infra.constant.Constants;
 import io.choerodon.core.domain.Page;
 import io.choerodon.core.exception.CommonException;
@@ -15,11 +19,11 @@ import org.hzero.boot.platform.code.builder.CodeRuleBuilder;
 import org.hzero.boot.platform.lov.adapter.LovAdapter;
 import org.hzero.boot.platform.lov.dto.LovValueDTO;
 import org.hzero.core.base.BaseConstants;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.hand.demo.app.service.InvCountHeaderService;
 import org.springframework.stereotype.Service;
 import com.hand.demo.domain.entity.InvCountHeader;
-import com.hand.demo.domain.repository.InvCountHeaderRepository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
@@ -47,7 +51,16 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     private InvCountLineService invCountLineService;
 
     @Autowired
+    private InvCountLineRepository invCountLineRepository;
+
+    @Autowired
     private InvWarehouseRepository invWarehouseRepository;
+
+    @Autowired
+    private InvMaterialRepository invMaterialRepository;
+
+    @Autowired
+    private InvBatchRepository invBatchRepository;
 
     @Override
     public Page<InvCountHeaderDTO> selectList(PageRequest pageRequest, InvCountHeaderDTO invCountHeader) {
@@ -204,10 +217,10 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         invCountHeaderRepository.batchInsertSelective(insertList);
 
         //Save nested line objects
-        invCountHeaders.forEach(header -> {
-            header.getInvCountLineList().forEach(line -> line.setCountHeaderId(header.getCountHeaderId()));
-            invCountLineService.saveData(header.getInvCountLineList());
-        });
+//        invCountHeaders.forEach(header -> {
+//            header.getInvCountLineList().forEach(line -> line.setCountHeaderId(header.getCountHeaderId()));
+//            invCountLineService.saveData(header.getInvCountLineList());
+//        });
     }
 
     @Override
@@ -245,6 +258,76 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                 errorMessages.add("Error at index " + i + ": Only the document creator can delete this.");
             }
         }
+    }
+
+    @Override
+    public InvCountHeaderDTO detail(Long countHeaderId) {
+
+        InvCountHeader header = invCountHeaderRepository.selectByPrimaryKey(countHeaderId);
+        if (header == null) {
+            throw new CommonException("Count header not found for ID: " + countHeaderId);
+        }
+
+        InvCountHeaderDTO dto = new InvCountHeaderDTO();
+        BeanUtils.copyProperties(header, dto);
+
+        InvCountLineDTO lineCriteria = new InvCountLineDTO();
+        lineCriteria.setCountHeaderId(countHeaderId);
+        List<InvCountLineDTO> countLineList = invCountLineRepository.selectList(lineCriteria);
+        dto.setInvCountLineList(countLineList);
+
+        List<InvMaterial> invMaterialList = invMaterialRepository.selectByIds(dto.getSnapshotMaterialIds());
+        dto.setSnapshotMaterialList(invMaterialList);
+
+        List<InvBatch> invBatchList = invBatchRepository.selectByIds(dto.getSnapshotBatchIds());
+        dto.setSnapshotBatchList(invBatchList);
+
+        int isWMS = invWarehouseRepository.selectByPrimaryKey(dto.getWarehouseId()).getIsWmsWarehouse();
+        dto.setIsWMSwarehouse(isWMS);
+
+        List<IamUserDTO> supervisorList = Arrays.stream(dto.getSupervisorIds().split(","))
+                .map(Long::parseLong)
+                .map(id -> {
+                    IamUserDTO supervisor = new IamUserDTO();
+                    supervisor.setId(id);
+                    return supervisor;
+                })
+                .collect(Collectors.toList());
+        dto.setSupervisorList(supervisorList);
+
+        List<IamUserDTO> counterList = Arrays.stream(dto.getCounterIds().split(","))
+                .map(Long::parseLong)
+                .map(id -> {
+                    IamUserDTO counter = new IamUserDTO();
+                    counter.setId(id);
+                    return counter;
+                })
+                .collect(Collectors.toList());
+        dto.setCounterList(counterList);
+
+        return dto;
+    }
+
+    @Override
+    public void execute(List<InvCountHeaderDTO> invCountHeaders){
+
+        this.executeOrderCheck(invCountHeaders);
+
+        this.executeOrder(invCountHeaders);
+    }
+
+    private void executeOrderCheck(List<InvCountHeaderDTO> invCountHeaders) {
+        for(InvCountHeaderDTO dto : invCountHeaders){
+            if(!dto.getCountStatus().equals("DRAFT") && !DetailsHelper.getUserDetails().getUsername().equals(dto.getCreatedBy().toString())){
+                return;
+            }
+
+        }
+    }
+
+
+    private void executeOrder(List<InvCountHeaderDTO> invCountHeaders) {
+
     }
 
 }

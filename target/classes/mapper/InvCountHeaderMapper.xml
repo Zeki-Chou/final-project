@@ -120,7 +120,7 @@
                 and fich.count_mode = #{countMode,jdbcType = VARCHAR}
             </if>
             <if test="countNumber !=null">
-                and fich.count_number = #{countNumber,jdbcType = VARCHAR}
+                and fich.count_number like concat('%', #{countNumber,jdbcType = VARCHAR}, '%')
             </if>
             <if test="countStatus !=null">
                 and fich.count_status = #{countStatus,jdbcType = VARCHAR}
@@ -165,7 +165,10 @@
                 and fich.source_system = #{sourceSystem,jdbcType = VARCHAR}
             </if>
             <if test="supervisorIds !=null">
-                and fich.supervisor_ids = #{supervisorIds,jdbcType = VARCHAR}
+                and fich.supervisor_ids IN
+                <foreach item="item" index="index" collection="supervisorIds" open="(" separator="," close=")">
+                    #{item, jdbcType=VARCHAR}
+                </foreach>
             </if>
             <if test="tenantId !=null">
                 and fich.tenant_id = #{tenantId,jdbcType = INTEGER}

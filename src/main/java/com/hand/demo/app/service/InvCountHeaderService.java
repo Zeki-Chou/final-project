@@ -3,7 +3,6 @@ package com.hand.demo.app.service;
 import com.hand.demo.api.dto.InvCountHeaderDTO;
 import io.choerodon.core.domain.Page;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
-import com.hand.demo.domain.entity.InvCountHeader;
 
 import java.util.List;
 
@@ -32,5 +31,9 @@ public interface InvCountHeaderService {
     void saveData(List<InvCountHeaderDTO> invCountHeaders);
 
     void remove(List<InvCountHeaderDTO> invCountHeaders);
+
+    InvCountHeaderDTO detail(Long countHeaderId);
+
+    void execute(List<InvCountHeaderDTO> invCountHeaders);
 }
 
