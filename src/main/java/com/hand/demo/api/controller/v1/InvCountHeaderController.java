@@ -6,6 +6,7 @@ import com.hand.demo.api.dto.InvCountInfoDTO;
 import com.hand.demo.domain.entity.InvWarehouse;
 import com.hand.demo.domain.repository.InvWarehouseRepository;
 import com.hand.demo.infra.constant.Constants;
+import com.hand.demo.infra.enums.Enums;
 import com.hand.demo.infra.util.Utils;
 import io.choerodon.core.domain.Page;
 import io.choerodon.core.exception.CommonException;
@@ -48,29 +49,10 @@ public class InvCountHeaderController extends BaseController {
 
     private final InvCountHeaderRepository invCountHeaderRepository;
     private final InvCountHeaderService invCountHeaderService;
-    private final IamRemoteService iamRemoteService;
-    private final InvWarehouseRepository invWarehouseRepository;
-    private final LovAdapter lovAdapter;
 
-    // temporary
-    enum UpdateStatus {
-        DRAFT,
-        INCOUNTING,
-        WITHDRAWN,
-        REJECTED,
-    }
-
-    public InvCountHeaderController(
-            InvCountHeaderRepository invCountHeaderRepository,
-            InvCountHeaderService invCountHeaderService,
-            IamRemoteService iamRemoteService,
-            InvWarehouseRepository invWarehouseRepository, LovAdapter lovAdapter
-    ) {
+    public InvCountHeaderController(InvCountHeaderRepository invCountHeaderRepository, InvCountHeaderService invCountHeaderService) {
         this.invCountHeaderRepository = invCountHeaderRepository;
         this.invCountHeaderService = invCountHeaderService;
-        this.iamRemoteService = iamRemoteService;
-        this.invWarehouseRepository = invWarehouseRepository;
-        this.lovAdapter = lovAdapter;
     }
 
     @ApiOperation(value = "列表")
@@ -95,106 +77,34 @@ public class InvCountHeaderController extends BaseController {
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping
     public ResponseEntity<List<InvCountHeaderDTO>> save(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeaders) {
-        InvCountInfoDTO invCountInfoDTO = manualSaveCheck(invCountHeaders);
+        // not null and not blank validation
+        validObject(invCountHeaders, InvCountHeader.class);
+        // token validation when update
+        SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
+
+        InvCountInfoDTO invCountInfoDTO = invCountHeaderService.manualSaveCheck(invCountHeaders);
         if (invCountInfoDTO.getErrSize() > 0) {
             throw new CommonException(JSON.toJSONString(invCountInfoDTO));
         }
+
         List<InvCountHeaderDTO> invCountHeaderDTOS = invCountInfoDTO.getValidHeaderDTOS();
         invCountHeaderDTOS.forEach(item -> item.setTenantId(organizationId));
-        List<InvCountHeaderDTO> result = invCountHeaderService.manualSave(invCountHeaderDTOS);
-        return Results.success(result);
+        return Results.success(invCountHeaderService.manualSave(invCountHeaderDTOS));
     }
 
     @ApiOperation(value = "删除")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @DeleteMapping
-    public ResponseEntity<?> remove(@RequestBody List<InvCountHeader> invCountHeaders) {
+    public ResponseEntity<?> remove(@RequestBody List<InvCountHeaderDTO> invCountHeaders) {
         SecurityTokenHelper.validToken(invCountHeaders);
-        invCountHeaderRepository.batchDeleteByPrimaryKey(invCountHeaders);
-        return Results.success();
-    }
-
-    private InvCountInfoDTO manualSaveCheck(List<InvCountHeaderDTO> invCountHeaderDTOS) {
-        // not null and not blank validation
-        validObject(invCountHeaderDTOS, InvCountHeader.class);
-        // token validation when update
-        SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaderDTOS);
-
-        InvCountInfoDTO invCountInfoDTO = new InvCountInfoDTO();
-        InvWarehouse warehouseRecord = new InvWarehouse();
-        warehouseRecord.setIsWmsWarehouse(BaseConstants.Flag.YES);
-
-        List<Long> warehouseWMSIds = invWarehouseRepository
-                                        .selectList(warehouseRecord)
-                                        .stream()
-                                        .map(InvWarehouse::getWarehouseId)
-                                        .collect(Collectors.toList());
-
-        List<String> validUpdateStatuses = lovAdapter.queryLovValue(Constants.InvCountHeader.STATUS_LOV_CODE,BaseConstants.DEFAULT_TENANT_ID)
-                                    .stream()
-                                    .map(LovValueDTO::getValue)
-                                    .collect(Collectors.toList());
-
-        String draftValue = UpdateStatus.DRAFT.name();
-
-        List<String> validUpdateStatusSupervisorWMS = validUpdateStatuses
-                .stream()
-                .filter(status -> !status.equals(draftValue))
-                .collect(Collectors.toList());
-
-        List<InvCountHeaderDTO> invalidHeaderDTOS = new ArrayList<>();
-        List<InvCountHeaderDTO> validHeaderDTOS = new ArrayList<>();
-
-        JSONObject iamJSONObject = Utils.getIamJSONObject(iamRemoteService);
-        Long userId = iamJSONObject.getLong("id");
-
-        for (InvCountHeaderDTO invCountHeaderDTO: invCountHeaderDTOS) {
-
-            List<Long> headerCounterIds = Arrays.stream(invCountHeaderDTO.getSupervisorIds().split(","))
-                    .map(Long::valueOf)
-                    .collect(Collectors.toList());
-
-            List<Long> supervisorIds = Arrays.stream(invCountHeaderDTO.getCounterIds().split(","))
-                    .map(Long::valueOf)
-                    .collect(Collectors.toList());
-
-            if (invCountHeaderDTO.getCountHeaderId() == null) {
-                validHeaderDTOS.add(invCountHeaderDTO);
-            } else if (!validUpdateStatuses.contains(invCountHeaderDTO.getCountStatus())) {
-
-                invCountHeaderDTO.setErrorMessage(Constants.InvCountHeader.UPDATE_STATUS_INVALID);
-                invalidHeaderDTOS.add(invCountHeaderDTO);
-
-            } else if (draftValue.equals(invCountHeaderDTO.getCountStatus()) &&
-                    userId.equals(invCountHeaderDTO.getCreatedBy())) {
-
-                invCountHeaderDTO.setErrorMessage(Constants.InvCountHeader.UPDATE_ACCESS_INVALID);
-                invalidHeaderDTOS.add(invCountHeaderDTO);
-
-            } else if (validUpdateStatusSupervisorWMS.contains(invCountHeaderDTO.getCountStatus())) {
-
-                if (warehouseWMSIds.contains(invCountHeaderDTO.getWarehouseId()) && !supervisorIds.contains(userId)) {
-                    invCountHeaderDTO.setErrorMessage(Constants.InvCountHeader.WAREHOUSE_SUPERVISOR_INVALID);
-                    invalidHeaderDTOS.add(invCountHeaderDTO);
-                }
-
-                if (!headerCounterIds.contains(userId) &&
-                    !supervisorIds.contains(userId) &&
-                    !invCountHeaderDTO.getCreatedBy().equals(userId))
-                {
-                    invCountHeaderDTO.setErrorMessage(Constants.InvCountHeader.ACCESS_UPDATE_STATUS_INVALID);
-                    invalidHeaderDTOS.add(invCountHeaderDTO);
-                }
-
-            } else {
-                validHeaderDTOS.add(invCountHeaderDTO);
-            }
+        InvCountInfoDTO countInfoDTO = invCountHeaderService.checkAndRemove(invCountHeaders);
+        if (countInfoDTO.getErrSize() > 0) {
+            throw new CommonException(JSON.toJSONString(countInfoDTO));
         }
 
-        invCountInfoDTO.setInvalidHeaderDTOS(invalidHeaderDTOS);
-        invCountInfoDTO.setValidHeaderDTOS(validHeaderDTOS);
-        invCountInfoDTO.setErrSize(invalidHeaderDTOS.size());
-        return invCountInfoDTO;
+        List<InvCountHeader> headerList = new ArrayList<>(invCountHeaders);
+        invCountHeaderRepository.batchDeleteByPrimaryKey(headerList);
+        return Results.success();
     }
 
 }

@@ -32,5 +32,17 @@ public interface InvCountHeaderService {
      */
     List<InvCountHeaderDTO> manualSave(List<InvCountHeaderDTO> invCountHeaders);
 
+    /**
+     * @param invCountHeaderDTOS list of header dto
+     * @return count info dto
+     */
+    InvCountInfoDTO manualSaveCheck(List<InvCountHeaderDTO> invCountHeaderDTOS);
+
+    /**
+     * @param invCountHeaderDTOS list of header dto
+     * @return invoice info dto
+     */
+    InvCountInfoDTO checkAndRemove(List<InvCountHeaderDTO> invCountHeaderDTOS);
+
 }
 
