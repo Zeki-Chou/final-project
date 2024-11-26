@@ -11,5 +11,5 @@ import java.util.List;
 @AllArgsConstructor
 public class InvCountInfoDTO {
     private List<InvCountHeaderDTO> invalidHeaders;
-    private String errorMsg;
+    private List<InvCountHeaderDTO> validHeaders;
 }

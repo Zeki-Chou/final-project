@@ -22,6 +22,7 @@ import com.hand.demo.domain.repository.InvCountHeaderRepository;
 import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * (InvCountHeader)表控制层
@@ -67,15 +68,26 @@ public class InvCountHeaderController extends BaseController {
         invCountHeaders.forEach(item -> item.setTenantId(organizationId));
 
         try {
+
             invCountHeaderService.saveData(invCountHeaders);
-            return Results.success(invCountHeaders);
+
+            List<InvCountHeaderDTO> invalidHeaders = invCountHeaders.stream()
+                    .filter(header -> header.getInvCountHeaderErrorMsg() != null && !header.getInvCountHeaderErrorMsg().isEmpty())
+                    .collect(Collectors.toList());
+
+            List<InvCountHeaderDTO> validHeaders = invCountHeaders.stream()
+                    .filter(header -> header.getInvCountHeaderErrorMsg() == null || header.getInvCountHeaderErrorMsg().isEmpty())
+                    .collect(Collectors.toList());
+
+            InvCountInfoDTO errorInfo = new InvCountInfoDTO();
+            errorInfo.setInvalidHeaders(invalidHeaders);
+            errorInfo.setValidHeaders(validHeaders);
+
+            return ResponseEntity.ok(errorInfo);
         } catch (CommonException e) {
-           InvCountInfoDTO errorInfo = new InvCountInfoDTO();
-            errorInfo.setErrorMsg(e.getMessage());
-            return ResponseEntity.badRequest().body(errorInfo);
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-
 
     @ApiOperation(value = "删除")
     @Permission(level = ResourceLevel.ORGANIZATION)
