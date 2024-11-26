@@ -1,9 +1,6 @@
 package com.hand.demo.app.service.impl;
 
-import com.hand.demo.api.controller.v1.InvCountHeaderController;
 import com.hand.demo.api.dto.*;
-import com.hand.demo.app.service.InvCountLineService;
-import com.hand.demo.app.service.InvWarehouseService;
 import com.hand.demo.domain.entity.*;
 import com.hand.demo.domain.repository.*;
 import com.hand.demo.infra.constant.Constants;
@@ -18,19 +15,14 @@ import org.hzero.boot.platform.code.builder.CodeRuleBuilder;
 import org.hzero.boot.platform.lov.adapter.LovAdapter;
 import org.hzero.boot.platform.lov.dto.LovValueDTO;
 import org.hzero.core.base.BaseConstants;
-import org.hzero.core.cache.ProcessCacheValue;
-import org.hzero.mybatis.helper.SecurityTokenHelper;
 import org.json.JSONObject;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import com.hand.demo.app.service.InvCountHeaderService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * (InvCountHeader)应用服务
@@ -43,7 +35,6 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
     private final InvCountHeaderRepository invCountHeaderRepository;
     private final CodeRuleBuilder codeRuleBuilder;
-    private final InvCountLineService invCountLineService;
     private final IamRemoteService iamRemoteService;
     private final InvWarehouseRepository invWarehouseRepository;
     private final LovAdapter lovAdapter;
@@ -53,7 +44,6 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     public InvCountHeaderServiceImpl(
             InvCountHeaderRepository invCountHeaderRepository,
             CodeRuleBuilder codeRuleBuilder,
-            InvCountLineService invCountLineService,
             IamRemoteService iamRemoteService,
             InvWarehouseRepository invWarehouseRepository,
             LovAdapter lovAdapter,
@@ -62,7 +52,6 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     ) {
         this.invCountHeaderRepository = invCountHeaderRepository;
         this.codeRuleBuilder = codeRuleBuilder;
-        this.invCountLineService = invCountLineService;
         this.iamRemoteService = iamRemoteService;
         this.invWarehouseRepository = invWarehouseRepository;
         this.lovAdapter = lovAdapter;
@@ -89,9 +78,9 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         });
 
         invCountHeaderRepository.batchInsertSelective(insertList);
-        List<InvCountHeader> draftUpdateList = filterHeaderListOnStatus(updateList, Enums.InvCountHeader.Status.DRAFT.name());
-        List<InvCountHeader> inCountingUpdateList = filterHeaderListOnStatus(updateList, Enums.InvCountHeader.Status.INCOUNTING.name());
-        List<InvCountHeader> rejectedUpdateList = filterHeaderListOnStatus(updateList, Enums.InvCountHeader.Status.REJECTED.name());
+        List<InvCountHeader> draftUpdateList = filterHeaderListByStatus(updateList, Enums.InvCountHeader.Status.DRAFT.name());
+        List<InvCountHeader> inCountingUpdateList = filterHeaderListByStatus(updateList, Enums.InvCountHeader.Status.INCOUNTING.name());
+        List<InvCountHeader> rejectedUpdateList = filterHeaderListByStatus(updateList, Enums.InvCountHeader.Status.REJECTED.name());
 
         invCountHeaderRepository.batchUpdateOptional(
                 inCountingUpdateList,
@@ -119,7 +108,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
      * @param status status to find
      * @return inventory count header containing status from parameter
      */
-    private List<InvCountHeader> filterHeaderListOnStatus(List<InvCountHeader> invCountHeaders, String status) {
+    private List<InvCountHeader> filterHeaderListByStatus(List<InvCountHeader> invCountHeaders, String status) {
         return invCountHeaders
                 .stream()
                 .filter(header -> status.equals(header.getCountStatus()))
@@ -155,7 +144,9 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     public InvCountHeaderDTO detail(Long countHeaderId) {
         List<Long> wmsWarehouseIds = getWMSWarehouseIds();
         InvCountHeader header = invCountHeaderRepository.selectByPrimary(countHeaderId);
+
         if (header == null) {
+            //TODO: need to find better message
             throw new CommonException("InvCountHeader.notFound");
         }
 
@@ -165,6 +156,8 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
         if (wmsWarehouseIds.contains(dto.getWarehouseId())) {
             dto.setIsWmsWarehouse(BaseConstants.Flag.YES);
+        } else {
+            dto.setIsWmsWarehouse(BaseConstants.Flag.NO);
         }
 
         List<UserInfoDTO> counterList = convertUserIdToList(dto.getCounterIds());
@@ -176,12 +169,6 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         dto.setSupervisorList(supervisorList);
         dto.setSnapshotBatchList(batchInfoDTOList);
         dto.setSnapshotMaterialList(materialInfoDTOList);
-
-        if (wmsWarehouseIds.contains(dto.getWarehouseId())) {
-            dto.setIsWmsWarehouse(BaseConstants.Flag.NO);
-        } else {
-            dto.setIsWmsWarehouse(BaseConstants.Flag.YES);
-        }
         return dto;
     }
 
@@ -209,8 +196,8 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         List<String> validUpdateStatusSupervisorWMS = validUpdateStatuses
                 .stream()
                 .filter(status ->   status.equals(inCountingValue) ||
-                        status.equals(rejectedValue) ||
-                        status.equals(withdrawnValue) )
+                                    status.equals(rejectedValue) ||
+                                    status.equals(withdrawnValue))
                 .collect(Collectors.toList());
 
         List<InvCountHeaderDTO> invalidHeaderDTOS = new ArrayList<>();
@@ -221,14 +208,8 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
         // business verifications
         for (InvCountHeaderDTO invCountHeaderDTO: invCountHeaderDTOS) {
-
-            List<Long> headerCounterIds = Arrays.stream(invCountHeaderDTO.getSupervisorIds().split(","))
-                    .map(Long::valueOf)
-                    .collect(Collectors.toList());
-
-            List<Long> supervisorIds = Arrays.stream(invCountHeaderDTO.getCounterIds().split(","))
-                    .map(Long::valueOf)
-                    .collect(Collectors.toList());
+            List<Long> headerCounterIds = Utils.convertStringIdstoList(invCountHeaderDTO.getCounterIds());
+            List<Long> supervisorIds = Utils.convertStringIdstoList(invCountHeaderDTO.getSupervisorIds());
 
             if (invCountHeaderDTO.getCountHeaderId() == null) {
                 validHeaderDTOS.add(invCountHeaderDTO);
@@ -279,6 +260,9 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         return codeRuleBuilder.generateCode(Constants.InvCountHeader.CODE_RULE, variableMap);
     }
 
+    /**
+     * @return list of warehouse id that are part of WMS system
+     */
     private List<Long> getWMSWarehouseIds(){
         InvWarehouse warehouse = new InvWarehouse();
         warehouse.setIsWmsWarehouse(BaseConstants.Flag.YES);
@@ -336,14 +320,5 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                 .collect(Collectors.toList());
     }
 
-    private String generateStringIds(List<InvCountHeaderDTO> invCountHeaders) {
-        Set<String> headerIds = invCountHeaders
-                .stream()
-                .filter(line -> line.getCountHeaderId() != null)
-                .map(line -> String.valueOf(line.getCountHeaderId()))
-                .collect(Collectors.toSet());
-
-        return String.join(",", headerIds);
-    }
 }
 

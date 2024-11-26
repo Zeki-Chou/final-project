@@ -1,7 +1,5 @@
 package com.hand.demo.app.service.impl;
 
-import com.hand.demo.api.dto.InvCountHeaderDTO;
-import com.hand.demo.app.service.InvCountHeaderService;
 import com.hand.demo.domain.entity.InvCountHeader;
 import com.hand.demo.domain.repository.InvCountHeaderRepository;
 import com.hand.demo.infra.enums.Enums;
@@ -10,9 +8,7 @@ import io.choerodon.core.domain.Page;
 import io.choerodon.mybatis.pagehelper.PageHelper;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 import org.hzero.boot.apaas.common.userinfo.infra.feign.IamRemoteService;
-import org.hzero.core.base.BaseConstants;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import com.hand.demo.app.service.InvCountLineService;
 import org.springframework.stereotype.Service;
 import com.hand.demo.domain.entity.InvCountLine;
