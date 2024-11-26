@@ -61,9 +61,15 @@ public class InvCountLineServiceImpl implements InvCountLineService {
                 .stream()
                 .collect(Collectors.toMap(InvCountHeader::getCountHeaderId, Function.identity()));
 
-        // check if user is counter and whether status is in counting
+        insertList.forEach(line -> {
+            InvCountHeader header = invCountHeaderMap.get(line.getCountHeaderId());
+            // initially copy counter ids from header
+            line.setCounterIds(header.getCounterIds());
+        });
+
         updateList.forEach(line -> {
             InvCountHeader header = invCountHeaderMap.get(line.getCountHeaderId());
+            //check if header status is in counting
             if (Enums.InvCountHeader.Status.INCOUNTING.name().equals(header.getCountStatus())) {
                 // check if current user is counter
                 if (!Utils.convertStringIdstoList(header.getCounterIds()).contains(userId)) {
@@ -78,31 +84,15 @@ public class InvCountLineServiceImpl implements InvCountLineService {
                 line.setUnitQty(null);
                 line.setUnitDiffQty(null);
                 line.setRemark(null);
-
             }
+
+            // calculation of difference between the snapshot qty and unit qty
+            BigDecimal unitDiffQty = line.getSnapshotUnitQty().subtract(line.getUnitQty());
+            line.setUnitDiffQty(unitDiffQty);
         });
 
-//        // select header from count header ids
-//        String countHeaderIds = generateStringIds(invCountLines);
-//        List<InvCountHeader> invCountHeaders = invCountHeaderRepository.selectByIds(countHeaderIds);
-//        Map<Long, InvCountHeader> invCountHeaderMap = invCountHeaders
-//                .stream()
-//                .collect(Collectors.toMap(InvCountHeader::getCountHeaderId, Function.identity()));
-
-        // only finding inCounting status that needs to be updated
-//        String inCountingStatus = Enums.InvCountHeader.Status.INCOUNTING.name();
-//        List<InvCountLine> inCountingUpdateLineList = invCountLines.stream().filter(line -> {
-//            InvCountHeader header = invCountHeaderMap.get(line.getCountHeaderId());
-//            return inCountingStatus.equals(header.getCountStatus()) && line.getCountLineId() != null;
-//        }).collect(Collectors.toList());
-
-//        inCountingUpdateLineList.forEach(line -> {
-//            BigDecimal unitQtyDiff = line.getUnitQty().subtract(line.getUnitQty());
-//            line.setUnitDiffQty(unitQtyDiff);
-//        });
-
         invCountLineRepository.batchInsertSelective(insertList);
-        invCountLineRepository.batchUpdateByPrimaryKeySelective(inCountingUpdateLineList);
+        invCountLineRepository.batchUpdateByPrimaryKeySelective(updateList);
     }
 
     private String generateStringIds(List<InvCountLine> invCountLines) {
