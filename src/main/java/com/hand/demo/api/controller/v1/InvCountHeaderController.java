@@ -57,7 +57,15 @@ public class InvCountHeaderController extends BaseController {
 //        return Results.success(invCountHeader);
 //    }
 
-    @ApiOperation(value = "Save")
+//    @ApiOperation(value = "List Query")
+//    @Permission(level = ResourceLevel.ORGANIZATION)
+//    @GetMapping("/listQuery")
+//    public ResponseEntity<InvCountHeader> detail(@PathVariable Long countHeaderId) {
+//        InvCountHeader invCountHeader = invCountHeaderRepository.selectByPrimary(countHeaderId);
+//        return Results.success(invCountHeader);
+//    }
+
+    @ApiOperation(value = "Counting Order Save")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping
     public ResponseEntity<InvCountInfoDTO> save(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeadersDTO) {
@@ -70,13 +78,12 @@ public class InvCountHeaderController extends BaseController {
         return Results.success(invCountInfoDTO);
     }
 
-//    @ApiOperation(value = "删除")
-//    @Permission(level = ResourceLevel.ORGANIZATION)
-//    @DeleteMapping
-//    public ResponseEntity<?> remove(@RequestBody List<InvCountHeader> invCountHeaders) {
+    @ApiOperation(value = "Counting Order Remove")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @DeleteMapping
+    public ResponseEntity<InvCountInfoDTO> remove(@RequestBody List<InvCountHeaderDTO> invCountHeaders) {
 //        SecurityTokenHelper.validToken(invCountHeaders);
-//        invCountHeaderRepository.batchDeleteByPrimaryKey(invCountHeaders);
-//        return Results.success();
-//    }
+        return Results.success(invCountHeaderService.orderRemove(invCountHeaders));
+    }
 }
 
