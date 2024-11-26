@@ -31,5 +31,6 @@ public interface InvCountHeaderService {
      */
     void saveData(List<InvCountHeaderDTO> invCountHeaders);
 
+    void remove(List<InvCountHeaderDTO> invCountHeaders);
 }
 

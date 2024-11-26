@@ -40,7 +40,7 @@
         ficl.object_version_number
     </sql>
 
-    <select id = "selectList" resultType = "com.hand.demo.domain.entity.InvCountLine">
+    <select id = "selectList" resultType = "com.hand.demo.api.dto.InvCountLineDTO">
         select
         <include refid = "BaseSql"/>
         from fexam_inv_count_line ficl
@@ -133,6 +133,11 @@
                 and ficl.warehouse_id = #{warehouseId,jdbcType = INTEGER}
             </if>
         </where>
+    </select>
+
+    <select id="maxLineNumber" resultType="java.lang.Long">
+        select max(ficl.line_number)
+        from fexam_inv_count_line ficl
     </select>
 </mapper>
 

@@ -209,5 +209,43 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             invCountLineService.saveData(header.getInvCountLineList());
         });
     }
+
+    @Override
+    public void remove(List<InvCountHeaderDTO> invCountHeaders) {
+
+        List<String> errorMessages = new ArrayList<>();
+
+        this.checkRemove(invCountHeaders, errorMessages);
+
+        if (!errorMessages.isEmpty()) {
+
+            // Collect all error messages and throw
+            throw new CommonException(String.join("\n", errorMessages));
+        }
+
+        // Delete data
+        List<InvCountHeader> deleteList = invCountHeaders.stream()
+                .filter(line -> line.getCountHeaderId() != null && line.getCountStatus().equals("DRAFT"))
+                .collect(Collectors.toList());
+        invCountHeaderRepository.batchDelete(deleteList);
+    }
+
+    private void checkRemove(List<InvCountHeaderDTO> invCountHeaders, List<String> errorMessages) {
+
+        for (int i = 0; i < invCountHeaders.size(); i++) {
+            InvCountHeaderDTO dto = invCountHeaders.get(i);
+
+            // status verification, Only allow draft status to be deleted
+            if (!dto.getCountStatus().equals("DRAFT")) {
+                errorMessages.add("Error at index " + i + ": Only documents with draft status can be deleted.");
+            }
+
+            // current user verification, Only current user is document creator allowed to delete document
+            if (!DetailsHelper.getUserDetails().getUsername().equals(dto.getCreatedBy().toString())) {
+                errorMessages.add("Error at index " + i + ": Only the document creator can delete this.");
+            }
+        }
+    }
+
 }
 

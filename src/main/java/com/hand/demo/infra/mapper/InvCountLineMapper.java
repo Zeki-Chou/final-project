@@ -19,5 +19,7 @@ public interface InvCountLineMapper extends BaseMapper<InvCountLine> {
      * @return 返回值
      */
     List<InvCountLine> selectList(InvCountLine invCountLine);
+
+    Long maxLineNumber();
 }
 

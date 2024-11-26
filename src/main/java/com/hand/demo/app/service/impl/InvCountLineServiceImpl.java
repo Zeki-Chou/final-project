@@ -1,7 +1,11 @@
 package com.hand.demo.app.service.impl;
 
+import com.hand.demo.api.dto.InvCountHeaderDTO;
 import com.hand.demo.api.dto.InvCountLineDTO;
+import com.hand.demo.domain.entity.InvCountHeader;
+import com.hand.demo.domain.repository.InvCountHeaderRepository;
 import io.choerodon.core.domain.Page;
+import io.choerodon.core.oauth.DetailsHelper;
 import io.choerodon.mybatis.pagehelper.PageHelper;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +15,7 @@ import com.hand.demo.domain.entity.InvCountLine;
 import com.hand.demo.domain.repository.InvCountLineRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -24,6 +29,9 @@ public class InvCountLineServiceImpl implements InvCountLineService {
     @Autowired
     private InvCountLineRepository invCountLineRepository;
 
+    @Autowired
+    private InvCountHeaderRepository invCountHeaderRepository;
+
     @Override
     public Page<InvCountLineDTO> selectList(PageRequest pageRequest, InvCountLineDTO invCountLine) {
         return PageHelper.doPageAndSort(pageRequest, () -> invCountLineRepository.selectList(invCountLine));
@@ -31,10 +39,41 @@ public class InvCountLineServiceImpl implements InvCountLineService {
 
     @Override
     public void saveData(List<InvCountLineDTO> invCountLines) {
-        List<InvCountLine> insertList = invCountLines.stream().filter(line -> line.getCountLineId() == null).collect(Collectors.toList());
-        List<InvCountLine> updateList = invCountLines.stream().filter(line -> line.getCountLineId() != null).collect(Collectors.toList());
+
+        int lastLineNumber = Math.toIntExact(invCountLineRepository.maxLineNumber());
+
+        List<InvCountLine> insertList = invCountLines.stream()
+                .filter(line -> line.getCountLineId() == null)
+                .peek(line -> {
+                    line.setLineNumber(lastLineNumber + 1);
+                })
+                .collect(Collectors.toList());
+
+        List<InvCountLine> updateList = invCountLines.stream()
+                .filter(line -> line.getCountLineId() != null)
+                .collect(Collectors.toList());
+
+        for (InvCountLine line : updateList) {
+            if (line.getCountHeaderId() != null) {
+
+                InvCountHeader countHeader = invCountHeaderRepository.selectByPrimaryKey(line.getCountHeaderId());
+                if (countHeader != null) {
+
+                    if ("INCOUNTING".equals(countHeader.getCountStatus())) {
+                        line.setUnitQty(line.getUnitQty());
+                        line.setRemark(line.getRemark());
+                        line.setUnitDiffQty(line.getUnitDiffQty());
+                        if (DetailsHelper.getUserDetails().getUsername().equals(line.getCreatedBy().toString())){
+                            line.setCounterIds(countHeader.getCounterIds());
+                        }
+                    }
+                }
+            }
+        }
+
         invCountLineRepository.batchInsertSelective(insertList);
         invCountLineRepository.batchUpdateByPrimaryKeySelective(updateList);
     }
+
 }
 

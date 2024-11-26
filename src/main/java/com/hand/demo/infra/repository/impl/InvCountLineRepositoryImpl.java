@@ -1,6 +1,5 @@
 package com.hand.demo.infra.repository.impl;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.hzero.mybatis.base.impl.BaseRepositoryImpl;
 import org.springframework.stereotype.Component;
 import com.hand.demo.domain.entity.InvCountLine;
@@ -24,6 +23,11 @@ public class InvCountLineRepositoryImpl extends BaseRepositoryImpl<InvCountLine>
     @Override
     public List<InvCountLine> selectList(InvCountLine invCountLine) {
         return invCountLineMapper.selectList(invCountLine);
+    }
+
+    @Override
+    public Long maxLineNumber(){
+        return invCountLineMapper.maxLineNumber();
     }
 
     @Override

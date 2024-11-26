@@ -20,6 +20,8 @@ public interface InvCountLineRepository extends BaseRepository<InvCountLine> {
      */
     List<InvCountLine> selectList(InvCountLine invCountLine);
 
+    Long maxLineNumber();
+
     /**
      * 根据主键查询（可关联表）
      *
