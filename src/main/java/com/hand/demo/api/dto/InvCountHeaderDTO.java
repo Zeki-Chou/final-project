@@ -14,4 +14,9 @@ public class InvCountHeaderDTO extends InvCountHeader {
 
     @ApiModelProperty(value = "Type String, pass user id, support single, not multi")
     String supervisor;
+
+    List<UserInfoDTO> counterList;
+    List<UserInfoDTO> supervisorList;
+    List<MaterialInfoDTO> snapshotMaterialList;
+    List<BatchInfoDTO> snapshotBatchList;
 }

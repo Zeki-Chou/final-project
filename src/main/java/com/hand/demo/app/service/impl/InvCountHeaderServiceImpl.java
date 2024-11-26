@@ -5,7 +5,9 @@ import com.hand.demo.api.dto.InvCountHeaderDTO;
 import com.hand.demo.api.dto.InvCountInfoDTO;
 import com.hand.demo.app.service.InvCountLineService;
 import com.hand.demo.domain.entity.InvCountLine;
+import com.hand.demo.domain.entity.InvStock;
 import com.hand.demo.domain.entity.InvWarehouse;
+import com.hand.demo.domain.repository.InvStockRepository;
 import com.hand.demo.domain.repository.InvWarehouseRepository;
 import com.hand.demo.infra.constant.Constants;
 import com.hand.demo.infra.enums.Enums;
@@ -47,18 +49,20 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     private final InvCountLineService invCountLineService;
     private final IamRemoteService iamRemoteService;
     private final InvWarehouseRepository invWarehouseRepository;
+    private final InvStockRepository invStockRepository;
     private final LovAdapter lovAdapter;
 
     public InvCountHeaderServiceImpl(
             InvCountHeaderRepository invCountHeaderRepository,
             CodeRuleBuilder codeRuleBuilder,
-            InvCountLineService invCountLineService, IamRemoteService iamRemoteService, InvWarehouseRepository invWarehouseRepository, LovAdapter lovAdapter
+            InvCountLineService invCountLineService, IamRemoteService iamRemoteService, InvWarehouseRepository invWarehouseRepository, InvStockRepository invStockRepository, LovAdapter lovAdapter
     ) {
         this.invCountHeaderRepository = invCountHeaderRepository;
         this.codeRuleBuilder = codeRuleBuilder;
         this.invCountLineService = invCountLineService;
         this.iamRemoteService = iamRemoteService;
         this.invWarehouseRepository = invWarehouseRepository;
+        this.invStockRepository = invStockRepository;
         this.lovAdapter = lovAdapter;
     }
 
