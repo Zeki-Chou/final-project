@@ -20,5 +20,7 @@ public interface InvCountLineMapper extends BaseMapper<InvCountLine> {
      * @return 返回值
      */
     List<InvCountLineDTO> selectList(InvCountLineDTO invCountLine);
+
+    Long getCurrentLineNumber();
 }
 

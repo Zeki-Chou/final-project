@@ -1,7 +1,7 @@
 package com.hand.demo.api.controller.v1;
 
 import com.hand.demo.api.dto.InvCountHeaderDTO;
-import com.hand.demo.api.dto.ValidateSave;
+import com.hand.demo.api.dto.ValidateHeaderSave;
 import io.choerodon.core.domain.Page;
 import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.mybatis.pagehelper.annotation.SortDefault;
@@ -11,13 +11,12 @@ import io.choerodon.swagger.annotation.Permission;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.Parameter;
 import org.hzero.core.base.BaseController;
+import org.hzero.core.cache.ProcessCacheValue;
 import org.hzero.core.util.Results;
-import org.hzero.mybatis.helper.SecurityTokenHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.hand.demo.app.service.InvCountHeaderService;
-import com.hand.demo.domain.entity.InvCountHeader;
 import com.hand.demo.domain.repository.InvCountHeaderRepository;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -58,6 +57,7 @@ public class InvCountHeaderController extends BaseController {
 
     @ApiOperation(value = "明细")
     @Permission(level = ResourceLevel.ORGANIZATION)
+    @ProcessCacheValue
     @GetMapping("/{countHeaderId}/detail")
     public ResponseEntity<InvCountHeaderDTO> detail(
             @PathVariable Long organizationId,
@@ -70,7 +70,7 @@ public class InvCountHeaderController extends BaseController {
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping
     public ResponseEntity<List<InvCountHeaderDTO>> save(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeaders) {
-        validObject(invCountHeaders, ValidateSave.class);
+        validObject(invCountHeaders, ValidateHeaderSave.class);
 //        SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
         invCountHeaders.forEach(item -> item.setTenantId(organizationId));
         invCountHeaderService.saveData(invCountHeaders);

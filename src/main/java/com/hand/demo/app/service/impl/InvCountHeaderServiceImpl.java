@@ -1,9 +1,8 @@
 package com.hand.demo.app.service.impl;
 
 import com.hand.demo.api.dto.*;
-import com.hand.demo.domain.entity.InvCountLine;
-import com.hand.demo.domain.entity.InvMaterial;
-import com.hand.demo.domain.entity.InvWarehouse;
+import com.hand.demo.app.service.InvCountLineService;
+import com.hand.demo.domain.entity.*;
 import com.hand.demo.domain.repository.*;
 import com.hand.demo.infra.constant.InvCountHeaderConstants;
 import com.hand.demo.infra.util.Utils;
@@ -23,7 +22,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.hand.demo.app.service.InvCountHeaderService;
 import org.springframework.stereotype.Service;
-import com.hand.demo.domain.entity.InvCountHeader;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -43,15 +41,23 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
     private InvWarehouseRepository invWarehouseRepository;
 
+    private IamCompanyRepository iamCompanyRepository;
+
+    private IamDepartmentRepository iamDepartmentRepository;
+
     private InvCountLineRepository invCountLineRepository;
 
     private InvMaterialRepository invMaterialRepository;
 
     private InvBatchRepository invBatchRepository;
 
+    private InvStockRepository invStockRepository;
+
     private final LovAdapter lovAdapter;
 
     private final CodeRuleBuilder codeRuleBuilder;
+
+    private final InvCountLineService invCountLineService;
 
     @Override
     public Page<InvCountHeaderDTO> selectList(PageRequest pageRequest, InvCountHeaderDTO invCountHeader) {
@@ -87,6 +93,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             InvCountHeaderDTO currHeader = headerById.get(headerDTO.getCountHeaderId());
             if (currHeader != null) {
                 String countStatus = currHeader.getCountStatus();
+
                 if (countStatus.equals(InvCountHeaderConstants.COUNT_STATUS_DRAFT)) {
                     invCountHeaderRepository.updateOptional(
                             headerDTO,
@@ -116,7 +123,23 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         }
 
 
+        List<InvCountLineDTO> linesToSave = new ArrayList<>();
         invCountHeaderRepository.batchInsertSelective(new ArrayList<>(insertList));
+        invCountHeaders.forEach(header -> {
+            List<InvCountLineDTO> invCountLines = header.getInvCountLineDTOList();
+            if (invCountLines != null && !invCountLines.isEmpty()) {
+                invCountLines.forEach(line -> {
+                    line.setCountHeaderId(header.getCountHeaderId());
+                    line.setCounterIds(header.getCounterIds());
+                    linesToSave.add(line);
+                });
+            }
+        });
+
+        if (!linesToSave.isEmpty()) {
+            invCountLineService.saveData(linesToSave);
+        }
+
 //        invCountHeaderRepository.batchUpdateByPrimaryKeySelective(new ArrayList<>(updateList));
     }
 
@@ -157,7 +180,9 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                 .setSnapshotMaterialList(snapshotMaterialList)
                 .setSnapshotBatchList(snapshotBatchList)
                 .setIsWMSwarehouse(isWMSWarehouse)
-                .setInvCountLineDTOList(invCountLineDTOList);
+                .setInvCountLineDTOList(invCountLineDTOList)
+                .setCounterList(getCounters(invCountHeaderDTO.getCounterIds().toString()))
+                .setSupervisorList(getSupervisors(invCountHeaderDTO.getSupervisorIds().toString()));
         return invCountHeaderDTO;
     }
 
@@ -165,7 +190,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     public InvCountInfoDTO manualSaveCheck(List<InvCountHeaderDTO> headerDTOList) {
         InvCountInfoDTO infoDTO = new InvCountInfoDTO();
 
-        List<String> allowedCountStatusList = getAllowedLovValues();
+        List<String> allowedCountStatusList = getAllowedCountStatusLovValues();
 
         List<InvCountHeaderDTO> headerInDatabaseDTO = getHeaderDTOsFromDb(headerDTOList);
 
@@ -205,7 +230,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             }
         }
 
-        List<InvCountHeaderDTO> errors = infoDTO.getErrorList();
+        Set<InvCountHeaderDTO> errors = infoDTO.getErrorList();
         if (!errors.isEmpty()) {
             throw new CommonException(errors.toString());
         }
@@ -218,7 +243,8 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     public InvCountInfoDTO checkAndRemove(List<InvCountHeaderDTO> headerDTOList) {
         InvCountInfoDTO infoDTO = new InvCountInfoDTO();
 
-        List<InvCountHeaderDTO> headerInDatabaseDTO = getHeaderDTOsFromDb(headerDTOList);
+        List<InvCountHeaderDTO> headerInDatabaseDTO = getHeaderDTOsFromDb(headerDTOList)
+                .stream().filter(Objects::nonNull).collect(Collectors.toList());
 
         Map<Long, InvCountHeaderDTO> headerDTOMap = headerDTOList.stream()
                 .collect(Collectors.toMap(InvCountHeaderDTO::getCountHeaderId, Function.identity()));
@@ -231,12 +257,12 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             }
             if (!headerDTO.getCountStatus().equals(InvCountHeaderConstants.COUNT_STATUS_DRAFT)) {
                 setErrorCountInfoError(headerDTOFromInput, infoDTO, "Only allow draft status to be deleted");
-            } else if (!getCurrentUser().getUserId().equals(headerDTO.getCreatedBy())) {
+            } else if (!Utils.getCurrentUser().getUserId().equals(headerDTO.getCreatedBy())) {
                 setErrorCountInfoError(headerDTOFromInput, infoDTO, "Only current user is document creator allow delete document");
             }
         }
 
-        List<InvCountHeaderDTO> errors = infoDTO.getErrorList();
+        Set<InvCountHeaderDTO> errors = infoDTO.getErrorList();
         if (!errors.isEmpty()) {
             throw new CommonException(errors.toString());
         }
@@ -247,16 +273,177 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
     @Override
     public InvCountInfoDTO executeCheck(List<InvCountHeaderDTO> headerDTOList) {
+        InvCountInfoDTO infoDTO = new InvCountInfoDTO();
 
-        return null;
+        List<InvCountHeaderDTO> headerDTOsFromDB = getHeaderDTOsFromDb(headerDTOList).stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        Map<Long, InvCountHeaderDTO> headerDTOMap = headerDTOList.stream()
+                .collect(Collectors.toMap(InvCountHeaderDTO::getCountHeaderId, Function.identity()));
+
+
+        Condition stockCondition = new Condition(InvStock.class);
+        Condition.Criteria stockCriteria = stockCondition.createCriteria();
+
+        for(InvCountHeaderDTO headerDTO : headerDTOsFromDB) {
+            InvCountHeaderDTO headerDTOFromInput = headerDTOMap.get(headerDTO.getCountHeaderId());
+
+            if (headerDTOFromInput == null) {
+                continue;
+            }
+
+            if (!headerDTO.getCountStatus().equals(InvCountHeaderConstants.COUNT_STATUS_DRAFT)) {
+                setErrorCountInfoError(headerDTOFromInput, infoDTO, "Only draft status can execute");
+            } else if (!isCreator(headerDTO.getCreatedBy())) {
+                setErrorCountInfoError(headerDTOFromInput, infoDTO, "Only the document creator can execute");
+            }
+
+            valueSetValidation(infoDTO, headerDTOFromInput);
+
+            companyDepartmentWarehouseValidation(headerDTOList, headerDTOFromInput, infoDTO);
+
+            List<Long> materialIds = Arrays.stream(
+                    headerDTO.getSnapshotMaterialList()
+                            .toString()
+                            .split(","))
+                    .map(Long::parseLong)
+                    .collect(Collectors.toList());
+
+            stockCriteria
+                    .andEqualTo(InvStock.FIELD_TENANT_ID, headerDTO.getTenantId())
+                    .andEqualTo(InvStock.FIELD_COMPANY_ID, headerDTO.getCompanyId())
+                    .andEqualTo(InvStock.FIELD_DEPARTMENT_ID, headerDTO.getDepartmentId())
+                    .andEqualTo(InvStock.FIELD_WAREHOUSE_ID, headerDTO.getWarehouseId())
+                    .andIn(InvStock.FIELD_MATERIAL_ID, materialIds)
+                    .andNotEqualTo(InvStock.FIELD_UNIT_QUANTITY, 0);
+            List<InvStock> stockList = invStockRepository.selectByCondition(stockCondition);
+
+            if (stockList == null || stockList.isEmpty()) {
+                setErrorCountInfoError(headerDTO, infoDTO, "Unable to query on hand quantity data");
+            }
+        }
+
+        Set<InvCountHeaderDTO> errors = infoDTO.getErrorList();
+        if (!errors.isEmpty()) {
+            throw new CommonException(errors.toString());
+        }
+        return infoDTO;
     }
 
-    private List<String> getAllowedLovValues() {
+    @Override
+    public List<InvCountHeaderDTO> execute(List<InvCountHeaderDTO> headerDTOList) {
+
+        return Collections.emptyList();
+    }
+
+    private List<CounterDTO> getCounters(String counterIds) {
+        List<String> ids = Arrays.asList(counterIds.split(","));
+        return ids.stream().map(id -> new CounterDTO().setId(Long.parseLong(id))).collect(Collectors.toList());
+    }
+
+    private List<SupervisorDTO> getSupervisors(String buyerIds) {
+        List<String> ids = Arrays.asList(buyerIds.split(","));
+        return ids.stream().map(id -> new SupervisorDTO().setId(Long.parseLong(id))).collect(Collectors.toList());
+    }
+
+    private List<String> getAllowedCountStatusLovValues() {
         return lovAdapter.queryLovValue(InvCountHeaderConstants.INV_COUNT_HEADER_COUNT_STATUS, BaseConstants.DEFAULT_TENANT_ID)
                 .stream()
                 .map(LovValueDTO::getValue)
                 .filter(InvCountHeaderConstants.HEADER_COUNT_DESIRED_STATUSES::contains)
                 .collect(Collectors.toList());
+    }
+
+    private List<String> getCountStatusLovValues() {
+        return lovAdapter.queryLovValue(InvCountHeaderConstants.INV_COUNT_HEADER_COUNT_STATUS, BaseConstants.DEFAULT_TENANT_ID)
+                .stream()
+                .map(LovValueDTO::getValue)
+                .collect(Collectors.toList());
+    }
+
+    private List<String> getCountDimensionLovValues() {
+        return lovAdapter.queryLovValue(InvCountHeaderConstants.INV_COUNT_HEADER_COUNT_DIMENSION, BaseConstants.DEFAULT_TENANT_ID)
+                .stream()
+                .map(LovValueDTO::getValue)
+                .collect(Collectors.toList());
+    }
+
+    private List<String> getCountTypeLovValues() {
+        return lovAdapter.queryLovValue(InvCountHeaderConstants.INV_COUNT_HEADER_COUNT_TYPE, BaseConstants.DEFAULT_TENANT_ID)
+                .stream()
+                .map(LovValueDTO::getValue)
+                .collect(Collectors.toList());
+    }
+
+    private List<String> getCountModeLovValues() {
+        return lovAdapter.queryLovValue(InvCountHeaderConstants.INV_COUNT_HEADER_COUNT_MODE, BaseConstants.DEFAULT_TENANT_ID)
+                .stream()
+                .map(LovValueDTO::getValue)
+                .collect(Collectors.toList());
+    }
+
+    private void companyDepartmentWarehouseValidation(List<InvCountHeaderDTO> headerDTOList, InvCountHeaderDTO headerDTOFromInput, InvCountInfoDTO infoDTO) {
+        String companyIds = headerDTOList.stream()
+                .map(InvCountHeaderDTO::getCompanyId)
+                .map(String::valueOf)
+                .collect(Collectors.joining(","));
+
+        String departmentIds = headerDTOList.stream()
+                .map(InvCountHeaderDTO::getDepartmentId)
+                .map(String::valueOf)
+                .collect(Collectors.joining(","));
+
+        String warehouseIds = headerDTOList.stream()
+                .map(InvCountHeaderDTO::getCompanyId)
+                .map(String::valueOf)
+                .collect(Collectors.joining(","));
+
+        List<Long> companyIdsFromDB = iamCompanyRepository.selectByIds(companyIds).stream()
+                .map(IamCompany::getCompanyId)
+                .collect(Collectors.toList());
+
+        List<Long> departmentIdsFromDB = iamDepartmentRepository.selectByIds(departmentIds).stream()
+                .map(IamDepartment::getDepartmentId)
+                .collect(Collectors.toList());
+
+        List<Long> warehouseIdsFromDB = invWarehouseRepository.selectByIds(warehouseIds).stream()
+                .map(InvWarehouse::getWarehouseId)
+                .collect(Collectors.toList());
+
+        if (!companyIdsFromDB.contains(headerDTOFromInput.getCompanyId())) {
+            setErrorCountInfoError(headerDTOFromInput, infoDTO, "Company not existed");
+        }
+        if (!departmentIdsFromDB.contains(headerDTOFromInput.getDepartmentId())) {
+            setErrorCountInfoError(headerDTOFromInput, infoDTO, "Department not existed");
+        }
+        if (!warehouseIdsFromDB.contains(headerDTOFromInput.getWarehouseId())) {
+            setErrorCountInfoError(headerDTOFromInput, infoDTO, "Warehouse not existed");
+        }
+    }
+
+
+    private void valueSetValidation(InvCountInfoDTO infoDTO, InvCountHeaderDTO headerDTO) {
+        List<String> countStatusLov = getCountStatusLovValues();
+        List<String> countDimensionLov = getCountDimensionLovValues();
+        List<String> countTypeLov = getCountTypeLovValues();
+        List<String> countModeLov = getCountModeLovValues();
+
+        if (!countStatusLov.contains(headerDTO.getCountStatus())) {
+            setErrorCountInfoError(headerDTO, infoDTO, "Count status not valid");
+        }
+
+        if (!countDimensionLov.contains(headerDTO.getCountDimension())) {
+            setErrorCountInfoError(headerDTO, infoDTO, "Count dimension not valid");
+        }
+
+        if (!countTypeLov.contains(headerDTO.getCountType())) {
+            setErrorCountInfoError(headerDTO, infoDTO, "Count type not valid");
+        }
+
+        if (!countModeLov.contains(headerDTO.getCountMode())) {
+            setErrorCountInfoError(headerDTO, infoDTO, "Count mode not valid");
+        }
     }
 
     private Map<Long, InvWarehouse> getWarehouseMappedById(List<InvCountHeaderDTO> headerDTOList) {
@@ -277,28 +464,24 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         return invWarehouseList.stream().collect(Collectors.toMap(InvWarehouse::getWarehouseId, Function.identity()));
     }
 
-    private CustomUserDetails getCurrentUser() {
-        return DetailsHelper.getUserDetails();
-    }
-
     private List<Long> parseCommaSeperatedIds(String ids) {
         return Arrays.stream(ids.split(",")).map(Long::parseLong).collect(Collectors.toList());
     }
 
     private boolean isSupervisor(List<Long> supervisorIds) {
-        return supervisorIds.contains(getCurrentUser().getUserId());
+        return supervisorIds.contains(Utils.getCurrentUser().getUserId());
     }
 
     private boolean isCounter(List<Long> counterIds) {
-        return counterIds.contains(getCurrentUser().getUserId());
+        return counterIds.contains(Utils.getCurrentUser().getUserId());
     }
 
     private boolean isCreator(Long creator) {
-        return getCurrentUser().getUserId().equals(creator);
+        return Utils.getCurrentUser().getUserId().equals(creator);
     }
 
     private void setErrorCountInfoError(InvCountHeaderDTO headerDTO, InvCountInfoDTO infoDTO, String errorMessage) {
-        headerDTO.setErrorMessage(errorMessage);
+        headerDTO.getErrorMessageList().add(errorMessage);
         infoDTO.getErrorList().add(headerDTO);
     }
 

@@ -28,4 +28,6 @@ public interface InvCountLineRepository extends BaseRepository<InvCountLine> {
      * @return 返回值
      */
     InvCountLineDTO selectByPrimary(Long countLineId);
+
+    Long getCurrentLineNumber();
 }

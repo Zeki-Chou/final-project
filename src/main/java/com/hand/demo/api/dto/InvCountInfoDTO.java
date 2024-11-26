@@ -5,11 +5,13 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @Accessors(chain = true)
 public class InvCountInfoDTO {
-    private List<InvCountHeaderDTO> successList = new ArrayList<>();
-    private List<InvCountHeaderDTO> errorList = new ArrayList<>();
+    private Set<InvCountHeaderDTO> successList = new HashSet<>();
+    private Set<InvCountHeaderDTO> errorList = new HashSet<>();
 }

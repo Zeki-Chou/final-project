@@ -38,5 +38,10 @@ public class InvCountLineRepositoryImpl extends BaseRepositoryImpl<InvCountLine>
         return invCountLines.get(0);
     }
 
+    @Override
+    public Long getCurrentLineNumber() {
+        return invCountLineMapper.getCurrentLineNumber();
+    }
+
 }
 

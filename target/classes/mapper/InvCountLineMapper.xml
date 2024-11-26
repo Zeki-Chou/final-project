@@ -134,5 +134,10 @@
             </if>
         </where>
     </select>
+
+    <select id="getCurrentLineNumber" resultType="java.lang.Long">
+        SELECT MAX(line_number)
+        FROM fexam_inv_count_line
+    </select>
 </mapper>
 

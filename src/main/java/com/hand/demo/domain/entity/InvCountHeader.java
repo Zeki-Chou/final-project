@@ -3,7 +3,8 @@ package com.hand.demo.domain.entity;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.hand.demo.api.dto.ValidateSave;
+import com.hand.demo.api.dto.ValidateHeaderSave;
+import com.hand.demo.api.dto.ValidateOrderExecute;
 import io.choerodon.mybatis.annotation.ModifyAudit;
 import io.choerodon.mybatis.annotation.VersionAudit;
 import io.choerodon.mybatis.domain.AuditDomain;
@@ -14,9 +15,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import java.math.BigDecimal;
-import java.util.Date;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -136,16 +134,15 @@ public class InvCountHeader extends AuditDomain {
     private String attributeCategory;
 
     @ApiModelProperty(hidden = true)
-    @NotNull(groups = ValidateSave.class)
-    @NotBlank(groups = ValidateSave.class)
+    @NotBlank(groups = {ValidateHeaderSave.class, ValidateOrderExecute.class})
     private Long companyId;
 
     @ApiModelProperty(value = "", required = true)
-    @NotBlank
+    @NotBlank(groups = {ValidateOrderExecute.class})
     private String countDimension;
 
     @ApiModelProperty(value = "", required = true)
-    @NotBlank
+    @NotBlank(groups = {ValidateOrderExecute.class})
     private String countMode;
 
     @ApiModelProperty(value = "", required = true)
@@ -153,20 +150,18 @@ public class InvCountHeader extends AuditDomain {
     private String countNumber;
 
     @ApiModelProperty(value = "", required = true)
-    @NotNull(groups = ValidateSave.class)
-    @NotBlank(groups = ValidateSave.class)
+    @NotBlank(groups = {ValidateHeaderSave.class, ValidateOrderExecute.class})
     private String countStatus;
 
     @ApiModelProperty(hidden = true)
     private String countTimeStr;
 
     @ApiModelProperty(value = "", required = true)
-    @NotBlank
+    @NotBlank(groups = {ValidateOrderExecute.class})
     private String countType;
 
     @ApiModelProperty(hidden = true)
-    @NotNull(groups = ValidateSave.class)
-    @NotBlank(groups = ValidateSave.class)
+    @NotBlank(groups = {ValidateHeaderSave.class, ValidateOrderExecute.class})
     private Object counterIds;
 
     @ApiModelProperty(hidden = true)
@@ -200,18 +195,15 @@ public class InvCountHeader extends AuditDomain {
     private String sourceSystem;
 
     @ApiModelProperty(hidden = true)
-    @NotNull(groups = ValidateSave.class)
-    @NotBlank(groups = ValidateSave.class)
+    @NotBlank(groups = ValidateHeaderSave.class)
     private Object supervisorIds;
 
     @ApiModelProperty(value = "", required = true, hidden = true)
-    @NotNull(groups = ValidateSave.class)
-    @NotBlank(groups = ValidateSave.class)
+    @NotBlank(groups = {ValidateHeaderSave.class, ValidateOrderExecute.class})
     private Long tenantId;
 
     @ApiModelProperty(hidden = true)
-    @NotNull(groups = ValidateSave.class)
-    @NotBlank(groups = ValidateSave.class)
+    @NotBlank(groups = {ValidateHeaderSave.class, ValidateOrderExecute.class})
     private Long warehouseId;
 
     @ApiModelProperty(hidden = true)
