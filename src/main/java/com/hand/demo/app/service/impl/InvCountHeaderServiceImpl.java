@@ -6,6 +6,7 @@ import com.hand.demo.domain.entity.InvMaterial;
 import com.hand.demo.domain.entity.InvWarehouse;
 import com.hand.demo.domain.repository.*;
 import com.hand.demo.infra.constant.InvCountHeaderConstants;
+import com.hand.demo.infra.util.Utils;
 import io.choerodon.core.domain.Page;
 import io.choerodon.core.exception.CommonException;
 import io.choerodon.core.oauth.CustomUserDetails;
@@ -89,7 +90,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                 if (countStatus.equals(InvCountHeaderConstants.COUNT_STATUS_DRAFT)) {
                     invCountHeaderRepository.updateOptional(
                             headerDTO,
-                            getNonNullFields(headerDTO,
+                            Utils.getNonNullFields(headerDTO,
                                     InvCountHeader.FIELD_COMPANY_ID,
                                     InvCountHeaderDTO.FIELD_DEPARTMENT_ID,
                                     InvCountHeaderDTO.FIELD_WAREHOUSE_ID,
@@ -107,7 +108,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                 } else if (countStatus.equals(InvCountHeaderConstants.COUNT_STATUS_INCOUNTING)
                         || countStatus.equals(InvCountHeaderConstants.COUNT_STATUS_REJECTED)) {
                     invCountHeaderRepository.updateOptional(headerDTO,
-                            getNonNullFields(headerDTO,
+                            Utils.getNonNullFields(headerDTO,
                                     InvCountHeaderDTO.FIELD_REMARK,
                                     InvCountHeaderDTO.FIELD_REASON));
                 }
@@ -298,25 +299,5 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                 })
                 .collect(Collectors.toList());
     }
-
-    private String[] getNonNullFields(InvCountHeaderDTO dto, String... fieldNames) {
-        List<String> nonNullFields = new ArrayList<>();
-        for (String fieldName : fieldNames) {
-            try {
-                Field field = dto.getClass().getSuperclass().getDeclaredField(fieldName);
-                field.setAccessible(true);
-                if (field.get(dto) != null) {
-                    nonNullFields.add(fieldName);
-
-                }
-            } catch (Exception e) {
-                System.out.println("wkwkwkwkwk: " + e.getMessage());
-                return null;
-            }
-        }
-        return nonNullFields.toArray(new String[0]);
-    }
-
-
 }
 
