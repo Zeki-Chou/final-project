@@ -1,0 +1,17 @@
+{
+  "name" : "FexamInvCountExtra",
+  "preName" : "fexam_",
+  "modifyPreName" : "",
+  "comment" : "",
+  "templateGroupName" : "Default",
+  "fullColumn" : [ ],
+  "pkColumn" : null,
+  "otherColumn" : null,
+  "savePackageName" : "com.hand.demo",
+  "savePath" : "./src/main/java/com/hand/demo",
+  "saveModelName" : "fexam-xxxxx",
+  "author" : "",
+  "level" : "tenant",
+  "fullColumnQuery" : true,
+  "useLombok" : true
+}

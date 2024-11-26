@@ -23,7 +23,7 @@ public interface InvCountHeaderService {
      * @param invCountHeaders 查询条件
      * @return 返回值
      */
-    Page<List<InvCountHeaderDTO>> selectList(PageRequest pageRequest, InvCountInfoDTO invCountHeaderDTO);
+    public Page<List<InvCountHeaderDTO>> queryList(PageRequest pageRequest, InvCountHeaderDTO invCountHeaderDTO);
 
     /**
      * 保存数据

@@ -16,6 +16,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -84,36 +85,52 @@ public class InvCountHeader extends AuditDomain {
 
     private Date approvedTime;
 
+    @ApiModelProperty(hidden = true)
     private String attribute1;
 
+    @ApiModelProperty(hidden = true)
     private String attribute10;
 
+    @ApiModelProperty(hidden = true)
     private String attribute11;
 
+    @ApiModelProperty(hidden = true)
     private String attribute12;
 
+    @ApiModelProperty(hidden = true)
     private String attribute13;
 
+    @ApiModelProperty(hidden = true)
     private String attribute14;
 
+    @ApiModelProperty(hidden = true)
     private String attribute15;
 
+    @ApiModelProperty(hidden = true)
     private String attribute2;
 
+    @ApiModelProperty(hidden = true)
     private String attribute3;
 
+    @ApiModelProperty(hidden = true)
     private String attribute4;
 
+    @ApiModelProperty(hidden = true)
     private String attribute5;
 
+    @ApiModelProperty(hidden = true)
     private String attribute6;
 
+    @ApiModelProperty(hidden = true)
     private String attribute7;
 
+    @ApiModelProperty(hidden = true)
     private String attribute8;
 
+    @ApiModelProperty(hidden = true)
     private String attribute9;
 
+    @ApiModelProperty(hidden = true)
     private String attributeCategory;
 
     private Long companyId;
@@ -134,12 +151,14 @@ public class InvCountHeader extends AuditDomain {
     @NotBlank
     private String countStatus;
 
+    @ApiModelProperty(value = "", required = true)
     private String countTimeStr;
 
     @ApiModelProperty(value = "", required = true)
     @NotBlank
     private String countType;
 
+    @ApiModelProperty(value = "", required = true)
     private String counterIds;
 
     private Integer delFlag;
@@ -171,7 +190,5 @@ public class InvCountHeader extends AuditDomain {
     private Long warehouseId;
 
     private Long workflowId;
-
-
 }
 

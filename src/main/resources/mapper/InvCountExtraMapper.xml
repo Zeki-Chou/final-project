@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hand.demo.infra.mapper.InvCountExtraMapper">
+
+
+    <sql id = "BaseSql">
+        fice.creation_date, 
+        fice.created_by, 
+        fice.last_updated_by, 
+        fice.last_update_date, 
+        fice.object_version_number
+    </sql>
+
+    <select id = "selectList" resultType = "com.hand.demo.domain.entity.InvCountExtra">
+        select
+        <include refid = "BaseSql"/>
+        from fexam_inv_count_extra fice
+        <where>
+        </where>
+    </select>
+</mapper>
+

@@ -212,6 +212,15 @@
     "length" : 0,
     "ext" : { }
   }, {
+    "name" : "objectVersionNumber",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : false,
+    "length" : 0,
+    "ext" : { }
+  }, {
     "name" : "tenantId",
     "comment" : null,
     "type" : null,

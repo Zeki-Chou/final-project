@@ -14,7 +14,7 @@ import java.util.List;
  * (InvWarehouse)资源库
  *
  * @author
- * @since 2024-11-25 15:19:39
+ * @since 2024-11-26 17:19:58
  */
 @Component
 public class InvWarehouseRepositoryImpl extends BaseRepositoryImpl<InvWarehouse> implements InvWarehouseRepository {

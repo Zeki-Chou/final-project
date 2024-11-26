@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hand.demo.infra.mapper.InvStockMapper">
+
+
+    <sql id = "BaseSql">
+        fis.creation_date, 
+        fis.created_by, 
+        fis.last_updated_by, 
+        fis.last_update_date, 
+        fis.object_version_number
+    </sql>
+
+    <select id = "selectList" resultType = "com.hand.demo.domain.entity.InvStock">
+        select
+        <include refid = "BaseSql"/>
+        from fexam_inv_stock fis
+        <where>
+        </where>
+    </select>
+</mapper>
+

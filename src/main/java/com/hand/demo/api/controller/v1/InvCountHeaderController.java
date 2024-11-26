@@ -9,6 +9,7 @@ import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 import io.choerodon.mybatis.pagehelper.domain.Sort;
 import io.choerodon.swagger.annotation.Permission;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.hzero.core.base.BaseController;
 import org.hzero.core.util.Results;
 import org.hzero.mybatis.helper.SecurityTokenHelper;
@@ -57,13 +58,14 @@ public class InvCountHeaderController extends BaseController {
 //        return Results.success(invCountHeader);
 //    }
 
-//    @ApiOperation(value = "List Query")
-//    @Permission(level = ResourceLevel.ORGANIZATION)
-//    @GetMapping("/listQuery")
-//    public ResponseEntity<InvCountHeader> detail(@PathVariable Long countHeaderId) {
-//        InvCountHeader invCountHeader = invCountHeaderRepository.selectByPrimary(countHeaderId);
-//        return Results.success(invCountHeader);
-//    }
+    @ApiOperation(value = "List Query")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @GetMapping("/listQuery")
+    public ResponseEntity<Page<List<InvCountHeaderDTO>>> selectList(InvCountHeaderDTO invCountHeaderDTO, @PathVariable Long organizationId,
+                                                                    @ApiParam(hidden = true) @ApiIgnore @SortDefault(value = InvCountHeaderDTO.FIELD_CREATION_DATE,
+                                                                            direction = Sort.Direction.DESC) PageRequest pageRequest) {
+        return Results.success(invCountHeaderService.queryList(pageRequest, invCountHeaderDTO));
+    }
 
     @ApiOperation(value = "Counting Order Save")
     @Permission(level = ResourceLevel.ORGANIZATION)

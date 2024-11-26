@@ -4,7 +4,9 @@ import com.alibaba.fastjson.JSON;
 import com.hand.demo.api.controller.v1.DTO.InvCountException;
 import com.hand.demo.api.controller.v1.DTO.InvCountHeaderDTO;
 import com.hand.demo.api.controller.v1.DTO.InvCountInfoDTO;
+import com.hand.demo.domain.entity.InvCountLine;
 import com.hand.demo.domain.entity.InvWarehouse;
+import com.hand.demo.domain.repository.InvCountLineRepository;
 import com.hand.demo.domain.repository.InvWarehouseRepository;
 import com.hand.demo.infra.constant.InvCountHeaderConstant;
 import com.netflix.discovery.converters.Auto;
@@ -21,6 +23,7 @@ import org.json.JSONObject;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.hand.demo.app.service.InvCountHeaderService;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import com.hand.demo.domain.entity.InvCountHeader;
 import com.hand.demo.domain.repository.InvCountHeaderRepository;
@@ -43,6 +46,9 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     private InvWarehouseRepository invWarehouseRepository;
 
     @Autowired
+    private InvCountLineRepository invCountLineRepository;
+
+    @Autowired
     LovAdapter lovAdapter;
 
     @Autowired
@@ -52,22 +58,30 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     CodeRuleBuilder codeRuleBuilder;
 
     @Override
-    public Page<List<InvCountHeaderDTO>> selectList(PageRequest pageRequest, InvCountInfoDTO invCountHeaderDTO) {
+    public Page<List<InvCountHeaderDTO>> queryList(PageRequest pageRequest, InvCountHeaderDTO invCountHeaderDTO) {
         InvCountHeader invCountHeader = new InvCountHeader();
         BeanUtils.copyProperties(invCountHeaderDTO, invCountHeader);
 
-        Page<List<InvCountHeaderDTO>> pageResult = PageHelper.doPageAndSort(pageRequest, () -> {
-            return PageHelper.doPageAndSort(pageRequest, () -> invCountHeaderRepository.selectList(invCountHeader));
+        Page<InvCountHeader> pageResult = PageHelper.doPageAndSort(pageRequest, () -> {
+            invCountHeader.setSupervisorIds(invCountHeaderDTO.getSupervisorId());
+            return invCountHeaderRepository.selectList(invCountHeader);
         });
 
-        Page<List<InvCountHeaderDTO>> invCountHeaderDTOPage = new Page<>();
-        invCountHeaderDTOPage.setContent(pageResult);
-        invCountHeaderDTOPage.setTotalPages(pageResult.getTotalPages());
-        invCountHeaderDTOPage.setTotalElements(pageResult.getTotalElements());
-        invCountHeaderDTOPage.setNumber(pageResult.getNumber());
-        invCountHeaderDTOPage.setSize(pageResult.getSize());
+        List<InvCountHeaderDTO> invCountHeaderDTOList = new ArrayList<>();
+        for (InvCountHeader entity : pageResult) {
+            InvCountHeaderDTO dto = new InvCountHeaderDTO();
+            BeanUtils.copyProperties(entity, dto);
+            invCountHeaderDTOList.add(dto);
+        }
 
-        return invCountHeaderDTOPage;
+        Page<List<InvCountHeaderDTO>> invoiceApplyHeadersDTOPage = new Page<>();
+        invoiceApplyHeadersDTOPage.setContent(Collections.singletonList(invCountHeaderDTOList));
+        invoiceApplyHeadersDTOPage.setTotalPages(pageResult.getTotalPages());
+        invoiceApplyHeadersDTOPage.setTotalElements(pageResult.getTotalElements());
+        invoiceApplyHeadersDTOPage.setNumber(pageResult.getNumber());
+        invoiceApplyHeadersDTOPage.setSize(pageResult.getSize());
+
+        return invoiceApplyHeadersDTOPage;
     }
 
     public InvCountInfoDTO orderRemove(List<InvCountHeaderDTO> invCountHeaders) {
@@ -170,7 +184,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                 }
 
                 if(!statusValidation2.contains(String.valueOf(invCountHeader.getCountStatus()))) {
-                    InvWarehouse invWarehouse = invCountWarehouseMap.get(update.getWarehouseId());
+                    InvWarehouse invWarehouse = invCountWarehouseMap.get(invCountHeader.getWarehouseId());
                     if(invWarehouse == null) {
                         invWarehouse.setIsWmsWarehouse(0);
                     }
@@ -201,13 +215,18 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                 setErrorMessage.add("The current warehouse is a WMS warehouse, and only the supervisor is allowed to operate.");
             }
             if(errorMessage.contains("error4")) {
-                setErrorMessage.add("only the document creator, counter, and supervisor can modify the document for the status  of in counting, rejected, withdrawn.");
+                setErrorMessage.add("only the document creator, counter, and supervisor can modify the document for the status of in counting, rejected, withdrawn.");
             }
 
             List<String> errorMessageList = new ArrayList<>(setErrorMessage);
             invCountInfoDTO.setErrorMessage(errorMessageList);
         }
         return invCountInfoDTO;
+    }
+
+    private boolean isUserInCounterIds(Long userId, String counterIds) {
+        // Menggunakan contains dengan format ",userId,"
+        return counterIds.contains("," + userId + ",") || counterIds.startsWith(userId + ",") || counterIds.endsWith("," + userId) || counterIds.equals(userId);
     }
 
     @Override
@@ -220,7 +239,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         }
 
 //      update
-        List<InvCountHeader> updateList = invCountHeadersDTO.stream().filter(line -> line.getCountHeaderId() != null).collect(Collectors.toList());
+        List<InvCountHeaderDTO> updateList = invCountHeadersDTO.stream().filter(line -> line.getCountHeaderId() != null).collect(Collectors.toList());
         if(updateList.size() > 0) {
             List<Long> headerIds = updateList.stream().map(InvCountHeader::getCountHeaderId).collect(Collectors.toList());
             String joinHeaderId = String.join(",", headerIds.stream()
@@ -229,9 +248,24 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             Map<Long, InvCountHeader> invCountHeaderMap = invCountHeaderRepository.selectByIds(joinHeaderId).stream()
                     .collect(Collectors.toMap(InvCountHeader::getCountHeaderId, header -> header));
 
+            List<Long> allCountLineIds = updateList.stream()
+                    .flatMap(dto -> dto.getInvCountLinesList().stream())
+                    .map(InvCountLine::getCountLineId)
+                    .collect(Collectors.toList());
+            String joinLineId = String.join(",", allCountLineIds.stream()
+                    .map(String::valueOf)
+                    .collect(Collectors.toList()));
+            Map<Long, InvCountLine> invCountLineMap = invCountLineRepository.selectByIds(joinLineId).stream()
+                    .collect(Collectors.toMap(InvCountLine::getCountLineId, header -> header));
+
             List<InvCountHeader> updateSpecialCondition = new ArrayList<>();
             List<InvCountHeader> allowedUpdate = new ArrayList<>();
-            for(InvCountHeader update : updateList) {
+            List<InvCountLine> invCountLineUpdate = new ArrayList<>();
+
+            JSONObject jsonObject = new JSONObject(iamRemoteService.selectSelf().getBody());
+            Long userId = jsonObject.getLong("id");
+
+            for(InvCountHeaderDTO update : updateList) {
                 InvCountHeader invCountHeaderNew = new InvCountHeader();
                 invCountHeaderNew.setCountHeaderId(update.getCountHeaderId());
                 invCountHeaderNew.setObjectVersionNumber(update.getObjectVersionNumber());
@@ -263,16 +297,21 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         }
 
 //      insert
-        List<InvCountHeader> insertList = invCountHeadersDTO.stream().filter(line -> line.getCountHeaderId() == null).collect(Collectors.toList());
-        List<String> batchCode = codeRuleBuilder.generateCode(insertList.size(), InvCountHeaderConstant.INVOICE_COUNTING, null);
+        List<InvCountHeaderDTO> insertList = invCountHeadersDTO.stream().filter(line -> line.getCountHeaderId() == null).collect(Collectors.toList());
+        if(insertList.size() > 0) {
+            List<String> batchCode = codeRuleBuilder.generateCode(insertList.size(), InvCountHeaderConstant.INVOICE_COUNTING, null);
 
-        for (int i = 0; i < insertList.size(); i++) {
-            InvCountHeader insert = insertList.get(i);
-            insert.setCountNumber(batchCode.get(i));
-            insert.setCountStatus("DRAFT");
-            insert.setDelFlag(BaseConstants.Flag.NO);
+            List<InvCountHeader> invCountHeaderInsertList = new ArrayList<>();
+            for (int i = 0; i < insertList.size(); i++) {
+                InvCountHeader insert = insertList.get(i);
+                insert.setCountNumber(batchCode.get(i));
+                insert.setCountStatus("DRAFT");
+                insert.setDelFlag(BaseConstants.Flag.NO);
+
+                invCountHeaderInsertList.add(insert);
+            }
+            invCountHeaderRepository.batchInsertSelective(invCountHeaderInsertList);
         }
-        invCountHeaderRepository.batchInsertSelective(insertList);
         return invCountHeadersDTO;
     }
 }
