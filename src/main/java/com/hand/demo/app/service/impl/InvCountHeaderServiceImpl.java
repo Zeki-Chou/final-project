@@ -104,21 +104,12 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                 InvCountHeader.FIELD_REASON
         );
 
-        List<InvCountHeader> draftUpdateRes = invCountHeaderRepository.batchUpdateOptional(
-                    draftUpdateList,
-                    InvCountHeader.FIELD_COMPANY_ID,
-                    InvCountHeader.FIELD_DEPARTMENT_ID,
-                    InvCountHeader.FIELD_WAREHOUSE_ID,
-                    InvCountHeader.FIELD_COUNT_DIMENSION,
-                    InvCountHeader.FIELD_COUNT_TYPE,
-                    InvCountHeader.FIELD_COUNT_MODE,
-                    InvCountHeader.FIELD_COUNT_TIME_STR,
-                    InvCountHeader.FIELD_COUNTER_IDS,
-                    InvCountHeader.FIELD_SUPERVISOR_IDS,
-                    InvCountHeader.FIELD_SNAPSHOT_MATERIAL_IDS,
-                    InvCountHeader.FIELD_SNAPSHOT_BATCH_IDS,
-                    InvCountHeader.FIELD_REMARK
-        );
+        draftUpdateList.forEach(header -> {
+            header.setRemark(null);
+            header.setReason(null);
+        });
+
+        List<InvCountHeader> draftUpdateRes = invCountHeaderRepository.batchUpdateByPrimaryKeySelective(draftUpdateList);
 
         List<InvCountHeader> updateRes = Stream.of(draftUpdateRes, inCountUpdateRes, rejectedUpdateRes)
                                                 .flatMap(Collection::stream)
