@@ -93,3 +93,14 @@ logging:
     io.choerodon: debug
     org.hzero: debug
     com.hand.demo: debug
+hzero:
+  lov:
+    sql:
+      enabled: true
+  redis:
+    # 开启消息队列, 默认值false
+    redis-queue: true
+    # 消息队列默认使用的db, 默认值1
+    queue-db: 13
+  cache-value:
+    enable: true

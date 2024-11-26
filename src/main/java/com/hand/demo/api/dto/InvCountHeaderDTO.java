@@ -4,11 +4,12 @@ import com.hand.demo.domain.entity.InvCountHeader;
 import com.hand.demo.domain.entity.InvCountLine;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.hzero.core.cache.Cacheable;
 
 import java.util.List;
 
 @Data
-public class InvCountHeaderDTO extends InvCountHeader {
+public class InvCountHeaderDTO extends InvCountHeader implements Cacheable {
     List<InvCountLine> invCountLineList;
     String errorMessage;
 
@@ -19,4 +20,7 @@ public class InvCountHeaderDTO extends InvCountHeader {
     List<UserInfoDTO> supervisorList;
     List<MaterialInfoDTO> snapshotMaterialList;
     List<BatchInfoDTO> snapshotBatchList;
+    List<InvCountLineDTO> invCountLineDTOList;
+
+    Integer isWmsWarehouse;
 }

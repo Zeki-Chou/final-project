@@ -120,7 +120,7 @@
                 and fich.count_mode = #{countMode,jdbcType = VARCHAR}
             </if>
             <if test="countNumber !=null">
-                and fich.count_number = #{countNumber,jdbcType = VARCHAR}
+                and fich.count_number LIKE CONCAT('%', #{countNumber,jdbcType = VARCHAR}, '%')
             </if>
             <if test="countStatus !=null">
                 and fich.count_status = #{countStatus,jdbcType = VARCHAR}
@@ -167,8 +167,9 @@
             <if test="supervisorIds !=null">
                 and fich.supervisor_ids = #{supervisorIds,jdbcType = VARCHAR}
             </if>
-            <if test="tenantId !=null">
-                and fich.tenant_id = #{tenantId,jdbcType = INTEGER}
+            <!--  supervisorId: single not multi   -->
+            <if test="supervisor !=null">
+                and find_in_set(#{supervisor,jdbcType = VARCHAR}, fich.supervisor_ids) > 0
             </if>
             <if test="warehouseId !=null">
                 and fich.warehouse_id = #{warehouseId,jdbcType = INTEGER}

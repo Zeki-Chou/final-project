@@ -23,7 +23,7 @@ public interface InvCountHeaderService {
      * @param invCountHeaders 查询条件
      * @return 返回值
      */
-    Page<InvCountHeader> selectList(PageRequest pageRequest, InvCountHeader invCountHeaders);
+    Page<InvCountHeaderDTO> selectList(PageRequest pageRequest, InvCountHeaderDTO invCountHeaders);
 
     /**
      * 保存数据
@@ -43,6 +43,24 @@ public interface InvCountHeaderService {
      * @return invoice info dto
      */
     InvCountInfoDTO checkAndRemove(List<InvCountHeaderDTO> invCountHeaderDTOS);
+
+    /**
+     * @param countHeaderId count header id
+     * @return header dto
+     */
+    InvCountHeaderDTO detail(Long countHeaderId);
+
+    /**
+     * @param invCountHeaderDTOList
+     * @return
+     */
+    InvCountInfoDTO executeCheck(List<InvCountHeaderDTO> invCountHeaderDTOList);
+
+    /**
+     * @param invCountHeaderDTOList
+     * @return
+     */
+    List<InvCountHeaderDTO> execute(List<InvCountHeaderDTO> invCountHeaderDTOList);
 
 }
 

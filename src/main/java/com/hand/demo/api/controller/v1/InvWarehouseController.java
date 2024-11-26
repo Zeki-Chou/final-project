@@ -41,7 +41,7 @@ public class InvWarehouseController extends BaseController {
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping
     public ResponseEntity<Page<InvWarehouse>> list(InvWarehouse invWarehouse, @PathVariable Long organizationId,
-                                                   @ApiIgnore @SortDefault(value = InvWarehouse.FIELD_WAREHOUSE_ID,
+                                                   @ApiIgnore @SortDefault(value = InvWarehouse.FIELD_CREATION_DATE,
                                                            direction = Sort.Direction.DESC) PageRequest pageRequest) {
         Page<InvWarehouse> list = invWarehouseService.selectList(pageRequest, invWarehouse);
         return Results.success(list);

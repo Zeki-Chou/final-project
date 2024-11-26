@@ -6,6 +6,10 @@ import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 /**
  * Utils
  */
@@ -27,5 +31,14 @@ public class Utils {
 
         String responseBody = iamResponse.getBody();
         return new JSONObject(responseBody);
+    }
+
+    /**
+     * convert string of ids to list of long id
+     * @param ids string of ids e.g: 1,2,3
+     * @return list of split ids e.g: [1,2,3]
+     */
+    public static List<Long> convertStringIdstoList(String ids) {
+        return Stream.of(ids.split(",")).map(Long::valueOf).collect(Collectors.toList());
     }
 }

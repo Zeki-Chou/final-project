@@ -21,6 +21,7 @@ import org.hzero.boot.platform.lov.adapter.LovAdapter;
 import org.hzero.boot.platform.lov.dto.LovValueDTO;
 import org.hzero.core.base.BaseConstants;
 import org.hzero.core.base.BaseController;
+import org.hzero.core.cache.ProcessCacheValue;
 import org.hzero.core.util.Results;
 import org.hzero.mybatis.helper.SecurityTokenHelper;
 import org.json.JSONObject;
@@ -58,18 +59,19 @@ public class InvCountHeaderController extends BaseController {
     @ApiOperation(value = "列表")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping
-    public ResponseEntity<Page<InvCountHeader>> list(InvCountHeader invCountHeader, @PathVariable Long organizationId,
+    public ResponseEntity<Page<InvCountHeaderDTO>> list(InvCountHeaderDTO invCountHeader, @PathVariable Long organizationId,
                                                      @ApiIgnore @SortDefault(value = InvCountHeader.FIELD_COUNT_HEADER_ID,
                                                              direction = Sort.Direction.DESC) PageRequest pageRequest) {
-        Page<InvCountHeader> list = invCountHeaderService.selectList(pageRequest, invCountHeader);
+        Page<InvCountHeaderDTO> list = invCountHeaderService.selectList(pageRequest, invCountHeader);
         return Results.success(list);
     }
 
     @ApiOperation(value = "明细")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping("/{countHeaderId}/detail")
-    public ResponseEntity<InvCountHeader> detail(@PathVariable Long countHeaderId) {
-        InvCountHeader invCountHeader = invCountHeaderRepository.selectByPrimary(countHeaderId);
+    @ProcessCacheValue
+    public ResponseEntity<InvCountHeaderDTO> detail(@PathVariable Long countHeaderId) {
+        InvCountHeaderDTO invCountHeader = invCountHeaderService.detail(countHeaderId);
         return Results.success(invCountHeader);
     }
 
@@ -105,6 +107,13 @@ public class InvCountHeaderController extends BaseController {
         List<InvCountHeader> headerList = new ArrayList<>(invCountHeaders);
         invCountHeaderRepository.batchDeleteByPrimaryKey(headerList);
         return Results.success();
+    }
+
+    @ApiOperation(value = "counting order execute")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @PostMapping
+    public ResponseEntity<List<InvCountHeaderDTO>> execute(@RequestBody List<InvCountHeaderDTO> invCountHeaders) {
+
     }
 
 }
