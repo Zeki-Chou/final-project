@@ -9,9 +9,9 @@
         <version>1.11.0.RELEASE</version>
     </parent>
     <groupId>com.hand.fexam</groupId>
-    <artifactId>fexam-xxxxx</artifactId>
+    <artifactId>fexam-47360</artifactId>
     <version>1.0.0-snapshot</version>
-    <name>fexam-xxxxx</name>
+    <name>fexam-47360</name>
 
     <dependencies>
         <!-- hzero starter -->
@@ -107,7 +107,10 @@
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
-
+        <dependency>
+            <groupId>org.hzero.boot</groupId>
+            <artifactId>hzero-boot-platform</artifactId>
+        </dependency>
     </dependencies>
 
     <repositories>

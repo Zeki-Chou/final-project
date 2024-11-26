@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hand.demo.infra.mapper.InvCountHeaderMapper">
+    <resultMap id="InvCountHeaderDTOMap" type="com.hand.demo.api.dto.InvCountHeaderDTO">
+        <!-- Header fields -->
+        <id column="header_id" property="countHeaderId"/>
+        <result column="creation_date" property="creationDate"/>
+        <result column="header_number" property="countNumber"/>
+        <result column="header_status" property="countStatus"/>
+        <result column="header_type" property="countType"/>
+        <result column="header_dimension" property="countDimension"/>
+        <result column="header_mode" property="countMode"/>
+        <result column="header_reason" property="reason"/>
+        <result column="warehouse_is_wms_warehouse" property="isWMSWarehouse"/>
+
+        <!-- Counter List -->
+        <collection property="counterList" ofType="com.hand.demo.api.dto.UserDTO">
+            <id column="counter_id" property="id"/>
+            <result column="counter_name" property="realName"/>
+        </collection>
+
+        <!-- Supervisor List -->
+        <collection property="supervisorList" ofType="com.hand.demo.api.dto.UserDTO">
+            <id column="supervisor_id" property="id"/>
+            <result column="supervisor_name" property="realName"/>
+        </collection>
+
+        <!-- Snapshot Material List -->
+        <collection property="snapshotMaterialList" ofType="com.hand.demo.domain.entity.InvMaterial">
+            <id column="material_id" property="materialId"/>
+            <result column="material_code" property="materialCode"/>
+        </collection>
+
+        <!-- Snapshot Batch List -->
+        <collection property="snapshotBatchList" ofType="com.hand.demo.domain.entity.InvBatch">
+            <id column="batch_id" property="batchId"/>
+            <result column="batch_code" property="batchCode"/>
+        </collection>
+
+        <!-- InvCountLine List -->
+        <collection property="invCountLineDTOList" ofType="com.hand.demo.api.dto.InvCountLineDTO">
+            <id column="line_id" property="countLineId"/>
+            <result column="line_header_id" property="countHeaderId"/>
+            <result column="line_snapshot_unit_qty" property="snapshotUnitQty"/>
+            <result column="line_unit_qty" property="unitQty"/>
+            <result column="line_unit_diff_qty" property="unitDiffQty"/>
+        </collection>
+    </resultMap>
+
+    <sql id = "BaseSql">
+        h.count_header_id       AS header_id,
+        h.creation_date         AS creation_date,
+        h.count_number          AS header_number,
+        h.count_status          AS header_status,
+        h.count_type            AS header_type,
+        h.count_dimension       AS header_dimension,
+        h.count_mode            AS header_mode,
+        h.reason                AS header_reason,
+        c.id                    AS counter_id,
+        c.real_name             AS counter_name,
+        s.id                    AS supervisor_id,
+        s.real_name             AS supervisor_name,
+        m.material_id           AS material_id,
+        m.material_code         AS material_code,
+        b.batch_id              AS batch_id,
+        b.batch_code            AS batch_code,
+        l.count_line_id         AS line_id,
+        l.count_header_id       AS line_header_id,
+        l.snapshot_unit_qty     AS line_snapshot_unit_qty,
+        l.unit_qty              AS line_unit_qty,
+        l.unit_diff_qty         AS line_unit_diff_qty,
+        w.is_wms_warehouse      AS warehouse_is_wms_warehouse
+  </sql>
+
+    <select id = "selectList" resultMap="InvCountHeaderDTOMap">
+        SELECT
+        <include refid = "BaseSql"/>
+        FROM
+        fexam_inv_count_header h
+        LEFT JOIN hzero_platform.iam_user c     ON FIND_IN_SET(c.id, h.counter_ids) > 0
+        LEFT JOIN hzero_platform.iam_user s     ON FIND_IN_SET(s.id, h.supervisor_ids) > 0
+        LEFT JOIN fexam_inv_material m          ON FIND_IN_SET(m.material_id, h.snapshot_material_ids) > 0
+        LEFT JOIN fexam_inv_batch b             ON FIND_IN_SET(b.batch_id, h.snapshot_batch_ids) > 0
+        LEFT JOIN fexam_inv_count_line l        ON l.count_header_id = h.count_header_id
+        LEFT JOIN fexam_inv_warehouse w         ON w.warehouse_id = h.warehouse_id
+        <where>
+            <if test="countHeaderId !=null">
+                and h.count_header_id = #{countHeaderId,jdbcType = INTEGER}
+            </if>
+            <if test="countNumber !=null">
+                AND h.count_number LIKE CONCAT('%', #{countNumber, jdbcType=VARCHAR}, '%')
+            </if>
+            <if test="countStatus !=null">
+                and h.count_status = #{countStatus,jdbcType = VARCHAR}
+            </if>
+            <if test="countDimension !=null">
+                and h.count_dimension = #{countDimension,jdbcType = VARCHAR}
+            </if>
+            <if test="countType !=null">
+                and h.count_type = #{countType,jdbcType = VARCHAR}
+            </if>
+            <if test="countMode !=null">
+                and h.count_mode = #{countMode,jdbcType = VARCHAR}
+            </if>
+            <if test="supervisorIds != null">
+                and FIND_IN_SET(#{supervisorIds, jdbcType=INTEGER}, h.supervisor_ids) > 0
+            </if>
+        </where>
+    </select>
+</mapper>
+

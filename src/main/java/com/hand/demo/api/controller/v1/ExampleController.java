@@ -22,7 +22,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
 /**
- * API接口
+ * FEXAM-EXAMPLE
  */
 @Api(tags = SwaggerTags.EXAMPLE)
 @RestController("exampleController.v1")
@@ -34,7 +34,7 @@ public class ExampleController extends BaseController {
     @Autowired
     private ExampleRepository exampleRepository;
 
-    @ApiOperation(value = "根据ID获取")
+    @ApiOperation(value = "test")
     @Permission(level = ResourceLevel.SITE, permissionLogin = true)
     @ApiImplicitParams({
             @ApiImplicitParam(name = "id", value = "ID", paramType = "path")

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hand.demo.infra.mapper.InvCountLineMapper">
+
+
+    <sql id = "BaseSql">
+        l.count_line_id,
+        l.batch_id,
+        l.count_header_id,
+        l.counter_ids,
+        l.line_number,
+        l.material_id,
+        l.remark,
+        l.snapshot_unit_qty,
+        l.tenant_id,
+        l.unit_code,
+        l.unit_diff_qty,
+        l.unit_qty,
+        l.warehouse_id,
+        l.creation_date, 
+        l.created_by, 
+        l.last_updated_by, 
+        l.last_update_date, 
+        l.object_version_number
+    </sql>
+
+    <select id = "selectList" resultType = "com.hand.demo.api.dto.InvCountLineDTO">
+        select
+        <include refid = "BaseSql"/>
+        from fexam_inv_count_line l
+        <where>
+            <if test="countLineId !=null">
+                and l.count_line_id = #{countLineId,jdbcType = INTEGER}
+            </if>
+            <if test="batchId !=null">
+                and l.batch_id = #{batchId,jdbcType = INTEGER}
+            </if>
+            <if test="countHeaderId !=null">
+                and l.count_header_id = #{countHeaderId,jdbcType = INTEGER}
+            </if>
+            <if test="counterIds !=null">
+                and l.counter_ids = #{counterIds,jdbcType = VARCHAR}
+            </if>
+            <if test="lineNumber !=null">
+                and l.line_number = #{lineNumber,jdbcType = INTEGER}
+            </if>
+            <if test="materialId !=null">
+                and l.material_id = #{materialId,jdbcType = INTEGER}
+            </if>
+            <if test="remark !=null">
+                and l.remark = #{remark,jdbcType = VARCHAR}
+            </if>
+            <if test="snapshotUnitQty !=null">
+                and l.snapshot_unit_qty = #{snapshotUnitQty,jdbcType = OTHER}
+            </if>
+            <if test="tenantId !=null">
+                and l.tenant_id = #{tenantId,jdbcType = INTEGER}
+            </if>
+            <if test="unitCode !=null">
+                and l.unit_code = #{unitCode,jdbcType = VARCHAR}
+            </if>
+            <if test="unitDiffQty !=null">
+                and l.unit_diff_qty = #{unitDiffQty,jdbcType = OTHER}
+            </if>
+            <if test="unitQty !=null">
+                and l.unit_qty = #{unitQty,jdbcType = OTHER}
+            </if>
+            <if test="warehouseId !=null">
+                and l.warehouse_id = #{warehouseId,jdbcType = INTEGER}
+            </if>
+        </where>
+    </select>
+    <select id="selectMaxLineNumber" resultType="java.lang.Integer">
+        SELECT MAX(l.line_number) AS maxLineNumber
+        FROM fexam_inv_count_line l
+    </select>
+
+</mapper>
+
