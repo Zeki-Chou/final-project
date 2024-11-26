@@ -120,7 +120,7 @@
                 and fich.count_mode = #{countMode,jdbcType = VARCHAR}
             </if>
             <if test="countNumber !=null">
-                and fich.count_number = #{countNumber,jdbcType = VARCHAR}
+                and fich.count_number LIKE CONCAT('%', #{countNumber,jdbcType=VARCHAR}, '%')
             </if>
             <if test="countStatus !=null">
                 and fich.count_status = #{countStatus,jdbcType = VARCHAR}
@@ -175,6 +175,9 @@
             </if>
             <if test="workflowId !=null">
                 and fich.workflow_id = #{workflowId,jdbcType = INTEGER}
+            </if>
+            <if test="supervisor != null">
+                AND FIND_IN_SET(#{supervisor}, fich.supervisor_ids)
             </if>
         </where>
     </select>

@@ -19,6 +19,7 @@ import java.util.Date;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
 /**
  * (InvCountLine)实体类
@@ -34,6 +35,7 @@ import lombok.Setter;
 @ModifyAudit
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 @Table(name = "fexam_inv_count_line")
+@Accessors(chain = true)
 public class InvCountLine extends AuditDomain {
     private static final long serialVersionUID = 938124924508727992L;
 

@@ -35,5 +35,9 @@ public interface InvCountHeaderService {
     InvCountInfoDTO manualSaveCheck(List<InvCountHeaderDTO> invCountHeaderDTOS);
 
     List<InvCountHeaderDTO> manualSave(List<InvCountHeaderDTO> invCountHeaderDTOS);
+
+    InvCountInfoDTO checkAndRemove(List<InvCountHeaderDTO> invCountHeaderDTOS);
+
+    InvCountHeaderDTO detail(Long id);
 }
 

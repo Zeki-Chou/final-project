@@ -1,6 +1,8 @@
 package com.hand.demo.app.service.impl;
 
 import com.hand.demo.api.dto.InvCountLineDTO;
+import com.hand.demo.domain.entity.InvCountHeader;
+import com.hand.demo.domain.repository.InvCountHeaderRepository;
 import io.choerodon.core.domain.Page;
 import io.choerodon.mybatis.pagehelper.PageHelper;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
@@ -12,6 +14,7 @@ import com.hand.demo.domain.repository.InvCountLineRepository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -24,6 +27,9 @@ import java.util.stream.Collectors;
 public class InvCountLineServiceImpl implements InvCountLineService {
     @Autowired
     private InvCountLineRepository invCountLineRepository;
+
+    @Autowired
+    private InvCountHeaderRepository invCountHeaderRepository;
 
     @Override
     public Page<InvCountLineDTO> selectList(PageRequest pageRequest, InvCountLineDTO invCountLine) {
@@ -40,6 +46,19 @@ public class InvCountLineServiceImpl implements InvCountLineService {
 
         invCountLineRepository.batchInsertSelective(insertList);
         invCountLineRepository.batchUpdateByPrimaryKeySelective(updateList);
+    }
+
+    private void updateState(List<InvCountLine> invCountLines) {
+        for (InvCountLine invCountLine : invCountLines) {
+            String status = invCountHeaderRepository.selectOne(
+                    new InvCountHeader().setCountHeaderId(invCountLine.getCountHeaderId()))
+                    .getCountStatus();
+            if (Objects.equals(status, "INCOUNTING")) {
+                invCountLineRepository.updateOptional(invCountLine, InvCountLine.FIELD_UNIT_QTY,
+                        InvCountLine.FIELD_UNIT_DIFF_QTY, InvCountLine.FIELD_COUNTER_IDS,
+                        InvCountLine.FIELD_REMARK);
+            }
+        }
     }
 }
 

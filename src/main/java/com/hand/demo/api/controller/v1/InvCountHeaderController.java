@@ -12,6 +12,7 @@ import io.choerodon.mybatis.pagehelper.domain.Sort;
 import io.choerodon.swagger.annotation.Permission;
 import io.swagger.annotations.ApiOperation;
 import org.hzero.core.base.BaseController;
+import org.hzero.core.cache.ProcessCacheValue;
 import org.hzero.core.util.Results;
 import org.hzero.mybatis.helper.SecurityTokenHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +23,9 @@ import com.hand.demo.domain.entity.InvCountHeader;
 import com.hand.demo.domain.repository.InvCountHeaderRepository;
 import springfox.documentation.annotations.ApiIgnore;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * (InvCountHeader)表控制层
@@ -45,7 +48,8 @@ public class InvCountHeaderController extends BaseController {
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping
     public ResponseEntity<Page<InvCountHeaderDTO>> list(InvCountHeaderDTO invCountHeader, @PathVariable Long organizationId,
-                                                     @ApiIgnore @SortDefault(value = InvCountHeader.FIELD_COUNT_HEADER_ID,
+                                                     @ApiIgnore @SortDefault(sort = InvCountHeader.FIELD_CREATED_BY,
+                                                             value = InvCountHeader.FIELD_COUNT_HEADER_ID,
                                                              direction = Sort.Direction.DESC) PageRequest pageRequest) {
         Page<InvCountHeaderDTO> list = invCountHeaderService.selectList(pageRequest, invCountHeader);
         return Results.success(list);
@@ -54,8 +58,10 @@ public class InvCountHeaderController extends BaseController {
     @ApiOperation(value = "Get Detail Header Exam")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping("/{countHeaderId}/detail")
-    public ResponseEntity<InvCountHeader> detail(@PathVariable Long countHeaderId) {
-        InvCountHeader invCountHeader = invCountHeaderRepository.selectByPrimary(countHeaderId);
+    @ProcessCacheValue
+    public ResponseEntity<InvCountHeaderDTO> detail(@PathVariable Long countHeaderId) {
+//        InvCountHeader invCountHeader = invCountHeaderRepository.selectByPrimary(countHeaderId);
+        InvCountHeaderDTO invCountHeader = invCountHeaderService.detail(countHeaderId);
         return Results.success(invCountHeader);
     }
 
@@ -77,9 +83,14 @@ public class InvCountHeaderController extends BaseController {
     @ApiOperation(value = "Remove Header Exam")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @DeleteMapping
-    public ResponseEntity<?> remove(@RequestBody List<InvCountHeader> invCountHeaders) {
+    public ResponseEntity<?> remove(@RequestBody List<InvCountHeaderDTO> invCountHeaders) {
         SecurityTokenHelper.validToken(invCountHeaders);
-        invCountHeaderRepository.batchDeleteByPrimaryKey(invCountHeaders);
+        InvCountInfoDTO invCountInfoDTO = invCountHeaderService.checkAndRemove(invCountHeaders);
+        if (!invCountInfoDTO.getErrMsg().isEmpty()) {
+            throw new CommonException(JSON.toJSONString(invCountInfoDTO.getListErrMsg()));
+        }
+        List<InvCountHeader> headers = invCountHeaders.stream().collect(Collectors.toList());
+        invCountHeaderRepository.batchDeleteByPrimaryKey(headers);
         return Results.success();
     }
 

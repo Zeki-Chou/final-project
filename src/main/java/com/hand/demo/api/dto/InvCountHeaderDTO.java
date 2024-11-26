@@ -1,21 +1,30 @@
 package com.hand.demo.api.dto;
 
+import com.hand.demo.domain.entity.InvBatch;
 import com.hand.demo.domain.entity.InvCountHeader;
 import com.hand.demo.domain.entity.InvCountLine;
+import com.hand.demo.domain.entity.InvMaterial;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.hzero.core.cache.Cacheable;
 
 import java.util.List;
 
 @Getter
 @Setter
 @Accessors(chain = true)
-public class InvCountHeaderDTO extends InvCountHeader {
+public class InvCountHeaderDTO extends InvCountHeader implements Cacheable {
     private String errMsg;
     private List<InvCountLine> lines;
     private String countDimensionMeaning;
     private String countModeMeaning;
     private String countStatusMeaning;
     private String countTypeMeaning;
+    private String supervisor;
+    private List<IamDTO> counterList;
+    private List<IamDTO> supervisorList;
+    private List<InvMaterialDTO> snapshotMaterialList;
+    private List<InvBatchDTO> snapshotBatchList;
+    private boolean isWMSwarehouse;
 }

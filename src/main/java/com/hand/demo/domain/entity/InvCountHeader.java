@@ -20,6 +20,7 @@ import java.util.Date;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.hzero.boot.platform.lov.annotation.LovValue;
 
 /**
@@ -36,6 +37,7 @@ import org.hzero.boot.platform.lov.annotation.LovValue;
 @ModifyAudit
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 @Table(name = "fexam_inv_count_header")
+@Accessors(chain = true)
 public class InvCountHeader extends AuditDomain {
     private static final long serialVersionUID = -90097368488988849L;
 
