@@ -24,6 +24,7 @@ import com.hand.demo.app.service.InvCountHeaderService;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -364,6 +365,50 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         invCountHeaderRepository.batchUpdateByPrimaryKeySelective(new ArrayList<>(headerInDatabaseDTO));
         invCountLineService.saveData(new ArrayList<>(saveCountLine));
         return headerInDatabaseDTO;
+    }
+
+    @Override
+    public InvCountInfoDTO submitCheck(List<InvCountHeaderDTO> headerDTOList) {
+        InvCountInfoDTO infoDTO = new InvCountInfoDTO();
+
+        List<InvCountHeaderDTO> headerInDatabaseDTO = getHeaderDTOsFromDb(headerDTOList)
+                .stream().filter(Objects::nonNull).collect(Collectors.toList());
+
+        List<Long> headerIds = headerInDatabaseDTO.stream()
+                .map(InvCountHeaderDTO::getCountHeaderId)
+                .collect(Collectors.toList());
+
+        Condition headerLineCondition = new Condition(InvCountLine.class);
+        Condition.Criteria headerLineCriteria = headerLineCondition.createCriteria();
+        headerLineCriteria.andIn(InvCountLine.FIELD_COUNT_HEADER_ID, headerIds);
+
+        List<InvCountLine> lineList = invCountLineRepository.selectByCondition(headerLineCondition);
+        Map<Long, InvCountLine> lineByHeaderId = lineList.stream().collect(Collectors.toMap(InvCountLine::getCountHeaderId, Function.identity()));
+        List<BigDecimal> unitQtys = lineList.stream().map(InvCountLine::getUnitQty).collect(Collectors.toList());
+
+        for(InvCountHeaderDTO headerDTO : headerInDatabaseDTO) {
+            if (!InvCountHeaderConstants.HEADER_COUNT_DESIRED_SUBMISSION_STATUSES.contains(headerDTO.getCountStatus())) {
+                setErrorCountInfoError(headerDTO, infoDTO, "The operation is allowed only when the status in in counting, processing, rejected, withdrawn.");
+            }
+            if (!isSupervisor(parseCommaSeperatedIds(headerDTO.getSupervisorIds().toString()))) {
+                setErrorCountInfoError(headerDTO, infoDTO, "Only the current login user is the supervisor can submit document.");
+            }
+            if (unitQtys.contains(null)) {
+                setErrorCountInfoError(headerDTO, infoDTO, "There are data rows with empty count quantity. Please check the data.");
+            }
+            InvCountLine line = lineByHeaderId.get(headerDTO.getCountHeaderId());
+            if (line != null) {
+                if (line.getUnitDiffQty().equals(new BigDecimal(0))) {
+                    setErrorCountInfoError(headerDTO, infoDTO, "Reason field must be entered.");
+                }
+            }
+        }
+        return infoDTO;
+    }
+
+    @Override
+    public List<InvCountHeaderDTO> submit(List<InvCountHeaderDTO> headerDTOList) {
+        return Collections.emptyList();
     }
 
     private List<CounterDTO> getCounters(String counterIds) {

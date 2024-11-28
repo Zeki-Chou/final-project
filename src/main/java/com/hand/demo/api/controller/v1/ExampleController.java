@@ -3,6 +3,7 @@ package com.hand.demo.api.controller.v1;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 
+import org.hzero.boot.platform.profile.ProfileClient;
 import org.hzero.core.base.BaseController;
 import org.hzero.core.util.Results;
 import com.hand.demo.app.service.ExampleService;
@@ -33,6 +34,8 @@ public class ExampleController extends BaseController {
     private ExampleService exampleService;
     @Autowired
     private ExampleRepository exampleRepository;
+    @Autowired
+    ProfileClient profileClient;
 
     @ApiOperation(value = "根据ID获取")
     @Permission(level = ResourceLevel.SITE, permissionLogin = true)
@@ -48,6 +51,7 @@ public class ExampleController extends BaseController {
     @Permission(level = ResourceLevel.SITE, permissionLogin = true)
     @GetMapping("/test")
     public ResponseEntity<String> test() {
-        return Results.success("Hello, world!");
+        String workflowFlag = profileClient.getProfileValueByOptions(0L, null, null,"FEXAM95.INV.COUNTING.ISWORKFLO");
+        return Results.success(workflowFlag);
     }
 }

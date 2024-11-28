@@ -41,5 +41,9 @@ public interface InvCountHeaderService {
     InvCountInfoDTO executeCheck(List<InvCountHeaderDTO> headerDTOList);
 
     List<InvCountHeaderDTO> execute(List<InvCountHeaderDTO> headerDTOList);
+
+    InvCountInfoDTO submitCheck(List<InvCountHeaderDTO> headerDTOList);
+
+    List<InvCountHeaderDTO> submit(List<InvCountHeaderDTO> headerDTOList);
 }
 
