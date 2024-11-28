@@ -1,6 +1,8 @@
 package com.hand.demo.app.service.impl;
 
+import org.json.JSONObject;
 import com.alibaba.fastjson.JSON;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hand.demo.api.controller.v1.DTO.*;
 import com.hand.demo.domain.entity.*;
 import com.hand.demo.domain.repository.*;
@@ -11,23 +13,24 @@ import io.choerodon.core.exception.CommonException;
 import io.choerodon.mybatis.pagehelper.PageHelper;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 import org.hzero.boot.apaas.common.userinfo.infra.feign.IamRemoteService;
+import org.hzero.boot.interfaces.ds.strategy.In;
+import org.hzero.boot.interfaces.sdk.dto.RequestPayloadDTO;
+import org.hzero.boot.interfaces.sdk.dto.ResponsePayloadDTO;
+import org.hzero.boot.interfaces.sdk.invoke.InterfaceInvokeSdk;
 import org.hzero.boot.platform.code.builder.CodeRuleBuilder;
 import org.hzero.boot.platform.lov.adapter.LovAdapter;
 import org.hzero.boot.platform.lov.dto.LovValueDTO;
 import org.hzero.core.base.BaseConstants;
 import org.hzero.core.cache.ProcessCacheValue;
-import org.json.JSONObject;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.hand.demo.app.service.InvCountHeaderService;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
-
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
-
 import static com.sun.corba.se.impl.util.RepositoryId.cache;
 
 /**
@@ -61,6 +64,12 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
     @Autowired
     private InvStockRepository invStockRepository;
+
+    @Autowired
+    private InvCountExtraRepository invCountExtraRepository;
+
+    @Autowired
+    private InterfaceInvokeSdk interfaceInvokeSdk;
 
     @Autowired
     LovAdapter lovAdapter;
@@ -101,7 +110,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     public InvCountInfoDTO orderRemove(List<InvCountHeaderDTO> invCountHeaders) {
         InvCountInfoDTO invCountInfoDTO = new InvCountInfoDTO();
 
-        JSONObject jsonObject = new JSONObject(iamRemoteService.selectSelf().getBody());
+        JSONObject jsonObject = new org.json.JSONObject(iamRemoteService.selectSelf().getBody());
         Long userId = jsonObject.getLong("id");
 
         List<InvCountHeader> invCountHeaderList = new ArrayList<>();
@@ -212,10 +221,130 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                 .collect(Collectors.toList());
 
         if(invCountLineList.size() > 0) {
-            invCountHeaderDTO.setInvCountLinesList(invCountLineDTOList);
+            invCountHeaderDTO.setCountOrderLineList(invCountLineDTOList);
         }
 
         return invCountHeaderDTO;
+    }
+
+    private InvWarehouse checkWarehouseExists(Long tenantId, Long warehouseId) {
+        InvWarehouse invWarehouse = new InvWarehouse();
+        invWarehouse.setTenantId(tenantId);
+        invWarehouse.setWarehouseId(warehouseId);
+
+        List<InvWarehouse> invWarehouseList = invWarehouseRepository.select(invWarehouse);
+        return invWarehouseList.get(0);
+    }
+
+    public InvCountInfoDTO countSyncWMS(List<InvCountHeaderDTO> invCountHeaderDTOList) {
+//      validate warehouseData Exist or not
+        List<InvCountInfoDTO> resultList = new ArrayList<>();
+        List<String> errorList = new ArrayList<>();
+
+        List<InvCountExtra> invCountExtraListInsert = new ArrayList<>();
+        List<InvCountExtra> invCountExtraListUpdate = new ArrayList<>();
+        List<InvCountHeader> invCountHeaderListUpdate = new ArrayList<>();
+
+        for (InvCountHeader invCountHeader : invCountHeaderDTOList) {
+            Long countHeaderId = invCountHeader.getCountHeaderId();
+
+            InvWarehouse checkWarehouseExists = checkWarehouseExists(invCountHeader.getTenantId(), invCountHeader.getWarehouseId());
+            if(checkWarehouseExists == null) {
+                errorList.add("Warehouse data not found for warehouseCode: " + invCountHeader.getWarehouseId());
+                continue;
+            }
+
+//            extraRepository.select(sourceId=countHeaderId and enabledFlag=1);
+            InvCountExtra invCountExtra = new InvCountExtra();
+            invCountExtra.setSourceid(invCountHeader.getCountHeaderId());
+            invCountExtra.setEnabledflag(BaseConstants.Flag.YES);
+
+            List<InvCountExtra> invCountExtraList = invCountExtraRepository.select(invCountExtra);
+
+            InvCountExtra syncStatusExtra = new InvCountExtra();
+            InvCountExtra syncMsgExtra = new InvCountExtra();
+
+            if(invCountExtraList.size() == 0) {
+                syncStatusExtra.setTenantid(invCountHeader.getTenantId())
+                        .setSourceid(invCountHeader.getCountHeaderId())
+                        .setEnabledflag(BaseConstants.Flag.YES)
+                        .setProgramkey("wms_sync_status");
+
+                syncMsgExtra.setTenantid(invCountHeader.getTenantId())
+                        .setSourceid(invCountHeader.getCountHeaderId())
+                        .setEnabledflag(BaseConstants.Flag.YES)
+                        .setProgramkey("wms_sync_error_message");
+            } else {
+                Map<String, InvCountExtra> invCountExtraMap = invCountExtraList.stream()
+                        .collect(Collectors.toMap(
+                                InvCountExtra::getProgramkey,
+                                invCountExtras -> invCountExtra
+                        ));
+                syncStatusExtra = invCountExtraMap.get("wms_sync_status");
+                syncMsgExtra = invCountExtraMap.get("wms_sync_error_message");
+            }
+
+            if (Integer.valueOf(1).equals(checkWarehouseExists.getIsWmsWarehouse())) {
+                InvCountHeaderDTO invCountHeaderDTO = new InvCountHeaderDTO();
+                invCountHeaderDTO.setCountHeaderId(invCountHeader.getCountHeaderId());
+
+                InvCountLine invCountLine = new InvCountLine();
+                invCountLine.setCountHeaderId(invCountHeader.getCountHeaderId());
+
+                List<InvCountLine> invCountLineList = invCountLineRepository.select(invCountLine);
+                List<InvCountLineDTO> invCountLineDTOList = invCountLineList.stream()
+                        .map(invCountLines -> {
+                            InvCountLineDTO dto = new InvCountLineDTO();
+                            BeanUtils.copyProperties(dto, invCountLines);
+                            return dto;
+                        })
+                        .collect(Collectors.toList());
+
+                invCountHeaderDTO.setCountOrderLineList(invCountLineDTOList);
+
+                RequestPayloadDTO requestPayloadDTO = new RequestPayloadDTO();
+                requestPayloadDTO.setPayload(JSON.toJSONString(requestPayloadDTO));
+
+                ResponsePayloadDTO responsePayloadDTO = interfaceInvokeSdk.invoke("HZERO", "FEXAM_WMS", "fexam-wms-api.thirdAddCounting", requestPayloadDTO);
+                String payload = responsePayloadDTO.getPayload();
+                JSONObject response = new JSONObject(payload);
+                String returnStatus = response.getString("returnStatus");
+                String returnMsg = response.getString("returnMsg");
+
+                if ("S".equals(response.getString("returnStatus"))) {
+                    syncStatusExtra.setProgramvalue("SUCCESS");
+                    syncMsgExtra.setProgramvalue("");
+                } else {
+                    syncStatusExtra.setProgramvalue("ERROR");
+                    syncMsgExtra.setProgramvalue(response.getString("returnMsg"));
+                }
+
+                InvCountHeader invCountHeaderNew = new InvCountHeader();
+                invCountHeaderNew.setRelatedWmsOrderCode(response.getString("code"));
+                invCountHeaderNew.setCountHeaderId(invCountHeader.getCountHeaderId());
+
+                invCountHeaderListUpdate.add(invCountHeaderNew);
+            } else {
+                syncStatusExtra.setProgramvalue("SKIP");
+                syncMsgExtra.setProgramvalue("SKIP");
+            }
+
+            if(invCountExtraList.size() > 0) {
+                invCountExtraListUpdate.add(syncStatusExtra);
+                invCountExtraListUpdate.add(syncMsgExtra);
+            } else {
+                invCountExtraListInsert.add(syncStatusExtra);
+                invCountExtraListInsert.add(syncMsgExtra);
+            }
+        }
+
+        invCountExtraRepository.batchInsertSelective(invCountExtraListInsert);
+        invCountExtraRepository.batchUpdateByPrimaryKeySelective(invCountExtraListUpdate);
+        invCountHeaderRepository.batchUpdateByPrimaryKeySelective(invCountHeaderListUpdate);
+
+        InvCountInfoDTO invCountInfoDTO = new InvCountInfoDTO();
+        invCountInfoDTO.setInvCountHeaderDTOList(invCountHeaderDTOList);
+        return invCountInfoDTO;
     }
 
     public InvCountInfoDTO executeCheck(List<InvCountHeaderDTO> invCountHeaderDTOList) {
@@ -533,16 +662,6 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             Map<Long, InvCountHeader> invCountHeaderMap = invCountHeaderRepository.selectByIds(joinHeaderId).stream()
                     .collect(Collectors.toMap(InvCountHeader::getCountHeaderId, header -> header));
 
-            List<Long> allCountLineIds = updateList.stream()
-                    .flatMap(dto -> dto.getInvCountLinesList().stream())
-                    .map(InvCountLine::getCountLineId)
-                    .collect(Collectors.toList());
-            String joinLineId = String.join(",", allCountLineIds.stream()
-                    .map(String::valueOf)
-                    .collect(Collectors.toList()));
-            Map<Long, InvCountLine> invCountLineMap = invCountLineRepository.selectByIds(joinLineId).stream()
-                    .collect(Collectors.toMap(InvCountLine::getCountLineId, header -> header));
-
             List<InvCountHeader> updateSpecialCondition = new ArrayList<>();
             List<InvCountHeader> allowedUpdate = new ArrayList<>();
             List<InvCountLine> invCountLineUpdate = new ArrayList<>();
@@ -600,4 +719,3 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         return invCountHeadersDTO;
     }
 }
-

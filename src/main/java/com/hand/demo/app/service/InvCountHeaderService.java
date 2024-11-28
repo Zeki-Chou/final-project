@@ -20,7 +20,7 @@ public interface InvCountHeaderService {
      * 查询数据
      *
      * @param pageRequest     分页参数
-     * @param invCountHeaders 查询条件
+//     * @param invCountHeaders 查询条件
      * @return 返回值
      */
     public Page<List<InvCountHeaderDTO>> queryList(PageRequest pageRequest, InvCountHeaderDTO invCountHeaderDTO);
@@ -28,11 +28,12 @@ public interface InvCountHeaderService {
     /**
      * 保存数据
      *
-     * @param invCountHeaders 数据
+//     * @param invCountHeaders 数据
      */
     InvCountHeaderDTO detailList(Long countHeaderId);
     List<InvCountHeaderDTO> saveData(List<InvCountHeaderDTO> invCountHeadersDTO);
     InvCountInfoDTO orderRemove(List<InvCountHeaderDTO> invCountHeadersDTO);
     List<InvCountHeaderDTO> countingOrderExecute(List<InvCountHeaderDTO> invCountHeaderDTOList);
+    InvCountInfoDTO countSyncWMS(List<InvCountHeaderDTO> invCountHeaderDTOList);
 }
 

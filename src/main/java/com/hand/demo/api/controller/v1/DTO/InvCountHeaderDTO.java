@@ -2,14 +2,10 @@ package com.hand.demo.api.controller.v1.DTO;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.hand.demo.domain.entity.InvCountHeader;
-import com.hand.demo.domain.entity.InvCountLine;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hzero.common.HZeroCacheKey;
-import org.hzero.core.cache.CacheValue;
 import org.hzero.core.cache.Cacheable;
 
 import java.util.List;
@@ -23,9 +19,9 @@ import java.util.Map;
 public class InvCountHeaderDTO extends InvCountHeader implements Cacheable {
     private String supervisorId;
 
-    private List<UserCacheDTO> counterList;
-
     private List<UserCacheDTO> supervisorList;
+
+    private List<UserCacheDTO> counterList;
 
     private List<Map<String, Object>> snapshotMaterialList;
 
@@ -33,7 +29,7 @@ public class InvCountHeaderDTO extends InvCountHeader implements Cacheable {
 
     private Integer isWMSwarehouse;
 
-    private List<InvCountLineDTO> invCountLinesList;
+    private List<InvCountLineDTO> countOrderLineList;
 
     private List<Long> materialList;
 

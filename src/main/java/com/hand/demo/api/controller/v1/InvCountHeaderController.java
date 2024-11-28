@@ -58,6 +58,16 @@ public class InvCountHeaderController extends BaseController {
 //        return Results.success(invCountHeader);
 //    }
 
+    @ApiOperation(value = "Counting Order Synchronization WMS")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @GetMapping("/countingSync")
+    public ResponseEntity<InvCountInfoDTO> countingSync(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeadersDTO) {
+        validObject(invCountHeadersDTO);
+        SecurityTokenHelper.validTokenIgnoreInsert(invCountHeadersDTO);
+        invCountHeadersDTO.forEach(item -> item.setTenantId(organizationId));
+        return Results.success(invCountHeaderService.countSyncWMS(invCountHeadersDTO));
+    }
+
     @ApiOperation(value = "List Query")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping("/listQuery")
@@ -107,4 +117,3 @@ public class InvCountHeaderController extends BaseController {
         return Results.success(invCountHeaderService.detailList(countHeaderId));
     }
 }
-
