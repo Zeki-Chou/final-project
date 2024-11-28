@@ -20,4 +20,13 @@ public class InvCountHeaderConstants {
     public static final String COUNT_STATUS_REJECTED = "REJECTED";
 
     public static final String COUNT_NUMBER_CODE_RULE = "INV.COUNTING61.COUNT_NUMBER";
+
+    public static final String WMS_SYNC_PROGRAM_KEY_STATUS = "wms_sync_status";
+    public static final String WMS_SYNC_PROGRAM_KEY_ERROR_MSG = "wms_sync_error_message";
+
+    public static final String EXTERNAL_WMS_SERVICE_NAMESPACE = "HZERO";
+
+    public static final String EXTERNAL_WMS_SERVICE_SERVER_CODE = "FEXAM_WMS";
+
+    public static final String EXTERNAL_WMS_SERVICE_INTERFACE_CODE = "fexam-wms-api.thirdAddCounting";
 }
