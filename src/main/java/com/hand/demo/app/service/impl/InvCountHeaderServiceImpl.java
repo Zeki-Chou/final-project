@@ -489,6 +489,31 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         return countInfoDTO;
     }
 
+    @Override
+    public InvCountHeaderDTO countResultSync(InvCountHeaderDTO invCountHeaderDTO) {
+
+        //TODO: Determine whether the warehouse is a WMS warehouse
+        InvWarehouse warehouse = invWarehouseRepository.selectByPrimary(invCountHeaderDTO.getWarehouseId());
+        if (BaseConstants.Flag.YES.equals(warehouse.getIsWmsWarehouse())) {
+            String errorMsg = "The current warehouse is not a WMS warehouse, operations are not allowed";
+            String status="E";
+        }
+
+        //TODO: Check data consistency
+        InvCountLine lineRecord = new InvCountLine();
+        lineRecord.setCountHeaderId(invCountHeaderDTO.getCountHeaderId());
+        List<InvCountLine> countLinesDB = invCountLineRepository.selectList(lineRecord);
+
+
+
+        if (invCountHeaderDTO.getCounterList().size() != countLinesDB.size() || lineid not same) {
+            String errorMsg = "The counting order line data is inconsistent with the INV system, please check the data";
+            String status ="E";
+        }
+        //TODO: Update the line data
+        updateLines(including unitQty,unitDiffQty,remark)
+    }
+
     private ResponsePayloadDTO callWmsApiPushCountOrder(String namespace, String serverCode, String interfaceCode, InvCountHeaderDTO invCountHeaderDTO) {
         RequestPayloadDTO requestPayloadDTO = new RequestPayloadDTO();
         requestPayloadDTO.setPayload(JSON.toJSONString(invCountHeaderDTO));
