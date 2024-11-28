@@ -1,5 +1,6 @@
 package com.hand.demo.app.service.impl;
 
+import com.hand.demo.api.dto.InvCountLineDTO;
 import com.hand.demo.domain.entity.InvCountHeader;
 import com.hand.demo.domain.repository.InvCountHeaderRepository;
 import com.hand.demo.infra.enums.Enums;
@@ -44,7 +45,7 @@ public class InvCountLineServiceImpl implements InvCountLineService {
     }
 
     @Override
-    public void saveData(List<InvCountLine> invCountLines) {
+    public void saveData(List<InvCountLineDTO> invCountLines) {
         JSONObject iamJSON = Utils.getIamJSONObject(iamRemoteService);
         Long userId = iamJSON.getLong("id");
 

@@ -14,5 +14,26 @@ public class Enums {
             APPROVED,
             CONFIRMED
         }
+
+        public enum countDimension {
+            SKU,
+            LOT
+        }
+
+        public enum countType {
+            MONTH,
+            YEAR
+        }
+
+        public enum countMode {
+            VISIBLE_COUNT,
+            UNVISIBLE_COUNT
+        }
+
+        public enum programValue {
+            SUCCESS,
+            ERROR,
+            SKIP
+        }
     }
 }

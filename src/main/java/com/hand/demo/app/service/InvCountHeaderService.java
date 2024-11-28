@@ -57,10 +57,10 @@ public interface InvCountHeaderService {
     InvCountInfoDTO executeCheck(List<InvCountHeaderDTO> invCountHeaderDTOList);
 
     /**
-     * @param invCountHeaderDTOList
+     * @param invCountHeaderList
      * @return
      */
-    List<InvCountHeaderDTO> execute(List<InvCountHeaderDTO> invCountHeaderDTOList);
+    List<InvCountHeaderDTO> execute(List<InvCountHeaderDTO> invCountHeaderList);
 
 }
 

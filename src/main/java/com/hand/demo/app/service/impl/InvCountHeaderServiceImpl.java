@@ -1,6 +1,7 @@
 package com.hand.demo.app.service.impl;
 
 import com.hand.demo.api.dto.*;
+import com.hand.demo.app.service.InvCountLineService;
 import com.hand.demo.domain.entity.*;
 import com.hand.demo.domain.repository.*;
 import com.hand.demo.infra.constant.Constants;
@@ -21,6 +22,7 @@ import com.hand.demo.app.service.InvCountHeaderService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -40,6 +42,10 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     private final LovAdapter lovAdapter;
     private final InvMaterialRepository invMaterialRepository;
     private final InvBatchRepository invBatchRepository;
+    private final IamCompanyRepository iamCompanyRepository;
+    private final IamDepartmentRepository iamDepartmentRepository;
+    private final InvStockRepository invStockRepository;
+    private final InvCountLineService invCountLineService;
 
     public InvCountHeaderServiceImpl(
             InvCountHeaderRepository invCountHeaderRepository,
@@ -48,7 +54,11 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             InvWarehouseRepository invWarehouseRepository,
             LovAdapter lovAdapter,
             InvMaterialRepository invMaterialRepository,
-            InvBatchRepository invBatchRepository
+            InvBatchRepository invBatchRepository,
+            IamCompanyRepository iamCompanyRepository,
+            IamDepartmentRepository iamDepartmentRepository,
+            InvStockRepository invStockRepository,
+            InvCountLineService invCountLineService
     ) {
         this.invCountHeaderRepository = invCountHeaderRepository;
         this.codeRuleBuilder = codeRuleBuilder;
@@ -57,6 +67,10 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         this.lovAdapter = lovAdapter;
         this.invMaterialRepository = invMaterialRepository;
         this.invBatchRepository = invBatchRepository;
+        this.iamCompanyRepository = iamCompanyRepository;
+        this.iamDepartmentRepository = iamDepartmentRepository;
+        this.invStockRepository = invStockRepository;
+        this.invCountLineService = invCountLineService;
     }
 
     @Override
@@ -65,7 +79,6 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public List<InvCountHeaderDTO> manualSave(List<InvCountHeaderDTO> invCountHeaders) {
 
         List<InvCountHeader> insertList = invCountHeaders.stream().filter(line -> line.getCountHeaderId() == null).collect(Collectors.toList());
@@ -146,7 +159,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         InvCountHeader header = invCountHeaderRepository.selectByPrimary(countHeaderId);
 
         if (header == null) {
-            throw new CommonException("InvCountHeader.notFound");
+            throw new CommonException("header not found");
         }
 
         // map to dto
@@ -172,13 +185,138 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     }
 
     @Override
-    public InvCountInfoDTO executeCheck(List<InvCountHeaderDTO> invCountHeaderDTOList) {
-        return null;
+    public InvCountInfoDTO executeCheck(List<InvCountHeaderDTO> invCountHeaders) {
+        List<InvCountHeaderDTO> invalidDTO = new ArrayList<>();
+        List<InvCountHeaderDTO> validDTO = new ArrayList<>();
+        InvCountInfoDTO countInfoDTO = new InvCountInfoDTO();
+
+        // get creator id
+        JSONObject iamJson = Utils.getIamJSONObject(iamRemoteService);
+        Long userId = iamJson.getLong(Constants.Iam.FIELD_ID);
+
+        // get lov values
+        Long tenantId = BaseConstants.DEFAULT_TENANT_ID;
+        List<String> lovStatusValues = getLovValues(Constants.InvCountHeader.STATUS_LOV_CODE, tenantId);
+        List<String> lovCountDimensionValues = getLovValues(Constants.InvCountHeader.COUNT_DIMENSION_LOV_CODE, tenantId);
+        List<String> lovCountModeValues = getLovValues(Constants.InvCountHeader.COUNT_MODE_LOV_CODE, tenantId);
+        List<String> lovCountTypeValues = getLovValues(Constants.InvCountHeader.COUNT_TYPE_LOV_CODE, tenantId);
+
+        //query the database based on the input document ID
+        //TODO put the three methods into their service class
+        //company
+        List<Long> companyIdList = invCountHeaders.stream().map(InvCountHeader::getCompanyId).collect(Collectors.toList());
+        String companyIds = generateStringIds(companyIdList);
+        List<IamCompany> companies = iamCompanyRepository.selectByIds(companyIds);
+        List<Long> companiesIds = companies.stream().map(IamCompany::getCompanyId).collect(Collectors.toList());
+
+        //warehouse
+        List<Long> warehouseIdList = invCountHeaders.stream().map(InvCountHeader::getWarehouseId).collect(Collectors.toList());
+        String warehouseIds = generateStringIds(warehouseIdList);
+        List<InvWarehouse> warehouses = invWarehouseRepository.selectByIds(warehouseIds);
+        List<Long> warehousesIds = warehouses.stream().map(InvWarehouse::getWarehouseId).collect(Collectors.toList());
+
+        //department
+        List<Long> departmentIdList = invCountHeaders.stream().map(InvCountHeader::getCompanyId).collect(Collectors.toList());
+        String departmentIds = generateStringIds(departmentIdList);
+        List<IamDepartment> departments = iamDepartmentRepository.selectByIds(departmentIds);
+        List<Long> departmentsIds = departments.stream().map(IamDepartment::getDepartmentId).collect(Collectors.toList());
+
+        for (InvCountHeaderDTO header: invCountHeaders) {
+            InvStockDTO invStockDTO = new InvStockDTO();
+            invStockDTO.setCompanyId(header.getCompanyId());
+            invStockDTO.setDepartmentId(header.getDepartmentId());
+            invStockDTO.setWarehouseId(header.getWarehouseId());
+            invStockDTO.setMaterialIds(Utils.convertStringIdstoList(header.getSnapshotMaterialIds()));
+
+            // Query on hand quantity based on the
+            // tenant+company+department+warehouse+material+on hand quantity not equals 0
+            BigDecimal onHandQty = invStockRepository.getSumOnHandQty(invStockDTO);
+
+            if (!header.getCountStatus().equals(Enums.InvCountHeader.Status.DRAFT.name())) {
+                header.setErrorMessage("Only draft status can execute");
+            } else if (!userId.equals(header.getCreatedBy())) {
+                header.setErrorMessage("Only the document creator can execute");
+            } else if (!lovStatusValues.contains(header.getCountStatus())) {
+                header.setErrorMessage("invalid count status");
+            } else if (!lovCountDimensionValues.contains(header.getCountDimension())) {
+                header.setErrorMessage("invalid count dimension");
+            } else if (!lovCountTypeValues.contains(header.getCountType())) {
+                header.setErrorMessage("invalid count type");
+            } else if (!lovCountModeValues.contains(header.getCountMode())) {
+                header.setErrorMessage("invalid count mode");
+            } else if (!companiesIds.contains(header.getCompanyId())) {
+                header.setErrorMessage("invalid company");
+            } else if (!departmentsIds.contains(header.getDepartmentId())) {
+                header.setErrorMessage("invalid department");
+            } else if (!warehousesIds.contains(header.getWarehouseId())) {
+                header.setErrorMessage("invalid warehouse");
+            } else if (onHandQty == null) {
+                header.setErrorMessage("Unable to query on hand quantity data");
+            }
+
+            if (header.getErrorMessage().isEmpty()) {
+                validDTO.add(header);
+            } else {
+                invalidDTO.add(header);
+            }
+        }
+
+        countInfoDTO.setValidHeaderDTOS(validDTO);
+        countInfoDTO.setInvalidHeaderDTOS(invalidDTO);
+        countInfoDTO.setErrSize(invalidDTO.size());
+        return countInfoDTO;
     }
 
     @Override
-    public List<InvCountHeaderDTO> execute(List<InvCountHeaderDTO> invCountHeaderDTOList) {
-        return Collections.emptyList();
+    @Transactional(rollbackFor = Exception.class)
+    public List<InvCountHeaderDTO> execute(List<InvCountHeaderDTO> invCountHeaderList) {
+        invCountHeaderList.forEach(header -> header.setCountStatus(Enums.InvCountHeader.Status.INCOUNTING.name()));
+        List<InvCountHeaderDTO> insertResult = manualSave(invCountHeaderList);
+        List<InvStock> stocks = invStockRepository.selectStocksByHeaders(insertResult);
+        //for each header, create list of lines using stock data
+        List<InvCountLineDTO> countLinesToInsert = new ArrayList<>();
+        insertResult.forEach(header -> {
+            List<InvCountLineDTO> invCountLines = this.generateCountLinesFromStocks(header, stocks);
+            countLinesToInsert.addAll(invCountLines);
+        });
+        invCountLineService.saveData(countLinesToInsert);
+        return insertResult;
+    }
+
+    private List<InvCountLineDTO> generateCountLinesFromStocks(InvCountHeaderDTO header, List<InvStock> stocks) {
+        List<InvStock> headerStocks = stocks.stream().filter(stock -> {
+            List<Long> batchIds = Utils.convertStringIdstoList(header.getSnapshotBatchIds());
+            List<Long> materialIds = Utils.convertStringIdstoList(header.getSnapshotMaterialIds());
+
+            boolean company = stock.getCompanyId().equals(header.getCompanyId());
+            boolean department = stock.getDepartmentId().equals(header.getDepartmentId());
+            boolean warehouse = stock.getWarehouseId().equals(header.getWarehouseId());
+            boolean batch = batchIds.contains(stock.getBatchId());
+            boolean material = materialIds.contains(stock.getMaterialId());
+
+            return company && department && warehouse && batch && material;
+        }).collect(Collectors.toList());
+
+        List<InvCountLineDTO> invCountLines = new ArrayList<>();
+
+        for (int i = 0; i < headerStocks.size(); i++) {
+            InvStock stock = headerStocks.get(i);
+            InvCountLineDTO dto = new InvCountLineDTO();
+
+            dto.setCountHeaderId(header.getCountHeaderId());
+            dto.setCounterIds(header.getCounterIds());
+            dto.setBatchId(stock.getBatchId());
+            dto.setMaterialId(stock.getMaterialId());
+            dto.setWarehouseId(stock.getWarehouseId());
+            dto.setLineNumber(i+1);
+            dto.setUnitCode(stock.getUnitCode());
+            dto.setSnapshotUnitQty(stock.getUnitQuantity());
+            dto.setTenantId(header.getTenantId());
+
+            invCountLines.add(dto);
+        }
+
+        return invCountLines;
     }
 
     public InvCountInfoDTO manualSaveCheck(List<InvCountHeaderDTO> invCountHeaderDTOS) {
@@ -314,6 +452,22 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                 .stream()
                 .map(this::createNewBatchInfoDTO)
                 .collect(Collectors.toList());
+    }
+
+    private List<String> getLovValues(String lovCode, Long tenantId) {
+        return lovAdapter.queryLovValue(lovCode, tenantId)
+                .stream()
+                .map(LovValueDTO::getValue)
+                .collect(Collectors.toList());
+    }
+
+    private String generateStringIds(List<Long> ids) {
+        Set<String> headerIds = ids
+                .stream()
+                .map(String::valueOf)
+                .collect(Collectors.toSet());
+
+        return String.join(",", headerIds);
     }
 
 }

@@ -23,6 +23,9 @@ public class Constants {
         public static final String ACCESS_UPDATE_STATUS_INVALID = "only the document creator, counter, and supervisor can modify the document for the status  of in counting, rejected, withdrawn";
 
         public static final String STATUS_LOV_CODE = "INV.COUNTING.COUNT_STATUS";
+        public static final String COUNT_DIMENSION_LOV_CODE = "INV.COUNTING.COUNT_DIMENSION";
+        public static final String COUNT_TYPE_LOV_CODE = "INV.COUNTING.COUNT_TYPE";
+        public static final String COUNT_MODE_LOV_CODE = "INV.COUNTING.COUNT_MODE";
 
         public static final String CODE_RULE = "INV.COUNTING59.COUNT_NUMBER";
     }
