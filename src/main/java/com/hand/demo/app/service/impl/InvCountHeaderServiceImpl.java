@@ -503,15 +503,27 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         InvCountLine lineRecord = new InvCountLine();
         lineRecord.setCountHeaderId(invCountHeaderDTO.getCountHeaderId());
         List<InvCountLine> countLinesDB = invCountLineRepository.selectList(lineRecord);
+        List<Long> countLinesDBIds = countLinesDB
+                .stream()
+                .map(InvCountLine::getCountLineId)
+                .collect(Collectors.toList());
+        List<Long> countLinesDTOIds = invCountHeaderDTO.getCountOrderLineList()
+                .stream()
+                .map(InvCountLine::getCountLineId)
+                .collect(Collectors.toList());
 
+        Set<Long> countLinesDBIdsSet = new HashSet<>(countLinesDBIds);
+        Set<Long> countLinesDTOIdsSet = new HashSet<>(countLinesDTOIds);
 
-
-        if (invCountHeaderDTO.getCounterList().size() != countLinesDB.size() || lineid not same) {
+        if (invCountHeaderDTO.getCounterList().size() != countLinesDB.size() ||
+                !countLinesDBIdsSet.equals(countLinesDTOIdsSet)) {
             String errorMsg = "The counting order line data is inconsistent with the INV system, please check the data";
             String status ="E";
         }
+
         //TODO: Update the line data
-        updateLines(including unitQty,unitDiffQty,remark)
+        updateLines(including unitQty,unitDiffQty,remark);
+        return invCountHeaderDTO;
     }
 
     private ResponsePayloadDTO callWmsApiPushCountOrder(String namespace, String serverCode, String interfaceCode, InvCountHeaderDTO invCountHeaderDTO) {
