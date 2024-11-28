@@ -62,5 +62,11 @@ public interface InvCountHeaderService {
      */
     List<InvCountHeaderDTO> execute(List<InvCountHeaderDTO> invCountHeaderList);
 
+    /**
+     * @param invCountHeaderList
+     * @return
+     */
+    public InvCountInfoDTO countSyncWms(List<InvCountHeaderDTO> invCountHeaderList);
+
 }
 

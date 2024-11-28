@@ -8,14 +8,38 @@ public class Constants {
     private Constants() {}
 
     public static class Iam {
+
+        private Iam() {}
+
         public static final String FIELD_ID = "id";
     }
 
-    public static class codeBuilder {
+    public static class ExternalService {
+
+        private ExternalService() {}
+
+        public static final String NAMESPACE = "HZERO";
+        public static final String SERVER_CODE = "FEXAM_WMS";
+        public static final String INTERFACE_CODE = "fexam-wms-api.thirdAddCounting";
+
+        public static final String RESULT_STATUS_FIELD = "returnStatus";
+        public static final String RETURN_MESSAGE_FIELD = "returnMsg";
+        public static final String CODE_FIELD = "code";
+
+        public static final String RESULT_STATUS_SUCCESS = "S";
+
+    }
+
+    public static class CodeBuilder {
+
+        private CodeBuilder() {}
+
         public static final String FIELD_CUSTOM_SEGMENT = "customSegment";
     }
 
     public static class InvCountHeader {
+
+        private InvCountHeader() {}
 
         public static final String UPDATE_STATUS_INVALID = "only draft, in counting, rejected, and withdrawn status can be modified";
         public static final String UPDATE_ACCESS_INVALID = "Document in draft status can only be modified by the document creator";
@@ -28,6 +52,14 @@ public class Constants {
         public static final String COUNT_MODE_LOV_CODE = "INV.COUNTING.COUNT_MODE";
 
         public static final String CODE_RULE = "INV.COUNTING59.COUNT_NUMBER";
+    }
+
+    public static class InvCountExtra {
+
+        private InvCountExtra() {}
+
+        public static final String PROGRAM_KEY_WMS_SYNC_STATUS = "wms_sync_status";
+        public static final String PROGRAM_KEY_WMS_SYNC_ERR_MSG ="wms_sync_error_message";
     }
 
 }

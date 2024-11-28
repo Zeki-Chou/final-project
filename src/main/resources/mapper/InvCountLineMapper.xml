@@ -134,5 +134,19 @@
             </if>
         </where>
     </select>
+
+    <select id="selectByCountHeaderIds">
+        select
+        <include refid = "BaseSql"/>
+        from fexam_inv_count_line ficl
+        <where>
+            <if test="countHeaderId !=null">
+                and ficl.count_header_id = #{countHeaderId,jdbcType = INTEGER}
+            </if>
+            <foreach collection="headerIds" item="headerId" open="countHeaderId in (" close=")">
+                #{headerId}
+            </foreach>
+        </where>
+    </select>
 </mapper>
 

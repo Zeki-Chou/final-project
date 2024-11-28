@@ -4,6 +4,14 @@ public class Enums {
 
     private Enums() {}
 
+    public static class Extra {
+        public enum WmsStatus {
+            SUCCESS,
+            ERROR,
+            SKIP
+        }
+    }
+
     public static class InvCountHeader {
         public enum Status {
             DRAFT,

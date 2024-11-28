@@ -20,7 +20,7 @@ public class InvCountHeaderDTO extends InvCountHeader implements Cacheable {
     List<UserInfoDTO> supervisorList;
     List<MaterialInfoDTO> snapshotMaterialList;
     List<BatchInfoDTO> snapshotBatchList;
-    List<InvCountLineDTO> invCountLineDTOList;
+    List<InvCountLineDTO> countOrderLineList;
 
     Integer isWmsWarehouse;
 }

@@ -15,9 +15,8 @@ import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.Date;
 
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+import org.springframework.web.bind.annotation.RequestBody;
 
 /**
  * (InvCountExtra)实体类
@@ -27,6 +26,8 @@ import lombok.Setter;
  */
 @Getter
 @Setter
+@NoArgsConstructor
+@RequiredArgsConstructor
 @ApiModel("")
 @VersionAudit
 @ModifyAudit
@@ -97,10 +98,12 @@ public class InvCountExtra extends AuditDomain {
 
     @ApiModelProperty(value = "", required = true)
     @NotNull
+    @NonNull
     private Integer enabledflag;
 
     @ApiModelProperty(value = "", required = true)
     @NotBlank
+    @NonNull
     private String programkey;
 
     @ApiModelProperty(value = "", required = true)
@@ -111,10 +114,12 @@ public class InvCountExtra extends AuditDomain {
 
     @ApiModelProperty(value = "", required = true)
     @NotNull
+    @NonNull
     private Long sourceid;
 
     @ApiModelProperty(value = "", required = true)
     @NotNull
+    @NonNull
     private Long tenantid;
 
 

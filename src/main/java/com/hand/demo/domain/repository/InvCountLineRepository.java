@@ -1,5 +1,6 @@
 package com.hand.demo.domain.repository;
 
+import com.hand.demo.api.dto.InvCountLineDTO;
 import org.hzero.mybatis.base.BaseRepository;
 import com.hand.demo.domain.entity.InvCountLine;
 
@@ -27,4 +28,10 @@ public interface InvCountLineRepository extends BaseRepository<InvCountLine> {
      * @return 返回值
      */
     InvCountLine selectByPrimary(Long countLineId);
+
+    /**
+     * @param headerIds
+     * @return
+     */
+    List<InvCountLineDTO> selectByCountHeaderIds(List<Long> headerIds);
 }
