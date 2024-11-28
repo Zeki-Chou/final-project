@@ -65,6 +65,7 @@ public class InvCountHeaderController extends BaseController {
         validObject(invCountHeaders);
         SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
         invCountHeaders.forEach(item -> item.setTenantId(organizationId));
+        invCountHeaderService.executeCheck(invCountHeaders);
         invCountHeaderService.manualSaveCheck(invCountHeaders);
         invCountHeaderService.manualSave(invCountHeaders);
         return Results.success(invCountHeaders);
@@ -78,6 +79,7 @@ public class InvCountHeaderController extends BaseController {
         invCountHeaderService.checkAndRemove(invCountHeaders);
         return Results.success();
     }
+
 
 }
 

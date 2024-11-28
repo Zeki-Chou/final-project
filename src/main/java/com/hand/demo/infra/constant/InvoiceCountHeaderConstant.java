@@ -12,9 +12,16 @@ public class InvoiceCountHeaderConstant {
         public static final String CODE_RULE_HEADER_NUMBER = "INV.COUNTING61.COUNT_NUMBER";
     }
 
-//    public static final String ERROR_SAVE = "demo-47361.invoice_apply_header.save_error";
-//    public static final String ERROR_NOT_FOUND = "demo-47361.invoice_apply_header.not_found_error";
-//    public static final String ERROR_GENERAL_MESSAGE = "demo-47361_invoice_general_error";
+    public static class ExternalInterface {
+        public static final String INTERFACE_NAME_SPACE = "HZERO";
+        public static final String INTERFACE_SERVER_CODE = "FEXAM_WMS";
+        public static final String INTERFACE_CODE = "fexam-wms-api.thirdAddCounting";
+    }
+
+    public static  class Extra {
+        public static final String PROGRAM_KEY_STATUS = "wms_sync_status";
+        public static final String PROGRAM_KEY_ERROR_MSG = "wms_sync_error_message";
+    }
 
     public InvoiceCountHeaderConstant(){}
 }

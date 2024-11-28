@@ -35,5 +35,7 @@ public interface InvCountHeaderService {
     void checkAndRemove(List<InvCountHeaderDTO> invCountHeaderDTOS);
 
     void manualSaveCheck(List<InvCountHeaderDTO> invCountHeaders);
+
+    void executeCheck(List<InvCountHeaderDTO> invCountHeaderDTOS);
 }
 
