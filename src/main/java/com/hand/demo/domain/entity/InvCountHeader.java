@@ -15,6 +15,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -79,6 +80,7 @@ public class InvCountHeader extends AuditDomain {
 
     @ApiModelProperty(hidden = true)
     @Id
+    @NotNull(groups = {ValidateOrderExecute.class})
     @GeneratedValue
     private Long countHeaderId;
 
@@ -134,7 +136,7 @@ public class InvCountHeader extends AuditDomain {
     private String attributeCategory;
 
     @ApiModelProperty(hidden = true)
-    @NotBlank(groups = {ValidateHeaderSave.class, ValidateOrderExecute.class})
+    @NotNull(groups = {ValidateHeaderSave.class, ValidateOrderExecute.class})
     private Long companyId;
 
     @ApiModelProperty(value = "", required = true)
@@ -161,13 +163,14 @@ public class InvCountHeader extends AuditDomain {
     private String countType;
 
     @ApiModelProperty(hidden = true)
-    @NotBlank(groups = {ValidateHeaderSave.class, ValidateOrderExecute.class})
+    @NotNull(groups = {ValidateHeaderSave.class, ValidateOrderExecute.class})
     private Object counterIds;
 
     @ApiModelProperty(hidden = true)
     private Integer delFlag;
 
     @ApiModelProperty(hidden = true)
+    @NotNull(groups = {ValidateOrderExecute.class})
     private Long departmentId;
 
     @ApiModelProperty(hidden = true)
@@ -195,15 +198,15 @@ public class InvCountHeader extends AuditDomain {
     private String sourceSystem;
 
     @ApiModelProperty(hidden = true)
-    @NotBlank(groups = ValidateHeaderSave.class)
+    @NotNull(groups = ValidateHeaderSave.class)
     private Object supervisorIds;
 
     @ApiModelProperty(value = "", required = true, hidden = true)
-    @NotBlank(groups = {ValidateHeaderSave.class, ValidateOrderExecute.class})
+    @NotNull(groups = {ValidateHeaderSave.class, ValidateOrderExecute.class})
     private Long tenantId;
 
     @ApiModelProperty(hidden = true)
-    @NotBlank(groups = {ValidateHeaderSave.class, ValidateOrderExecute.class})
+    @NotNull(groups = {ValidateHeaderSave.class, ValidateOrderExecute.class})
     private Long warehouseId;
 
     @ApiModelProperty(hidden = true)

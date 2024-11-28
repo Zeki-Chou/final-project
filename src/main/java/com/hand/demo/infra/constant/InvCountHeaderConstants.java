@@ -7,7 +7,7 @@ public class InvCountHeaderConstants {
     private InvCountHeaderConstants() {}
     public static final String INV_COUNT_HEADER_COUNT_STATUS = "INV.COUNTING.COUNT_STATUS";
     public static final String INV_COUNT_HEADER_COUNT_DIMENSION = "INV.COUNTING.COUNT_DIMENSION";
-    public static final String INV_COUNT_HEADER_COUNT_TYPE = "INV.COUNTING.INV.COUNTING.COUNT_TYPE";
+    public static final String INV_COUNT_HEADER_COUNT_TYPE = "INV.COUNTING.COUNT_TYPE";
     public static final String INV_COUNT_HEADER_COUNT_MODE = "INV.COUNTING.COUNT_MODE";
 
     public static final List<String> HEADER_COUNT_DESIRED_STATUSES = Arrays.asList("INCOUNTING", "REJECTED", "WITHDRAWN");

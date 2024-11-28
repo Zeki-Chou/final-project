@@ -2,6 +2,7 @@ package com.hand.demo.api.controller.v1;
 
 import com.hand.demo.api.dto.InvCountHeaderDTO;
 import com.hand.demo.api.dto.ValidateHeaderSave;
+import com.hand.demo.api.dto.ValidateOrderExecute;
 import io.choerodon.core.domain.Page;
 import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.mybatis.pagehelper.annotation.SortDefault;
@@ -39,7 +40,7 @@ public class InvCountHeaderController extends BaseController {
     @Autowired
     private InvCountHeaderService invCountHeaderService;
 
-    @ApiOperation(value = "列表")
+    @ApiOperation(value = "List")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping
     public ResponseEntity<Page<InvCountHeaderDTO>> list(
@@ -55,7 +56,7 @@ public class InvCountHeaderController extends BaseController {
         return Results.success(list);
     }
 
-    @ApiOperation(value = "明细")
+    @ApiOperation(value = "Detail")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @ProcessCacheValue
     @GetMapping("/{countHeaderId}/detail")
@@ -66,18 +67,29 @@ public class InvCountHeaderController extends BaseController {
         return Results.success(invCountHeader);
     }
 
-    @ApiOperation(value = "创建或更新")
+    @ApiOperation(value = "Save")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping
     public ResponseEntity<List<InvCountHeaderDTO>> save(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeaders) {
-        validObject(invCountHeaders, ValidateHeaderSave.class);
+        invCountHeaders.forEach(invCountHeader -> validObject(invCountHeader, ValidateHeaderSave.class));
 //        SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
         invCountHeaders.forEach(item -> item.setTenantId(organizationId));
         invCountHeaderService.saveData(invCountHeaders);
         return Results.success(invCountHeaders);
     }
 
-    @ApiOperation(value = "删除")
+    @ApiOperation(value = "Execute")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @PostMapping("/execute")
+    public ResponseEntity<List<InvCountHeaderDTO>> execute(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeaders) {
+        invCountHeaders.forEach(invCountHeader -> validObject(invCountHeader, ValidateOrderExecute.class));
+//        SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
+        invCountHeaders.forEach(item -> item.setTenantId(organizationId));
+        invCountHeaderService.execute(invCountHeaders);
+        return Results.success(invCountHeaders);
+    }
+
+    @ApiOperation(value = "Remove")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @DeleteMapping
     public ResponseEntity<?> remove(

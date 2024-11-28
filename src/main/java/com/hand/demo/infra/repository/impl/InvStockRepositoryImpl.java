@@ -1,6 +1,7 @@
 package com.hand.demo.infra.repository.impl;
 
-import org.apache.commons.collections.CollectionUtils;
+import com.hand.demo.api.dto.InvStockDTO;
+import com.hand.demo.domain.entity.InvCountHeader;
 import org.hzero.mybatis.base.impl.BaseRepositoryImpl;
 import org.springframework.stereotype.Component;
 import com.hand.demo.domain.entity.InvStock;
@@ -35,6 +36,11 @@ public class InvStockRepositoryImpl extends BaseRepositoryImpl<InvStock> impleme
             return null;
         }
         return invStocks.get(0);
+    }
+
+    @Override
+    public List<InvStockDTO> stockTableSum(InvCountHeader invCountHeader) {
+        return invStockMapper.stockTableSum(invCountHeader);
     }
 
 }

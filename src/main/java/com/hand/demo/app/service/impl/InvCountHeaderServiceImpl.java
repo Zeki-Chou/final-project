@@ -299,12 +299,12 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                 setErrorCountInfoError(headerDTOFromInput, infoDTO, "Only the document creator can execute");
             }
 
-            valueSetValidation(infoDTO, headerDTOFromInput);
+            valueSetValidation(infoDTO, headerDTO);
 
             companyDepartmentWarehouseValidation(headerDTOList, headerDTOFromInput, infoDTO);
 
             List<Long> materialIds = Arrays.stream(
-                    headerDTO.getSnapshotMaterialList()
+                    headerDTO.getSnapshotMaterialIds()
                             .toString()
                             .split(","))
                     .map(Long::parseLong)
@@ -333,8 +333,37 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
     @Override
     public List<InvCountHeaderDTO> execute(List<InvCountHeaderDTO> headerDTOList) {
+        executeCheck(headerDTOList);
+        List<InvCountHeaderDTO> headerInDatabaseDTO = getHeaderDTOsFromDb(headerDTOList)
+                .stream().filter(Objects::nonNull).collect(Collectors.toList());
 
-        return Collections.emptyList();
+        List<InvCountLineDTO> saveCountLine = new ArrayList<>();
+        for(InvCountHeaderDTO headerDTO : headerInDatabaseDTO) {
+            headerDTO.setCountStatus(InvCountHeaderConstants.COUNT_STATUS_INCOUNTING);
+//            InvStockDTO stockDTO = new InvStockDTO()
+//                    .setCountingDimension(headerDTO.getCountDimension())
+//                    .setSnapshotMaterialIds(headerDTO.getSnapshotMaterialIds())
+//                    .setSnapshotBatchIds(headerDTO.getSnapshotBatchIds());
+            List<InvStockDTO> summedStockDTOList = invStockRepository.stockTableSum(headerDTO);
+            if (!summedStockDTOList.isEmpty()) {
+                summedStockDTOList.forEach(stock -> {
+                    InvCountLineDTO countLine = (InvCountLineDTO) new InvCountLineDTO()
+                            .setTenantId(DetailsHelper.getUserDetails().getTenantId())
+                            .setCountHeaderId(headerDTO.getCountHeaderId())
+                            .setWarehouseId(stock.getWarehouseId())
+                            .setMaterialId(stock.getMaterialId())
+                            .setUnitCode(stock.getUnitCode())
+                            .setBatchId(stock.getBatchId())
+                            .setSnapshotUnitQty(stock.getTotalUnitQuantity())
+                            .setCounterIds(headerDTO.getCounterIds());
+                    saveCountLine.add(countLine);
+                });
+            }
+        }
+
+        invCountHeaderRepository.batchUpdateByPrimaryKeySelective(new ArrayList<>(headerInDatabaseDTO));
+        invCountLineService.saveData(new ArrayList<>(saveCountLine));
+        return headerInDatabaseDTO;
     }
 
     private List<CounterDTO> getCounters(String counterIds) {
@@ -383,19 +412,19 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                 .collect(Collectors.toList());
     }
 
-    private void companyDepartmentWarehouseValidation(List<InvCountHeaderDTO> headerDTOList, InvCountHeaderDTO headerDTOFromInput, InvCountInfoDTO infoDTO) {
-        String companyIds = headerDTOList.stream()
+    private void companyDepartmentWarehouseValidation(List<InvCountHeaderDTO> headerListFromInput, InvCountHeaderDTO headerDTOFromInput, InvCountInfoDTO infoDTO) {
+        String companyIds = headerListFromInput.stream()
                 .map(InvCountHeaderDTO::getCompanyId)
                 .map(String::valueOf)
                 .collect(Collectors.joining(","));
 
-        String departmentIds = headerDTOList.stream()
+        String departmentIds = headerListFromInput.stream()
                 .map(InvCountHeaderDTO::getDepartmentId)
                 .map(String::valueOf)
                 .collect(Collectors.joining(","));
 
-        String warehouseIds = headerDTOList.stream()
-                .map(InvCountHeaderDTO::getCompanyId)
+        String warehouseIds = headerListFromInput.stream()
+                .map(InvCountHeaderDTO::getWarehouseId)
                 .map(String::valueOf)
                 .collect(Collectors.joining(","));
 

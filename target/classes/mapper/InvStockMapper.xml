@@ -126,5 +126,31 @@
             </if>
         </where>
     </select>
+
+    <resultMap id="InvStockDTOMap" type="com.hand.demo.api.dto.InvStockDTO">
+        <result column="total_unit_quantity" property="totalUnitQuantity"/>
+    </resultMap>
+
+    <select id="stockTableSum" resultMap="InvStockDTOMap">
+        SELECT
+        <include refid="BaseSql"/>,
+        SUM(fis.unit_quantity) AS total_unit_quantity
+        FROM fexam_inv_stock fis
+        WHERE
+        fis.tenant_id = #{tenantId} AND
+        fis.company_id = #{companyId} AND
+        fis.department_id = #{departmentId} AND
+        fis.warehouse_id = #{warehouseId} AND
+        FIND_IN_SET(fis.material_id, #{snapshotMaterialIds}) AND
+        FIND_IN_SET(fis.batch_id, #{snapshotBatchIds})
+        GROUP BY
+        fis.stock_id
+        <if test="countDimension == 'SKU'">
+            , fis.material_id
+        </if>
+        <if test="countDimension == 'LOT'">
+            , fis.material_id, fis.batch_id
+        </if>
+    </select>
 </mapper>
 

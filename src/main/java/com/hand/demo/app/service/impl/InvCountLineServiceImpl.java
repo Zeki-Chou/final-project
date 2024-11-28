@@ -47,35 +47,35 @@ public class InvCountLineServiceImpl implements InvCountLineService {
         List<InvCountLineDTO> insertList = invCountLines.stream().filter(line -> line.getCountLineId() == null).collect(Collectors.toList());
         List<InvCountLineDTO> updateList = invCountLines.stream().filter(line -> line.getCountLineId() != null).collect(Collectors.toList());
 
-        Long currentLineNumber = invCountLineRepository.getCurrentLineNumber();
+        if (!insertList.isEmpty()) {
+            Long currentLineNumber = invCountLineRepository.getCurrentLineNumber();
 
-        for(InvCountLineDTO countLine : insertList) {
-            BigDecimal unitQty = countLine.getUnitQty();
-            BigDecimal snapshotUnitQty = countLine.getSnapshotUnitQty();
-            if (unitQty != null && snapshotUnitQty != null) {
-                countLine.setUnitDiffQty(unitQty.subtract(snapshotUnitQty).abs());
+            for(InvCountLineDTO countLine : insertList) {
+                currentLineNumber += 1;
+                countLine.setLineNumber(currentLineNumber.intValue());
             }
-            countLine.setLineNumber(currentLineNumber.intValue()+1);
+            invCountLineRepository.batchInsertSelective(new ArrayList<>(insertList));
         }
-        invCountLineRepository.batchInsertSelective(new ArrayList<>(insertList));
 
-        String headerIds = updateList.stream()
-                .map(InvCountLineDTO::getCountHeaderId)
-                .map(String::valueOf)
-                .collect(Collectors.joining(","));
+        if (!updateList.isEmpty()) {
+            String headerIds = updateList.stream()
+                    .map(InvCountLineDTO::getCountHeaderId)
+                    .map(String::valueOf)
+                    .collect(Collectors.joining(","));
 
-        List<InvCountHeader> invHeaderList = invCountHeaderRepository.selectByIds(headerIds);
+            List<InvCountHeader> invHeaderList = invCountHeaderRepository.selectByIds(headerIds);
 
-        Map<Long, InvCountHeader> headerById = invHeaderList.stream().collect(Collectors.toMap(InvCountHeader::getCountHeaderId, Function.identity()));
+            Map<Long, InvCountHeader> headerById = invHeaderList.stream().collect(Collectors.toMap(InvCountHeader::getCountHeaderId, Function.identity()));
 
-        for(InvCountLineDTO countLine : updateList) {
-            InvCountHeader header = headerById.get(countLine.getCountHeaderId());
-            if (header != null) {
-                String countStatus = header.getCountStatus();
-                if (countStatus.equals(InvCountHeaderConstants.COUNT_STATUS_INCOUNTING)) {
-                    invCountLineRepository.updateOptional(countLine, Utils.getNonNullFields(countLine, InvCountLineDTO.FIELD_UNIT_QTY, InvCountLineDTO.FIELD_REMARK));
-                    if (isCreator(header.getCreatedBy())) {
-                        invCountLineRepository.updateOptional(countLine, Utils.getNonNullFields(InvCountLineDTO.FIELD_COUNTER_IDS));
+            for(InvCountLineDTO countLine : updateList) {
+                InvCountHeader header = headerById.get(countLine.getCountHeaderId());
+                if (header != null) {
+                    String countStatus = header.getCountStatus();
+                    if (countStatus.equals(InvCountHeaderConstants.COUNT_STATUS_INCOUNTING)) {
+                        invCountLineRepository.updateOptional(countLine, Utils.getNonNullFields(countLine, InvCountLineDTO.FIELD_UNIT_QTY, InvCountLineDTO.FIELD_REMARK));
+                        if (isCreator(header.getCreatedBy())) {
+                            invCountLineRepository.updateOptional(countLine, Utils.getNonNullFields(InvCountLineDTO.FIELD_COUNTER_IDS));
+                        }
                     }
                 }
             }
