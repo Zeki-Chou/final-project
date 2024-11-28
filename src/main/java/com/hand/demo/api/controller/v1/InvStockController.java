@@ -24,7 +24,7 @@ import java.util.List;
  * (InvStock)表控制层
  *
  * @author
- * @since 2024-11-26 17:19:57
+ * @since 2024-11-26 23:10:09
  */
 
 @RestController("invStockController.v1")
@@ -41,7 +41,7 @@ public class InvStockController extends BaseController {
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping
     public ResponseEntity<Page<InvStock>> list(InvStock invStock, @PathVariable Long organizationId,
-                                               @ApiIgnore @SortDefault(value = InvStock.FIELD_${pk.obj.name.toUpperCase()},
+                                               @ApiIgnore @SortDefault(value = InvStock.FIELD_STOCK_ID,
                                                        direction = Sort.Direction.DESC) PageRequest pageRequest) {
         Page<InvStock> list = invStockService.selectList(pageRequest, invStock);
         return Results.success(list);
@@ -49,15 +49,9 @@ public class InvStockController extends BaseController {
 
     @ApiOperation(value = "明细")
     @Permission(level = ResourceLevel.ORGANIZATION)
-    @GetMapping("/{${pk.name}}/detail")
-    public ResponseEntity<InvStock> detail(@PathVariable Long $ {
-        pk.name
-    })
-
-    {
-        InvStock invStock = invStockRepository.selectByPrimary($ {
-        pk.name
-    })
+    @GetMapping("/{stockId}/detail")
+    public ResponseEntity<InvStock> detail(@PathVariable Long stockId) {
+        InvStock invStock = invStockRepository.selectByPrimary(stockId);
         return Results.success(invStock);
     }
 

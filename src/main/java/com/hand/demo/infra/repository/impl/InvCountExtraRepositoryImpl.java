@@ -14,7 +14,7 @@ import java.util.List;
  * (InvCountExtra)资源库
  *
  * @author
- * @since 2024-11-26 17:21:10
+ * @since 2024-11-26 23:09:53
  */
 @Component
 public class InvCountExtraRepositoryImpl extends BaseRepositoryImpl<InvCountExtra> implements InvCountExtraRepository {
@@ -27,9 +27,9 @@ public class InvCountExtraRepositoryImpl extends BaseRepositoryImpl<InvCountExtr
     }
 
     @Override
-    public InvCountExtra selectByPrimary(Long $pk.name) {
+    public InvCountExtra selectByPrimary(Long extrainfoid) {
         InvCountExtra invCountExtra = new InvCountExtra();
-        invCountExtra.set$tool.firstUpperCase($pk.name) ($pk.name);
+        invCountExtra.setExtrainfoid(extrainfoid);
         List<InvCountExtra> invCountExtras = invCountExtraMapper.selectList(invCountExtra);
         if (invCountExtras.size() == 0) {
             return null;

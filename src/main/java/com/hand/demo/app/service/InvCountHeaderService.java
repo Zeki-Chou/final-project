@@ -30,7 +30,9 @@ public interface InvCountHeaderService {
      *
      * @param invCountHeaders 数据
      */
+    InvCountHeaderDTO detailList(Long countHeaderId);
     List<InvCountHeaderDTO> saveData(List<InvCountHeaderDTO> invCountHeadersDTO);
     InvCountInfoDTO orderRemove(List<InvCountHeaderDTO> invCountHeadersDTO);
+    List<InvCountHeaderDTO> countingOrderExecute(List<InvCountHeaderDTO> invCountHeaderDTOList);
 }
 

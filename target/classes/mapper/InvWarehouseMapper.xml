@@ -28,7 +28,7 @@
         fiw.creation_date, 
         fiw.created_by, 
         fiw.last_updated_by, 
-        fiw.last_update_date,
+        fiw.last_update_date, 
         fiw.object_version_number
     </sql>
 

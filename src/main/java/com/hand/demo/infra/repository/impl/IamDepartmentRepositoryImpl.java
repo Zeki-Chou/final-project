@@ -14,7 +14,7 @@ import java.util.List;
  * (IamDepartment)资源库
  *
  * @author
- * @since 2024-11-26 17:21:10
+ * @since 2024-11-26 23:09:39
  */
 @Component
 public class IamDepartmentRepositoryImpl extends BaseRepositoryImpl<IamDepartment> implements IamDepartmentRepository {
@@ -27,9 +27,9 @@ public class IamDepartmentRepositoryImpl extends BaseRepositoryImpl<IamDepartmen
     }
 
     @Override
-    public IamDepartment selectByPrimary(Long $pk.name) {
+    public IamDepartment selectByPrimary(Long departmentId) {
         IamDepartment iamDepartment = new IamDepartment();
-        iamDepartment.set$tool.firstUpperCase($pk.name) ($pk.name);
+        iamDepartment.setDepartmentId(departmentId);
         List<IamDepartment> iamDepartments = iamDepartmentMapper.selectList(iamDepartment);
         if (iamDepartments.size() == 0) {
             return null;

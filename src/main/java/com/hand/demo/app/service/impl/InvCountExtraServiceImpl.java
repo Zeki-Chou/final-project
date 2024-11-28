@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
  * (InvCountExtra)应用服务
  *
  * @author
- * @since 2024-11-26 17:21:10
+ * @since 2024-11-26 23:09:53
  */
 @Service
 public class InvCountExtraServiceImpl implements InvCountExtraService {
@@ -30,12 +30,8 @@ public class InvCountExtraServiceImpl implements InvCountExtraService {
 
     @Override
     public void saveData(List<InvCountExtra> invCountExtras) {
-        List<InvCountExtra> insertList = invCountExtras.stream().filter(line -> line.get$tool.firstUpperCase($ {
-            pk.name
-        })() == null).collect(Collectors.toList());
-        List<InvCountExtra> updateList = invCountExtras.stream().filter(line -> line.get$tool.firstUpperCase($ {
-            pk.name
-        })() != null).collect(Collectors.toList());
+        List<InvCountExtra> insertList = invCountExtras.stream().filter(line -> line.getExtrainfoid() == null).collect(Collectors.toList());
+        List<InvCountExtra> updateList = invCountExtras.stream().filter(line -> line.getExtrainfoid() != null).collect(Collectors.toList());
         invCountExtraRepository.batchInsertSelective(insertList);
         invCountExtraRepository.batchUpdateByPrimaryKeySelective(updateList);
     }

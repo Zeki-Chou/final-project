@@ -1,5 +1,7 @@
 package com.hand.demo.domain.repository;
 
+import com.hand.demo.api.controller.v1.DTO.InvCountHeaderDTO;
+import com.hand.demo.api.controller.v1.DTO.InvStockDTO;
 import org.hzero.mybatis.base.BaseRepository;
 import com.hand.demo.domain.entity.InvStock;
 
@@ -9,7 +11,7 @@ import java.util.List;
  * (InvStock)资源库
  *
  * @author
- * @since 2024-11-26 17:19:57
+ * @since 2024-11-26 23:10:08
  */
 public interface InvStockRepository extends BaseRepository<InvStock> {
     /**
@@ -23,8 +25,11 @@ public interface InvStockRepository extends BaseRepository<InvStock> {
     /**
      * 根据主键查询（可关联表）
      *
-     * @param $pk.name 主键
+     * @param stockId 主键
      * @return 返回值
      */
-    InvStock selectByPrimary(Long $pk.name);
+    InvStock selectByPrimary(Long stockId);
+    List<InvStock> checkOnHandQuantity(InvCountHeaderDTO invCountHeaderDTO);
+    List<InvStockDTO> executeBySKU(InvCountHeaderDTO invCountHeaderDTO);
+    List<InvStockDTO> executeByLOT(InvCountHeaderDTO invCountHeaderDTO);
 }

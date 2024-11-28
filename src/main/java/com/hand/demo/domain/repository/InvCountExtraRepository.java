@@ -9,7 +9,7 @@ import java.util.List;
  * (InvCountExtra)资源库
  *
  * @author
- * @since 2024-11-26 17:21:10
+ * @since 2024-11-26 23:09:53
  */
 public interface InvCountExtraRepository extends BaseRepository<InvCountExtra> {
     /**
@@ -23,8 +23,8 @@ public interface InvCountExtraRepository extends BaseRepository<InvCountExtra> {
     /**
      * 根据主键查询（可关联表）
      *
-     * @param $pk.name 主键
+     * @param extrainfoid 主键
      * @return 返回值
      */
-    InvCountExtra selectByPrimary(Long $pk.name);
+    InvCountExtra selectByPrimary(Long extrainfoid);
 }

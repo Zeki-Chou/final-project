@@ -14,7 +14,7 @@ import java.util.List;
  * (InvMaterial)资源库
  *
  * @author
- * @since 2024-11-26 17:19:57
+ * @since 2024-11-26 23:10:00
  */
 @Component
 public class InvMaterialRepositoryImpl extends BaseRepositoryImpl<InvMaterial> implements InvMaterialRepository {

@@ -9,7 +9,7 @@ import java.util.List;
  * (InvBatch)应用服务
  *
  * @author
- * @since 2024-11-26 17:21:10
+ * @since 2024-11-26 23:09:46
  */
 public interface InvBatchMapper extends BaseMapper<InvBatch> {
     /**

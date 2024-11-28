@@ -24,7 +24,7 @@ import java.util.List;
  * (IamDepartment)表控制层
  *
  * @author
- * @since 2024-11-26 17:21:10
+ * @since 2024-11-26 23:09:39
  */
 
 @RestController("iamDepartmentController.v1")
@@ -41,7 +41,7 @@ public class IamDepartmentController extends BaseController {
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping
     public ResponseEntity<Page<IamDepartment>> list(IamDepartment iamDepartment, @PathVariable Long organizationId,
-                                                    @ApiIgnore @SortDefault(value = IamDepartment.FIELD_${pk.obj.name.toUpperCase()},
+                                                    @ApiIgnore @SortDefault(value = IamDepartment.FIELD_DEPARTMENT_ID,
                                                             direction = Sort.Direction.DESC) PageRequest pageRequest) {
         Page<IamDepartment> list = iamDepartmentService.selectList(pageRequest, iamDepartment);
         return Results.success(list);
@@ -49,15 +49,9 @@ public class IamDepartmentController extends BaseController {
 
     @ApiOperation(value = "明细")
     @Permission(level = ResourceLevel.ORGANIZATION)
-    @GetMapping("/{${pk.name}}/detail")
-    public ResponseEntity<IamDepartment> detail(@PathVariable Long $ {
-        pk.name
-    })
-
-    {
-        IamDepartment iamDepartment = iamDepartmentRepository.selectByPrimary($ {
-        pk.name
-    })
+    @GetMapping("/{departmentId}/detail")
+    public ResponseEntity<IamDepartment> detail(@PathVariable Long departmentId) {
+        IamDepartment iamDepartment = iamDepartmentRepository.selectByPrimary(departmentId);
         return Results.success(iamDepartment);
     }
 

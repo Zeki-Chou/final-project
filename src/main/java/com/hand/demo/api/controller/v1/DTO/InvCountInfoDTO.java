@@ -1,6 +1,7 @@
 package com.hand.demo.api.controller.v1.DTO;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.hand.demo.domain.entity.InvStock;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

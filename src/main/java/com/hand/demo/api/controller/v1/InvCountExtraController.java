@@ -24,7 +24,7 @@ import java.util.List;
  * (InvCountExtra)表控制层
  *
  * @author
- * @since 2024-11-26 17:21:10
+ * @since 2024-11-26 23:09:53
  */
 
 @RestController("invCountExtraController.v1")
@@ -41,7 +41,7 @@ public class InvCountExtraController extends BaseController {
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping
     public ResponseEntity<Page<InvCountExtra>> list(InvCountExtra invCountExtra, @PathVariable Long organizationId,
-                                                    @ApiIgnore @SortDefault(value = InvCountExtra.FIELD_${pk.obj.name.toUpperCase()},
+                                                    @ApiIgnore @SortDefault(value = InvCountExtra.FIELD_EXTRAINFOID,
                                                             direction = Sort.Direction.DESC) PageRequest pageRequest) {
         Page<InvCountExtra> list = invCountExtraService.selectList(pageRequest, invCountExtra);
         return Results.success(list);
@@ -49,15 +49,9 @@ public class InvCountExtraController extends BaseController {
 
     @ApiOperation(value = "明细")
     @Permission(level = ResourceLevel.ORGANIZATION)
-    @GetMapping("/{${pk.name}}/detail")
-    public ResponseEntity<InvCountExtra> detail(@PathVariable Long $ {
-        pk.name
-    })
-
-    {
-        InvCountExtra invCountExtra = invCountExtraRepository.selectByPrimary($ {
-        pk.name
-    })
+    @GetMapping("/{extrainfoid}/detail")
+    public ResponseEntity<InvCountExtra> detail(@PathVariable Long extrainfoid) {
+        InvCountExtra invCountExtra = invCountExtraRepository.selectByPrimary(extrainfoid);
         return Results.success(invCountExtra);
     }
 
@@ -67,7 +61,7 @@ public class InvCountExtraController extends BaseController {
     public ResponseEntity<List<InvCountExtra>> save(@PathVariable Long organizationId, @RequestBody List<InvCountExtra> invCountExtras) {
         validObject(invCountExtras);
         SecurityTokenHelper.validTokenIgnoreInsert(invCountExtras);
-        invCountExtras.forEach(item -> item.setTenantId(organizationId));
+        invCountExtras.forEach(item -> item.setTenantid(organizationId));
         invCountExtraService.saveData(invCountExtras);
         return Results.success(invCountExtras);
     }

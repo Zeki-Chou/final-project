@@ -10,7 +10,7 @@ import java.util.List;
  * (InvWarehouse)应用服务
  *
  * @author
- * @since 2024-11-26 17:19:58
+ * @since 2024-11-26 23:10:15
  */
 public interface InvWarehouseService {
 

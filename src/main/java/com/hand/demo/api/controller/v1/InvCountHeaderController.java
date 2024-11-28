@@ -67,12 +67,24 @@ public class InvCountHeaderController extends BaseController {
         return Results.success(invCountHeaderService.queryList(pageRequest, invCountHeaderDTO));
     }
 
+    @ApiOperation(value = "Counting Order Execute")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @PostMapping("/execute")
+    public ResponseEntity<List<InvCountHeaderDTO>> execute(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeadersDTO) {
+        validObject(invCountHeadersDTO);
+        SecurityTokenHelper.validTokenIgnoreInsert(invCountHeadersDTO);
+
+        invCountHeadersDTO.forEach(item -> item.setTenantId(organizationId));
+        List<InvCountHeaderDTO> invCountHeaderDTOList = invCountHeaderService.countingOrderExecute(invCountHeadersDTO);
+        return Results.success(invCountHeaderDTOList);
+    }
+
     @ApiOperation(value = "Counting Order Save")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping
     public ResponseEntity<InvCountInfoDTO> save(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeadersDTO) {
         validObject(invCountHeadersDTO);
-//        SecurityTokenHelper.validTokenIgnoreInsert(invCountHeadersDTO);
+        SecurityTokenHelper.validTokenIgnoreInsert(invCountHeadersDTO);
         invCountHeadersDTO.forEach(item -> item.setTenantId(organizationId));
         List<InvCountHeaderDTO> invCountHeaderDTOList = invCountHeaderService.saveData(invCountHeadersDTO);
         InvCountInfoDTO invCountInfoDTO = new InvCountInfoDTO();
@@ -83,9 +95,16 @@ public class InvCountHeaderController extends BaseController {
     @ApiOperation(value = "Counting Order Remove")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @DeleteMapping
-    public ResponseEntity<InvCountInfoDTO> remove(@RequestBody List<InvCountHeaderDTO> invCountHeaders) {
-//        SecurityTokenHelper.validToken(invCountHeaders);
+    public ResponseEntity<InvCountInfoDTO> remove(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeaders) {
+        SecurityTokenHelper.validToken(invCountHeaders);
         return Results.success(invCountHeaderService.orderRemove(invCountHeaders));
+    }
+
+    @ApiOperation(value = "Detail")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @GetMapping
+    public ResponseEntity<InvCountHeaderDTO> detail(@PathVariable Long organizationId, Long countHeaderId) {
+        return Results.success(invCountHeaderService.detailList(countHeaderId));
     }
 }
 

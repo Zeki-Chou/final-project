@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
  * (InvStock)应用服务
  *
  * @author
- * @since 2024-11-26 17:19:57
+ * @since 2024-11-26 23:10:09
  */
 @Service
 public class InvStockServiceImpl implements InvStockService {
@@ -30,12 +30,8 @@ public class InvStockServiceImpl implements InvStockService {
 
     @Override
     public void saveData(List<InvStock> invStocks) {
-        List<InvStock> insertList = invStocks.stream().filter(line -> line.get$tool.firstUpperCase($ {
-            pk.name
-        })() == null).collect(Collectors.toList());
-        List<InvStock> updateList = invStocks.stream().filter(line -> line.get$tool.firstUpperCase($ {
-            pk.name
-        })() != null).collect(Collectors.toList());
+        List<InvStock> insertList = invStocks.stream().filter(line -> line.getStockId() == null).collect(Collectors.toList());
+        List<InvStock> updateList = invStocks.stream().filter(line -> line.getStockId() != null).collect(Collectors.toList());
         invStockRepository.batchInsertSelective(insertList);
         invStockRepository.batchUpdateByPrimaryKeySelective(updateList);
     }

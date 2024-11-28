@@ -9,7 +9,7 @@ import java.util.List;
  * (IamDepartment)应用服务
  *
  * @author
- * @since 2024-11-26 17:21:09
+ * @since 2024-11-26 23:09:38
  */
 public interface IamDepartmentMapper extends BaseMapper<IamDepartment> {
     /**

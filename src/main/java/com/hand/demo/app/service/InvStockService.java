@@ -10,7 +10,7 @@ import java.util.List;
  * (InvStock)应用服务
  *
  * @author
- * @since 2024-11-26 17:19:57
+ * @since 2024-11-26 23:10:09
  */
 public interface InvStockService {
 

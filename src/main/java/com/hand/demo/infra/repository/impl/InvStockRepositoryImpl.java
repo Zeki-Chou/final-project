@@ -1,5 +1,7 @@
 package com.hand.demo.infra.repository.impl;
 
+import com.hand.demo.api.controller.v1.DTO.InvCountHeaderDTO;
+import com.hand.demo.api.controller.v1.DTO.InvStockDTO;
 import org.apache.commons.collections.CollectionUtils;
 import org.hzero.mybatis.base.impl.BaseRepositoryImpl;
 import org.springframework.stereotype.Component;
@@ -14,7 +16,7 @@ import java.util.List;
  * (InvStock)资源库
  *
  * @author
- * @since 2024-11-26 17:19:57
+ * @since 2024-11-26 23:10:08
  */
 @Component
 public class InvStockRepositoryImpl extends BaseRepositoryImpl<InvStock> implements InvStockRepository {
@@ -27,9 +29,9 @@ public class InvStockRepositoryImpl extends BaseRepositoryImpl<InvStock> impleme
     }
 
     @Override
-    public InvStock selectByPrimary(Long $pk.name) {
+    public InvStock selectByPrimary(Long stockId) {
         InvStock invStock = new InvStock();
-        invStock.set$tool.firstUpperCase($pk.name) ($pk.name);
+        invStock.setStockId(stockId);
         List<InvStock> invStocks = invStockMapper.selectList(invStock);
         if (invStocks.size() == 0) {
             return null;
@@ -37,5 +39,19 @@ public class InvStockRepositoryImpl extends BaseRepositoryImpl<InvStock> impleme
         return invStocks.get(0);
     }
 
+    @Override
+    public List<InvStock> checkOnHandQuantity(InvCountHeaderDTO invCountHeaderDTO) {
+        return invStockMapper.checkOnHandQuantity(invCountHeaderDTO);
+    }
+
+    @Override
+    public List<InvStockDTO> executeBySKU(InvCountHeaderDTO invCountHeaderDTO) {
+        return invStockMapper.executeBySKU(invCountHeaderDTO);
+    }
+
+    @Override
+    public List<InvStockDTO> executeByLOT(InvCountHeaderDTO invCountHeaderDTO) {
+        return invStockMapper.executeByLOT(invCountHeaderDTO);
+    }
 }
 

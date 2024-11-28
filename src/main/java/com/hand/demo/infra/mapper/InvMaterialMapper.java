@@ -9,7 +9,7 @@ import java.util.List;
  * (InvMaterial)应用服务
  *
  * @author
- * @since 2024-11-26 17:19:56
+ * @since 2024-11-26 23:10:00
  */
 public interface InvMaterialMapper extends BaseMapper<InvMaterial> {
     /**

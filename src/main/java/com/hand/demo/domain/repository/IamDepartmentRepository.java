@@ -9,7 +9,7 @@ import java.util.List;
  * (IamDepartment)资源库
  *
  * @author
- * @since 2024-11-26 17:21:09
+ * @since 2024-11-26 23:09:38
  */
 public interface IamDepartmentRepository extends BaseRepository<IamDepartment> {
     /**
@@ -23,8 +23,8 @@ public interface IamDepartmentRepository extends BaseRepository<IamDepartment> {
     /**
      * 根据主键查询（可关联表）
      *
-     * @param $pk.name 主键
+     * @param departmentId 主键
      * @return 返回值
      */
-    IamDepartment selectByPrimary(Long $pk.name);
+    IamDepartment selectByPrimary(Long departmentId);
 }

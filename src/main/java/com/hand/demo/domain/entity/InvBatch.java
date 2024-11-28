@@ -22,7 +22,7 @@ import lombok.Setter;
  * (InvBatch)实体类
  *
  * @author
- * @since 2024-11-26 17:21:10
+ * @since 2024-11-26 23:09:45
  */
 
 @Getter
@@ -33,7 +33,7 @@ import lombok.Setter;
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 @Table(name = "fexam_inv_batch")
 public class InvBatch extends AuditDomain {
-    private static final long serialVersionUID = -80154680965823060L;
+    private static final long serialVersionUID = -26252133163086649L;
 
     public static final String FIELD_BATCH_ID = "batchId";
     public static final String FIELD_ATTRIBUTE1 = "attribute1";

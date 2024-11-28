@@ -24,7 +24,7 @@ import java.util.List;
  * (InvMaterial)表控制层
  *
  * @author
- * @since 2024-11-26 17:19:57
+ * @since 2024-11-26 23:10:00
  */
 
 @RestController("invMaterialController.v1")
@@ -61,7 +61,7 @@ public class InvMaterialController extends BaseController {
     public ResponseEntity<List<InvMaterial>> save(@PathVariable Long organizationId, @RequestBody List<InvMaterial> invMaterials) {
         validObject(invMaterials);
         SecurityTokenHelper.validTokenIgnoreInsert(invMaterials);
-        invMaterials.forEach(item -> item.setTenantId(organizationId));
+//        invMaterials.forEach(item -> item.setTenantId(organizationId));
         invMaterialService.saveData(invMaterials);
         return Results.success(invMaterials);
     }

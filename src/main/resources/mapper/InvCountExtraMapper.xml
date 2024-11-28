@@ -4,6 +4,29 @@
 
 
     <sql id = "BaseSql">
+        fice.extraInfoId,
+        fice.attribute1,
+        fice.attribute10,
+        fice.attribute11,
+        fice.attribute12,
+        fice.attribute13,
+        fice.attribute14,
+        fice.attribute15,
+        fice.attribute2,
+        fice.attribute3,
+        fice.attribute4,
+        fice.attribute5,
+        fice.attribute6,
+        fice.attribute7,
+        fice.attribute8,
+        fice.attribute9,
+        fice.attribute_category,
+        fice.enabledFlag,
+        fice.programKey,
+        fice.programValue,
+        fice.remark,
+        fice.sourceId,
+        fice.tenantId,
         fice.creation_date, 
         fice.created_by, 
         fice.last_updated_by, 
@@ -16,6 +39,75 @@
         <include refid = "BaseSql"/>
         from fexam_inv_count_extra fice
         <where>
+            <if test="extrainfoid !=null">
+                and fice.extraInfoId = #{extrainfoid,jdbcType = INTEGER}
+            </if>
+            <if test="attribute1 !=null">
+                and fice.attribute1 = #{attribute1,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute10 !=null">
+                and fice.attribute10 = #{attribute10,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute11 !=null">
+                and fice.attribute11 = #{attribute11,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute12 !=null">
+                and fice.attribute12 = #{attribute12,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute13 !=null">
+                and fice.attribute13 = #{attribute13,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute14 !=null">
+                and fice.attribute14 = #{attribute14,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute15 !=null">
+                and fice.attribute15 = #{attribute15,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute2 !=null">
+                and fice.attribute2 = #{attribute2,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute3 !=null">
+                and fice.attribute3 = #{attribute3,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute4 !=null">
+                and fice.attribute4 = #{attribute4,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute5 !=null">
+                and fice.attribute5 = #{attribute5,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute6 !=null">
+                and fice.attribute6 = #{attribute6,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute7 !=null">
+                and fice.attribute7 = #{attribute7,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute8 !=null">
+                and fice.attribute8 = #{attribute8,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute9 !=null">
+                and fice.attribute9 = #{attribute9,jdbcType = VARCHAR}
+            </if>
+            <if test="attributeCategory !=null">
+                and fice.attribute_category = #{attributeCategory,jdbcType = VARCHAR}
+            </if>
+            <if test="enabledflag !=null">
+                and fice.enabledFlag = #{enabledflag,jdbcType = INTEGER}
+            </if>
+            <if test="programkey !=null">
+                and fice.programKey = #{programkey,jdbcType = VARCHAR}
+            </if>
+            <if test="programvalue !=null">
+                and fice.programValue = #{programvalue,jdbcType = VARCHAR}
+            </if>
+            <if test="remark !=null">
+                and fice.remark = #{remark,jdbcType = VARCHAR}
+            </if>
+            <if test="sourceid !=null">
+                and fice.sourceId = #{sourceid,jdbcType = INTEGER}
+            </if>
+            <if test="tenantid !=null">
+                and fice.tenantId = #{tenantid,jdbcType = INTEGER}
+            </if>
         </where>
     </select>
 </mapper>

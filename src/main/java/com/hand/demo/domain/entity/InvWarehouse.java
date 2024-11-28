@@ -22,7 +22,7 @@ import lombok.Setter;
  * (InvWarehouse)实体类
  *
  * @author
- * @since 2024-11-26 17:19:58
+ * @since 2024-11-26 23:10:14
  */
 
 @Getter
@@ -33,7 +33,7 @@ import lombok.Setter;
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 @Table(name = "fexam_inv_warehouse")
 public class InvWarehouse extends AuditDomain {
-    private static final long serialVersionUID = -22658797273389083L;
+    private static final long serialVersionUID = -36551818833547868L;
 
     public static final String FIELD_WAREHOUSE_ID = "warehouseId";
     public static final String FIELD_ATTRIBUTE1 = "attribute1";

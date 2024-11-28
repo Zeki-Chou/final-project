@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
  * (IamDepartment)应用服务
  *
  * @author
- * @since 2024-11-26 17:21:10
+ * @since 2024-11-26 23:09:39
  */
 @Service
 public class IamDepartmentServiceImpl implements IamDepartmentService {
@@ -30,12 +30,8 @@ public class IamDepartmentServiceImpl implements IamDepartmentService {
 
     @Override
     public void saveData(List<IamDepartment> iamDepartments) {
-        List<IamDepartment> insertList = iamDepartments.stream().filter(line -> line.get$tool.firstUpperCase($ {
-            pk.name
-        })() == null).collect(Collectors.toList());
-        List<IamDepartment> updateList = iamDepartments.stream().filter(line -> line.get$tool.firstUpperCase($ {
-            pk.name
-        })() != null).collect(Collectors.toList());
+        List<IamDepartment> insertList = iamDepartments.stream().filter(line -> line.getDepartmentId() == null).collect(Collectors.toList());
+        List<IamDepartment> updateList = iamDepartments.stream().filter(line -> line.getDepartmentId() != null).collect(Collectors.toList());
         iamDepartmentRepository.batchInsertSelective(insertList);
         iamDepartmentRepository.batchUpdateByPrimaryKeySelective(updateList);
     }
