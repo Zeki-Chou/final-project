@@ -15,6 +15,7 @@ import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.Date;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -22,9 +23,8 @@ import lombok.Setter;
  * (InvCountExtra)实体类
  *
  * @author Allan
- * @since 2024-11-28 13:11:26
+ * @since 2024-11-28 13:18:21
  */
-
 @Getter
 @Setter
 @ApiModel("")
@@ -33,7 +33,7 @@ import lombok.Setter;
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 @Table(name = "fexam_inv_count_extra")
 public class InvCountExtra extends AuditDomain {
-    private static final long serialVersionUID = -19329397190547869L;
+    private static final long serialVersionUID = -33944735046514781L;
 
     public static final String FIELD_EXTRAINFOID = "extrainfoid";
     public static final String FIELD_ATTRIBUTE1 = "attribute1";

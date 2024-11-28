@@ -1,5 +1,6 @@
 package com.hand.demo.api.controller.v1;
 
+import com.hand.demo.api.dto.InvCountLineDTO;
 import io.choerodon.core.domain.Page;
 import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.mybatis.pagehelper.annotation.SortDefault;
@@ -58,7 +59,7 @@ public class InvCountLineController extends BaseController {
     @ApiOperation(value = "创建或更新")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping
-    public ResponseEntity<List<InvCountLine>> save(@PathVariable Long organizationId, @RequestBody List<InvCountLine> invCountLines) {
+    public ResponseEntity<List<InvCountLineDTO>> save(@PathVariable Long organizationId, @RequestBody List<InvCountLineDTO> invCountLines) {
         validObject(invCountLines);
         SecurityTokenHelper.validTokenIgnoreInsert(invCountLines);
         invCountLines.forEach(item -> item.setTenantId(organizationId));
