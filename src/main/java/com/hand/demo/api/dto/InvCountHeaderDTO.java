@@ -16,7 +16,7 @@ import java.util.List;
 @Accessors(chain = true)
 public class InvCountHeaderDTO extends InvCountHeader implements Cacheable {
     private String errMsg;
-    private List<InvCountLine> lines;
+    private List<InvCountLine> countOrderLineList;
     private String countDimensionMeaning;
     private String countModeMeaning;
     private String countStatusMeaning;
@@ -27,4 +27,9 @@ public class InvCountHeaderDTO extends InvCountHeader implements Cacheable {
     private List<InvMaterialDTO> snapshotMaterialList;
     private List<InvBatchDTO> snapshotBatchList;
     private boolean isWMSwarehouse;
+//    private List<InvCountLine> countOrderLineList;
+    private String namespace;
+    private String serverCode;
+    private String interfaceCode;
+    private String employeeNumber;
 }

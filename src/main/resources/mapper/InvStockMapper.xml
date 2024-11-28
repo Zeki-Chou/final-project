@@ -38,7 +38,67 @@
         fis.object_version_number
     </sql>
 
-    <select id = "selectList" resultType = "com.hand.demo.domain.entity.InvStock">
+    <select id="getTotalQuantity" resultType="java.math.BigDecimal">
+        SELECT SUM(fis.unit_quantity) AS total_quantity
+        FROM stock fis
+        WHERE 1=1
+        <if test="tenantId != null">
+            AND fis.tenant_id = #{tenantId}
+        </if>
+        <if test="companyId != null">
+            AND fis.company_id = #{companyId}
+        </if>
+        <if test="departmentId != null">
+            AND fis.department_id = #{departmentId}
+        </if>
+        <if test="warehouseId != null">
+            AND fis.warehouse_id = #{warehouseId}
+        </if>
+        <if test="snapshotMaterialList != null and !snapshotMaterialList.isEmpty()">
+            AND fis.material_id IN
+            <foreach collection="snapshotMaterialList" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+        <if test="snapshotBatchList != null and !snapshotBatchList.isEmpty()">
+            AND fis.batch_id IN
+            <foreach collection="snapshotBatchList" item="batchId" open="(" separator="," close=")">
+                #{batchId}
+            </foreach>
+        </if>
+<!--        <if test="snapshotBatchList != null and !snapshotBatchList.isEmpty()">-->
+<!--            GROUP BY fis.material_id, fis.batch_id-->
+<!--        </if>-->
+<!--        <if test="snapshotBatchList == null or snapshotBatchList.isEmpty()">-->
+            GROUP BY fis.material_id
+<!--        </if>-->
+    </select>
+
+    <select id="getQuantities" resultType="java.math.BigDecimal">
+        SELECT fis.unit_quantity
+        FROM stock fis
+        WHERE 1=1
+        <if test="tenantId != null">
+            AND fis.tenant_id = #{tenantId}
+        </if>
+        <if test="companyId != null">
+            AND fis.company_id = #{companyId}
+        </if>
+        <if test="departmentId != null">
+            AND fis.department_id = #{departmentId}
+        </if>
+        <if test="warehouseId != null">
+            AND fis.warehouse_id = #{warehouseId}
+        </if>
+        <if test="snapshotMaterialList != null and !snapshotMaterialList.isEmpty()">
+            AND fis.material_id IN
+            <foreach collection="snapshotMaterialList" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+    </select>
+
+    <select id = "selectList" resultType = "com.hand.demo.api.dto.InvStockDTO">
         select
         <include refid = "BaseSql"/>
         from fexam_inv_stock fis
@@ -123,6 +183,70 @@
             </if>
             <if test="warehouseId !=null">
                 and fis.warehouse_id = #{warehouseId,jdbcType = INTEGER}
+            </if>
+        </where>
+    </select>
+
+    <select id = "getListForQuantity" resultType = "com.hand.demo.domain.entity.InvStock">
+            <include refid="BaseSql"/>
+            <if test="dimension != null">
+                , SUM(fis.unit_quantity) AS unit_quantity
+            </if>
+        from fexam_inv_stock fis
+        <where>
+            <if test="stockId !=null">
+                and fis.stock_id = #{stockId,jdbcType = INTEGER}
+            </if>
+            <if test="attributeCategory !=null">
+                and fis.attribute_category = #{attributeCategory,jdbcType = VARCHAR}
+            </if>
+            <if test="availableQuantity !=null">
+                and fis.available_quantity = #{availableQuantity,jdbcType = OTHER}
+            </if>
+            <if test="batchId !=null">
+                and fis.batch_id = #{batchId,jdbcType = INTEGER}
+            </if>
+            <if test="companyId !=null">
+                and fis.company_id = #{companyId,jdbcType = INTEGER}
+            </if>
+            <if test="departmentId !=null">
+                and fis.department_id = #{departmentId,jdbcType = INTEGER}
+            </if>
+            <if test="materialCode !=null">
+                and fis.material_code = #{materialCode,jdbcType = VARCHAR}
+            </if>
+            <if test="materialId !=null">
+                and fis.material_id = #{materialId,jdbcType = INTEGER}
+            </if>
+            <if test="tenantId !=null">
+                and fis.tenant_id = #{tenantId,jdbcType = INTEGER}
+            </if>
+            <if test="unitCode !=null">
+                and fis.unit_code = #{unitCode,jdbcType = VARCHAR}
+            </if>
+            <if test="unitQuantity !=null">
+                and fis.unit_quantity = #{unitQuantity,jdbcType = OTHER}
+            </if>
+            <if test="warehouseId !=null">
+                and fis.warehouse_id = #{warehouseId,jdbcType = INTEGER}
+            </if>
+            <if test="snapshotMaterialList != null and !snapshotMaterialList.isEmpty()">
+                AND fis.material_id IN
+                <foreach collection="snapshotMaterialList" item="id" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+            <if test="snapshotBatchList != null and !snapshotBatchList.isEmpty()">
+                AND fis.batch_id IN
+                <foreach collection="snapshotBatchList" item="batchId" open="(" separator="," close=")">
+                    #{batchId}
+                </foreach>
+            </if>
+            <if test="dimension != 'LOT'">-->
+                GROUP BY fis.material_id
+            </if>
+            <if test="dimension == 'LOT'">-->
+                GROUP BY fis.material_id, fis.batch_id
             </if>
         </where>
     </select>

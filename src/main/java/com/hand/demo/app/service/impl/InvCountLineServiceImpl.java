@@ -13,6 +13,7 @@ import com.hand.demo.domain.entity.InvCountLine;
 import com.hand.demo.domain.repository.InvCountLineRepository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -44,7 +45,13 @@ public class InvCountLineServiceImpl implements InvCountLineService {
         List<InvCountLine> updateList = invCountLines.stream().filter(line -> line.getCountLineId() != null)
                 .collect(Collectors.toList());
 
+        insertList.forEach(invCountLine -> {
+            invCountLine.setUnitQty(BigDecimal.ZERO);
+            invCountLine.setUnitDiffQty(BigDecimal.ZERO);
+        });
+
         invCountLineRepository.batchInsertSelective(insertList);
+        updateState(updateList);
         invCountLineRepository.batchUpdateByPrimaryKeySelective(updateList);
     }
 

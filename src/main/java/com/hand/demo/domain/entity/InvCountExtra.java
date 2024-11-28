@@ -16,14 +16,16 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
 /**
- * (IamCompany)实体类
+ * (InvCountExtra)实体类
  *
  * @author
- * @since 2024-11-25 13:43:14
+ * @since 2024-11-28 14:24:52
  */
 
 @Getter
@@ -32,12 +34,12 @@ import lombok.experimental.Accessors;
 @VersionAudit
 @ModifyAudit
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
-@Table(name = "fexam_iam_company")
+@Table(name = "fexam_inv_count_extra")
 @Accessors(chain = true)
-public class IamCompany extends AuditDomain {
-    private static final long serialVersionUID = 580833868079959005L;
+public class InvCountExtra extends AuditDomain {
+    private static final long serialVersionUID = -64012834494305974L;
 
-    public static final String FIELD_COMPANY_ID = "companyId";
+    public static final String FIELD_EXTRAINFOID = "extrainfoid";
     public static final String FIELD_ATTRIBUTE1 = "attribute1";
     public static final String FIELD_ATTRIBUTE10 = "attribute10";
     public static final String FIELD_ATTRIBUTE11 = "attribute11";
@@ -54,13 +56,16 @@ public class IamCompany extends AuditDomain {
     public static final String FIELD_ATTRIBUTE8 = "attribute8";
     public static final String FIELD_ATTRIBUTE9 = "attribute9";
     public static final String FIELD_ATTRIBUTE_CATEGORY = "attributeCategory";
-    public static final String FIELD_COMPANY_CODE = "companyCode";
-    public static final String FIELD_COMPANY_NAME = "companyName";
-    public static final String FIELD_TENANT_ID = "tenantId";
+    public static final String FIELD_ENABLEDFLAG = "enabledflag";
+    public static final String FIELD_PROGRAMKEY = "programkey";
+    public static final String FIELD_PROGRAMVALUE = "programvalue";
+    public static final String FIELD_REMARK = "remark";
+    public static final String FIELD_SOURCEID = "sourceid";
+    public static final String FIELD_TENANTID = "tenantid";
 
     @Id
     @GeneratedValue
-    private Long companyId;
+    private Long extrainfoid;
 
     private String attribute1;
 
@@ -94,13 +99,27 @@ public class IamCompany extends AuditDomain {
 
     private String attributeCategory;
 
-    private String companyCode;
+    @ApiModelProperty(value = "", required = true)
+    @NotNull
+    private Integer enabledflag;
 
-    private String companyName;
+    @ApiModelProperty(value = "", required = true)
+    @NotBlank
+    private String programkey;
+
+    @ApiModelProperty(value = "", required = true)
+    @NotBlank
+    private String programvalue;
+
+    private String remark;
 
     @ApiModelProperty(value = "", required = true)
     @NotNull
-    private Long tenantId;
+    private Long sourceid;
+
+    @ApiModelProperty(value = "", required = true)
+    @NotNull
+    private Long tenantid;
 
 
 }
