@@ -45,5 +45,7 @@ public interface InvCountHeaderService {
     InvCountInfoDTO submitCheck(List<InvCountHeaderDTO> headerDTOList);
 
     List<InvCountHeaderDTO> submit(List<InvCountHeaderDTO> headerDTOList);
+
+    InvCountInfoDTO countSyncWms(List<InvCountHeaderDTO> countSyncWms);
 }
 

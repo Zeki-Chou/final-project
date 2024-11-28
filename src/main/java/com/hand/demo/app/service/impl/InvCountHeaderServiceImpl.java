@@ -16,6 +16,7 @@ import lombok.AllArgsConstructor;
 import org.hzero.boot.platform.code.builder.CodeRuleBuilder;
 import org.hzero.boot.platform.lov.adapter.LovAdapter;
 import org.hzero.boot.platform.lov.dto.LovValueDTO;
+import org.hzero.common.HZeroService;
 import org.hzero.core.base.BaseConstants;
 import org.hzero.mybatis.domian.Condition;
 import org.springframework.beans.BeanUtils;
@@ -409,6 +410,23 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     @Override
     public List<InvCountHeaderDTO> submit(List<InvCountHeaderDTO> headerDTOList) {
         return Collections.emptyList();
+    }
+
+    @Override
+    public InvCountInfoDTO countSyncWms(List<InvCountHeaderDTO> headerDTOList) {
+        List<Long> warehouseIds = headerDTOList.stream().map(InvCountHeaderDTO::getWarehouseId).collect(Collectors.toList());
+        List<Long> tenantIds = headerDTOList.stream().map(InvCountHeaderDTO::getTenantId).collect(Collectors.toList());
+
+        Condition warehouseCondition = new Condition(InvWarehouse.class);
+        Condition.Criteria warehouseCriteria = warehouseCondition.createCriteria();
+        warehouseCriteria
+                .andIn(InvWarehouse.FIELD_WAREHOUSE_ID, warehouseIds)
+                .andIn(InvWarehouse.FIELD_TENANT_ID, tenantIds);
+
+        List<InvWarehouse> warehouses = invWarehouseRepository.selectByCondition(warehouseCondition);
+
+        Map<Long, InvWarehouse> warehouseById = warehouses.stream().collect(Collectors.toMap(InvWarehouse::getWarehouseId, Function.identity()));
+        return null;
     }
 
     private List<CounterDTO> getCounters(String counterIds) {
