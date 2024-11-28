@@ -1,5 +1,6 @@
 package com.hand.demo.app.service.impl;
 
+import com.hand.demo.api.dto.BatchInfoDTO;
 import com.hand.demo.api.dto.MaterialInfoDTO;
 import com.hand.demo.domain.entity.InvMaterial;
 import io.choerodon.core.domain.Page;
@@ -36,6 +37,21 @@ public class InvBatchServiceImpl implements InvBatchService {
         List<InvBatch> updateList = invBatchs.stream().filter(line -> line.getBatchId() != null).collect(Collectors.toList());
         invBatchRepository.batchInsertSelective(insertList);
         invBatchRepository.batchUpdateByPrimaryKeySelective(updateList);
+    }
+
+    @Override
+    public List<BatchInfoDTO> convertBatchIdsToList(String batchIds) {
+        return invBatchRepository.selectByIds(batchIds)
+                .stream()
+                .map(this::createNewBatchInfoDTO)
+                .collect(Collectors.toList());
+    }
+
+    private BatchInfoDTO createNewBatchInfoDTO(InvBatch batch) {
+        BatchInfoDTO dto = new BatchInfoDTO();
+        dto.setBatchId(batch.getBatchId());
+        dto.setBatchCode(batch.getBatchCode());
+        return dto;
     }
 }
 

@@ -1,5 +1,6 @@
 package com.hand.demo.app.service.impl;
 
+import com.hand.demo.api.dto.MaterialInfoDTO;
 import io.choerodon.core.domain.Page;
 import io.choerodon.mybatis.pagehelper.PageHelper;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
@@ -34,6 +35,21 @@ public class InvMaterialServiceImpl implements InvMaterialService {
         List<InvMaterial> updateList = invMaterials.stream().filter(line -> line.getMaterialId() != null).collect(Collectors.toList());
         invMaterialRepository.batchInsertSelective(insertList);
         invMaterialRepository.batchUpdateByPrimaryKeySelective(updateList);
+    }
+
+    @Override
+    public List<MaterialInfoDTO> convertMaterialIdsToList(String materialIds) {
+        return invMaterialRepository.selectByIds(materialIds)
+                .stream()
+                .map(this::createNewMaterialInfoDTO)
+                .collect(Collectors.toList());
+    }
+
+    private MaterialInfoDTO createNewMaterialInfoDTO(InvMaterial material) {
+        MaterialInfoDTO dto = new MaterialInfoDTO();
+        dto.setId(material.getMaterialId());
+        dto.setCode(material.getMaterialCode());
+        return dto;
     }
 }
 

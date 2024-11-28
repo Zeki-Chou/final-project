@@ -42,4 +42,14 @@ public class Utils {
     public static List<Long> convertStringIdstoList(String ids) {
         return Stream.of(ids.split(",")).map(Long::valueOf).collect(Collectors.toList());
     }
+
+    public static String generateStringIds(List<Long> ids) {
+        Set<String> headerIds = ids
+                .stream()
+                .map(String::valueOf)
+                .collect(Collectors.toSet());
+
+        return String.join(",", headerIds);
+    }
+
 }

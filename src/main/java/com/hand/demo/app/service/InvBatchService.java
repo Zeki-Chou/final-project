@@ -1,5 +1,6 @@
 package com.hand.demo.app.service;
 
+import com.hand.demo.api.dto.BatchInfoDTO;
 import com.hand.demo.api.dto.MaterialInfoDTO;
 import com.hand.demo.domain.entity.InvMaterial;
 import io.choerodon.core.domain.Page;
@@ -31,5 +32,11 @@ public interface InvBatchService {
      * @param invBatchs 数据
      */
     void saveData(List<InvBatch> invBatchs);
+
+    /**
+     * @param batchIds
+     * @return
+     */
+    List<BatchInfoDTO> convertBatchIdsToList(String batchIds);
 }
 

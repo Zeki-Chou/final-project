@@ -1,5 +1,6 @@
 package com.hand.demo.app.service.impl;
 
+import com.hand.demo.infra.util.Utils;
 import io.choerodon.core.domain.Page;
 import io.choerodon.mybatis.pagehelper.PageHelper;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
@@ -34,6 +35,13 @@ public class IamDepartmentServiceImpl implements IamDepartmentService {
         List<IamDepartment> updateList = iamDepartments.stream().filter(line -> line.getDepartmentId() != null).collect(Collectors.toList());
         iamDepartmentRepository.batchInsertSelective(insertList);
         iamDepartmentRepository.batchUpdateByPrimaryKeySelective(updateList);
+    }
+
+    @Override
+    public List<Long> findByIds(List<Long> ids) {
+        String departmentIds = Utils.generateStringIds(ids);
+        List<IamDepartment> departments = iamDepartmentRepository.selectByIds(departmentIds);
+        return departments.stream().map(IamDepartment::getDepartmentId).collect(Collectors.toList());
     }
 }
 

@@ -1,8 +1,10 @@
 package com.hand.demo.app.service.impl;
 
+import com.hand.demo.infra.util.Utils;
 import io.choerodon.core.domain.Page;
 import io.choerodon.mybatis.pagehelper.PageHelper;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
+import org.hzero.core.base.BaseConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.hand.demo.app.service.InvWarehouseService;
 import org.springframework.stereotype.Service;
@@ -35,5 +37,24 @@ public class InvWarehouseServiceImpl implements InvWarehouseService {
         invWarehouseRepository.batchInsertSelective(insertList);
         invWarehouseRepository.batchUpdateByPrimaryKeySelective(updateList);
     }
+
+    @Override
+    public List<Long> findByIds(List<Long> ids) {
+        String warehouseIds = Utils.generateStringIds(ids);
+        List<InvWarehouse> warehouses = invWarehouseRepository.selectByIds(warehouseIds);
+        return warehouses.stream().map(InvWarehouse::getWarehouseId).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Long> getWMSWarehouseIds(){
+        InvWarehouse warehouse = new InvWarehouse();
+        warehouse.setIsWmsWarehouse(BaseConstants.Flag.YES);
+        return invWarehouseRepository
+                .selectList(warehouse)
+                .stream()
+                .map(InvWarehouse::getWarehouseId)
+                .collect(Collectors.toList());
+    }
+
 }
 

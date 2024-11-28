@@ -30,5 +30,8 @@ public interface InvWarehouseService {
      */
     void saveData(List<InvWarehouse> invWarehouses);
 
+    List<Long> findByIds(List<Long> ids);
+
+    List<Long> getWMSWarehouseIds();
 }
 

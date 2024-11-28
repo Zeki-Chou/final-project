@@ -1,5 +1,6 @@
 package com.hand.demo.app.service.impl;
 
+import com.hand.demo.infra.util.Utils;
 import io.choerodon.core.domain.Page;
 import io.choerodon.mybatis.pagehelper.PageHelper;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
@@ -34,6 +35,13 @@ public class IamCompanyServiceImpl implements IamCompanyService {
         List<IamCompany> updateList = iamCompanys.stream().filter(line -> line.getCompanyId() != null).collect(Collectors.toList());
         iamCompanyRepository.batchInsertSelective(insertList);
         iamCompanyRepository.batchUpdateByPrimaryKeySelective(updateList);
+    }
+
+    @Override
+    public List<Long> findCompanyIds(List<Long> ids) {
+        String companyIds = Utils.generateStringIds(ids);
+        List<IamCompany> companies = iamCompanyRepository.selectByIds(companyIds);
+        return companies.stream().map(IamCompany::getCompanyId).collect(Collectors.toList());
     }
 }
 

@@ -30,5 +30,6 @@ public interface IamCompanyService {
      */
     void saveData(List<IamCompany> iamCompanys);
 
+    List<Long> findCompanyIds(List<Long> ids);
 }
 
