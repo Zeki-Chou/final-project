@@ -30,5 +30,7 @@ public interface InvStockRepository extends BaseRepository<InvStockDTO> {
      */
     InvStockDTO selectByPrimary(Long stockId);
 
-    InvStockDTO selectByHeader(InvCountHeaderDTO invCountHeaderDTO);
+    List<InvStockDTO> selectByHeader(InvCountHeaderDTO invCountHeaderDTO);
+
+    boolean checkByHeader(InvCountHeaderDTO invCountHeaderDTO);
 }

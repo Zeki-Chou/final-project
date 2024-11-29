@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.hand.demo.infra.mapper.InvStockMapper">
-    <sql id = "BaseSql">
+    <sql id="BaseSql">
         fis.stock_id,
         fis.attribute_category,
         fis.available_quantity,
@@ -12,70 +12,84 @@
         fis.material_id,
         fis.tenant_id,
         fis.unit_code,
-        fis.unit_quantity,
+        <if test="countDimension != null">
+            SUM(fis.unit_quantity) AS unit_quantity,
+        </if>
+        <if test="countDimension == null">
+            fis.unit_quantity,
+        </if>
         fis.warehouse_id,
-        fis.creation_date, 
-        fis.created_by, 
-        fis.last_updated_by, 
-        fis.last_update_date, 
+        fis.creation_date,
+        fis.created_by,
+        fis.last_updated_by,
+        fis.last_update_date,
         fis.object_version_number
     </sql>
 
-    <select id = "selectList" resultType = "com.hand.demo.api.dto.InvStockDTO">
+    <select id="selectList" resultType="com.hand.demo.api.dto.InvStockDTO">
         select
-        <include refid = "BaseSql"/>
+        <include refid="BaseSql"/>
         from fexam_inv_stock fis
         <where>
-            <if test="stockId !=null">
-                and fis.stock_id = #{stockId,jdbcType = INTEGER}
+            <if test="stockId != null">
+                and fis.stock_id = #{stockId,jdbcType=INTEGER}
             </if>
-            <if test="attributeCategory !=null">
-                and fis.attribute_category = #{attributeCategory,jdbcType = VARCHAR}
+            <if test="attributeCategory != null">
+                and fis.attribute_category = #{attributeCategory,jdbcType=VARCHAR}
             </if>
-            <if test="availableQuantity !=null">
-                and fis.available_quantity = #{availableQuantity,jdbcType = OTHER}
+            <if test="availableQuantity != null">
+                and fis.available_quantity = #{availableQuantity,jdbcType=OTHER}
             </if>
-            <if test="batchId !=null">
-                and fis.batch_id = #{batchId,jdbcType = INTEGER}
+            <if test="batchId != null">
+                and fis.batch_id = #{batchId,jdbcType=INTEGER}
             </if>
-            <if test="companyId !=null">
-                and fis.company_id = #{companyId,jdbcType = INTEGER}
+            <if test="companyId != null">
+                and fis.company_id = #{companyId,jdbcType=INTEGER}
             </if>
-            <if test="departmentId !=null">
-                and fis.department_id = #{departmentId,jdbcType = INTEGER}
+            <if test="departmentId != null">
+                and fis.department_id = #{departmentId,jdbcType=INTEGER}
             </if>
-            <if test="materialCode !=null">
-                and fis.material_code = #{materialCode,jdbcType = VARCHAR}
+            <if test="materialCode != null">
+                and fis.material_code = #{materialCode,jdbcType=VARCHAR}
             </if>
-            <if test="materialIds !=null">
+            <if test="materialIds != null">
                 and FIND_IN_SET(fis.material_id, #{materialIds, jdbcType=VARCHAR}) > 0
             </if>
-            <if test="batchIds !=null">
+            <if test="batchIds != null">
                 and FIND_IN_SET(fis.batch_id, #{batchIds, jdbcType=VARCHAR}) > 0
             </if>
-            <if test="tenantId !=null">
-                and fis.tenant_id = #{tenantId,jdbcType = INTEGER}
+            <if test="tenantId != null">
+                and fis.tenant_id = #{tenantId,jdbcType=INTEGER}
             </if>
-            <if test="unitCode !=null">
-                and fis.unit_code = #{unitCode,jdbcType = VARCHAR}
+            <if test="unitCode != null">
+                and fis.unit_code = #{unitCode,jdbcType=VARCHAR}
             </if>
-            <if test="unitQuantity !=null">
-                and fis.unit_quantity >= #{unitQuantity,jdbcType = OTHER}
+            <if test="unitQuantity != null">
+                and fis.unit_quantity >= #{unitQuantity,jdbcType=OTHER}
             </if>
-            <if test="warehouseId !=null">
-                and fis.warehouse_id = #{warehouseId,jdbcType = INTEGER}
-            </if>
-            <if test="countDimension != null">
-                <choose>
-                    <when test="countDimension == 'SKU'">
-                        GROUP BY l.material_id
-                    </when>
-                    <when test="countDimension == 'TPO'">
-                        GROUP BY l.material_id, l.batch_id
-                    </when>
-                </choose>
+            <if test="warehouseId != null">
+                and fis.warehouse_id = #{warehouseId,jdbcType=INTEGER}
             </if>
         </where>
+        <if test="countDimension != null">
+            <choose>
+                <when test="countDimension == 'SKU'">
+                    GROUP BY fis.material_id, fis.stock_id, fis.attribute_category, fis.available_quantity,
+                    fis.batch_id, fis.company_id, fis.department_id, fis.material_code,
+                    fis.tenant_id, fis.unit_code, fis.warehouse_id, fis.creation_date,
+                    fis.created_by, fis.last_updated_by, fis.last_update_date,
+                    fis.object_version_number
+                </when>
+                <when test="countDimension == 'TPO'">
+                    GROUP BY fis.material_id, fis.batch_id, fis.stock_id, fis.attribute_category,
+                    fis.available_quantity, fis.company_id, fis.department_id, fis.material_code,
+                    fis.tenant_id, fis.unit_code, fis.warehouse_id, fis.creation_date,
+                    fis.created_by, fis.last_updated_by, fis.last_update_date,
+                    fis.object_version_number
+                </when>
+            </choose>
+        </if>
     </select>
 </mapper>
+
 

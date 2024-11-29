@@ -3,15 +3,21 @@
 <mapper namespace="com.hand.demo.infra.mapper.InvCountHeaderMapper">
     <resultMap id="InvCountHeaderDTOMap" type="com.hand.demo.api.dto.InvCountHeaderDTO">
         <!-- Header fields -->
-        <id column="header_id" property="countHeaderId"/>
+        <id column="id" property="countHeaderId"/>
+        <result column="number" property="countNumber"/>
+        <result column="type" property="countType"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="status" property="countStatus"/>
+        <result column="count_time_str" property="countTimeStr"/>
         <result column="creation_date" property="creationDate"/>
-        <result column="header_number" property="countNumber"/>
-        <result column="header_status" property="countStatus"/>
-        <result column="header_type" property="countType"/>
-        <result column="header_dimension" property="countDimension"/>
-        <result column="header_mode" property="countMode"/>
-        <result column="header_reason" property="reason"/>
+        <result column="mode" property="countMode"/>
+        <result column="dimension" property="countDimension"/>
+        <result column="remark" property="remark"/>
+        <result column="reason" property="reason"/>
+        <result column="warehouse_warehouse_code" property="warehouseCode"/>
         <result column="warehouse_is_wms_warehouse" property="isWMSWarehouse"/>
+        <result column="department_department_code" property="departmentCode"/>
+        <result column="tenant_tenant_num" property="tenantNum"/>
 
         <!-- Counter List -->
         <collection property="counterList" ofType="com.hand.demo.api.dto.UserDTO">
@@ -41,21 +47,35 @@
         <collection property="invCountLineDTOList" ofType="com.hand.demo.api.dto.InvCountLineDTO">
             <id column="line_id" property="countLineId"/>
             <result column="line_header_id" property="countHeaderId"/>
+            <result column="line_line_number" property="lineNumber"/>
+            <result column="line_material_name" property="materialName"/>
+            <result column="line_unit_code" property="unitCode"/>
+            <result column="line_batch_code" property="batchCode"/>
             <result column="line_snapshot_unit_qty" property="snapshotUnitQty"/>
             <result column="line_unit_qty" property="unitQty"/>
             <result column="line_unit_diff_qty" property="unitDiffQty"/>
+            <result column="line_remark" property="remark"/>
+            <collection property="counterList" ofType="com.hand.demo.api.dto.UserDTO">
+                <id column="line_counter_id" property="id"/>
+                <result column="line_counter_name" property="realName"/>
+            </collection>
         </collection>
     </resultMap>
 
     <sql id = "BaseSql">
-        h.count_header_id       AS header_id,
+        h.count_header_id       AS id,
         h.creation_date         AS creation_date,
-        h.count_number          AS header_number,
-        h.count_status          AS header_status,
-        h.count_type            AS header_type,
-        h.count_dimension       AS header_dimension,
-        h.count_mode            AS header_mode,
-        h.reason                AS header_reason,
+        h.count_number          AS number,
+        h.count_type            AS type,
+        h.created_by            AS created_by,
+        h.count_status          AS status,
+        h.count_time_str        AS count_time_str,
+        h.creation_date         AS creation_date,
+        h.creation_date         AS creation_date,
+        h.count_mode            AS mode,
+        h.count_dimension       AS dimension,
+        h.remark                AS remark,
+        h.reason                AS reason,
         c.id                    AS counter_id,
         c.real_name             AS counter_name,
         s.id                    AS supervisor_id,
@@ -66,23 +86,40 @@
         b.batch_code            AS batch_code,
         l.count_line_id         AS line_id,
         l.count_header_id       AS line_header_id,
+        l.line_number           AS line_line_number,
+        lm.material_name        AS line_material_name,
+        l.unit_code             AS line_unit_code,
+        lb.batch_code           AS line_batch_code,
         l.snapshot_unit_qty     AS line_snapshot_unit_qty,
         l.unit_qty              AS line_unit_qty,
         l.unit_diff_qty         AS line_unit_diff_qty,
+        lu.id                   AS line_counter_id,
+        lu.real_name            AS line_counter_name,
+        l.remark                AS line_remark,
+        w.warehouse_code        AS warehouse_warehouse_code,
         w.is_wms_warehouse      AS warehouse_is_wms_warehouse
-  </sql>
+        d.department_code       AS department_department_code
+        t.tenant_num            AS tenant_tenant_num
+    </sql>
 
     <select id = "selectList" resultMap="InvCountHeaderDTOMap">
         SELECT
         <include refid = "BaseSql"/>
         FROM
         fexam_inv_count_header h
+        LEFT JOIN hzero_platform.hpfm_tenant t  ON t.tenant_id = h.tenant_id
         LEFT JOIN hzero_platform.iam_user c     ON FIND_IN_SET(c.id, h.counter_ids) > 0
         LEFT JOIN hzero_platform.iam_user s     ON FIND_IN_SET(s.id, h.supervisor_ids) > 0
         LEFT JOIN fexam_inv_material m          ON FIND_IN_SET(m.material_id, h.snapshot_material_ids) > 0
         LEFT JOIN fexam_inv_batch b             ON FIND_IN_SET(b.batch_id, h.snapshot_batch_ids) > 0
-        LEFT JOIN fexam_inv_count_line l        ON l.count_header_id = h.count_header_id
         LEFT JOIN fexam_inv_warehouse w         ON w.warehouse_id = h.warehouse_id
+        LEFT JOIN fexam_iam_department d        ON d.department_id = h.department_id
+        LEFT JOIN fexam_inv_count_line l        ON l.count_header_id = h.count_header_id
+        LEFT JOIN fexam_inv_material lm         ON lm.material_id = l.material_id
+        LEFT JOIN fexam_inv_batch lb            ON lb.batch_id = l.batch_id
+        LEFT JOIN hzero_platform.iam_user lu    ON FIND_IN_SET(lu.id, l.counter_ids) > 0
+
+
         <where>
             <if test="countHeaderId !=null">
                 and h.count_header_id = #{countHeaderId,jdbcType = INTEGER}

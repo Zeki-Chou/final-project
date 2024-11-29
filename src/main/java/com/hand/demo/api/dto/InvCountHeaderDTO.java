@@ -6,6 +6,7 @@ import com.hand.demo.domain.entity.InvCountLine;
 import com.hand.demo.domain.entity.InvMaterial;
 import lombok.Getter;
 import lombok.Setter;
+import org.hzero.boot.workflow.dto.RunTaskHistory;
 
 import javax.persistence.Transient;
 import java.util.List;
@@ -14,15 +15,23 @@ import java.util.List;
 @Setter
 public class InvCountHeaderDTO extends InvCountHeader {
     @Transient
-    List<UserDTO> counterList;
+    private List<UserDTO> counterList;
     @Transient
-    List<UserDTO> supervisorList;
+    private List<UserDTO> supervisorList;
     @Transient
-    List<InvMaterial> snapshotMaterialList;
+    private List<InvMaterial> snapshotMaterialList;
     @Transient
-    List<InvBatch> snapshotBatchList;
+    private List<InvBatch> snapshotBatchList;
     @Transient
-    Boolean isWMSWarehouse;
+    private String departmentCode;
     @Transient
-    List<InvCountLineDTO> invCountLineDTOList;
+    private Boolean isWMSWarehouse;
+    @Transient
+    private List<InvCountLineDTO> invCountLineDTOList;
+    @Transient
+    private String tenantNum;
+    @Transient
+    private List<RunTaskHistory> approvalHistoryList;
+
+
 }

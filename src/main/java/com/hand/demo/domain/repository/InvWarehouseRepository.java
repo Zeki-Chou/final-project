@@ -1,5 +1,6 @@
 package com.hand.demo.domain.repository;
 
+import com.hand.demo.api.dto.InvCountHeaderDTO;
 import org.hzero.mybatis.base.BaseRepository;
 import com.hand.demo.domain.entity.InvWarehouse;
 
@@ -27,4 +28,5 @@ public interface InvWarehouseRepository extends BaseRepository<InvWarehouse> {
      * @return 返回值
      */
     InvWarehouse selectByPrimary(Long warehouseId);
+
 }

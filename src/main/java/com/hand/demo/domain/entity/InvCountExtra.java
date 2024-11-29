@@ -1,7 +1,5 @@
 package com.hand.demo.domain.entity;
 
-import java.math.BigDecimal;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.choerodon.mybatis.annotation.ModifyAudit;
 import io.choerodon.mybatis.annotation.VersionAudit;
@@ -21,10 +19,10 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * (InvCountLine)实体类
+ * (InvCountExtra)实体类
  *
  * @author
- * @since 2024-11-26 08:19:50
+ * @since 2024-11-28 10:03:47
  */
 
 @Getter
@@ -33,11 +31,11 @@ import lombok.Setter;
 @VersionAudit
 @ModifyAudit
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
-@Table(name = "fexam_inv_count_line")
-public class InvCountLine extends AuditDomain {
-    private static final long serialVersionUID = -53852317136782172L;
+@Table(name = "fexam_inv_count_extra")
+public class InvCountExtra extends AuditDomain {
+    private static final long serialVersionUID = 715212878987092721L;
 
-    public static final String FIELD_COUNT_LINE_ID = "countLineId";
+    public static final String FIELD_EXTRAINFOID = "extrainfoid";
     public static final String FIELD_ATTRIBUTE1 = "attribute1";
     public static final String FIELD_ATTRIBUTE10 = "attribute10";
     public static final String FIELD_ATTRIBUTE11 = "attribute11";
@@ -54,23 +52,17 @@ public class InvCountLine extends AuditDomain {
     public static final String FIELD_ATTRIBUTE8 = "attribute8";
     public static final String FIELD_ATTRIBUTE9 = "attribute9";
     public static final String FIELD_ATTRIBUTE_CATEGORY = "attributeCategory";
-    public static final String FIELD_BATCH_ID = "batchId";
-    public static final String FIELD_COUNT_HEADER_ID = "countHeaderId";
-    public static final String FIELD_COUNTER_IDS = "counterIds";
-    public static final String FIELD_LINE_NUMBER = "lineNumber";
-    public static final String FIELD_MATERIAL_ID = "materialId";
+    public static final String FIELD_ENABLEDFLAG = "enabledflag";
+    public static final String FIELD_PROGRAMKEY = "programkey";
+    public static final String FIELD_PROGRAMVALUE = "programvalue";
     public static final String FIELD_REMARK = "remark";
-    public static final String FIELD_SNAPSHOT_UNIT_QTY = "snapshotUnitQty";
-    public static final String FIELD_TENANT_ID = "tenantId";
-    public static final String FIELD_UNIT_CODE = "unitCode";
-    public static final String FIELD_UNIT_DIFF_QTY = "unitDiffQty";
-    public static final String FIELD_UNIT_QTY = "unitQty";
-    public static final String FIELD_WAREHOUSE_ID = "warehouseId";
+    public static final String FIELD_SOURCEID = "sourceid";
+    public static final String FIELD_TENANTID = "tenantid";
+
 
     @Id
     @GeneratedValue
-    @NotBlank(groups = {InvCountHeader.CountSync.class})
-    private Long countLineId;
+    private Long extrainfoid;
 
     private String attribute1;
 
@@ -104,37 +96,27 @@ public class InvCountLine extends AuditDomain {
 
     private String attributeCategory;
 
-    private Long batchId;
-
     @ApiModelProperty(value = "", required = true)
     @NotNull
-    private Long countHeaderId;
-
-    private String counterIds;
+    private Integer enabledflag;
 
     @ApiModelProperty(value = "", required = true)
-    @NotNull
-    private Integer lineNumber;
+    @NotBlank
+    private String programkey;
 
-    private Long materialId;
+    @ApiModelProperty(value = "", required = true)
+    @NotBlank
+    private String programvalue;
 
     private String remark;
 
-    private BigDecimal snapshotUnitQty;
+    @ApiModelProperty(value = "", required = true)
+    @NotNull
+    private Long sourceid;
 
     @ApiModelProperty(value = "", required = true)
     @NotNull
-    @NotBlank(groups = {InvCountHeader.CountSync.class})
-    private Long tenantId;
-
-    private String unitCode;
-
-    private BigDecimal unitDiffQty;
-
-    @NotBlank(groups = {InvCountHeader.CountSync.class})
-    private BigDecimal unitQty;
-
-    private Long warehouseId;
+    private Long tenantid;
 
 
 }

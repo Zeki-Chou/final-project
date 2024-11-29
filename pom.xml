@@ -56,7 +56,19 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>org.hzero.boot</groupId>
+            <artifactId>hzero-boot-interface</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hzero.boot</groupId>
+            <artifactId>hzero-boot-platform</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hzero.boot</groupId>
+            <artifactId>hzero-boot-workflow</artifactId>
+            <version>1.10.1.RELEASE</version>
+        </dependency>
             <!-- eureka discovery and choerodon config -->
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
@@ -107,10 +119,7 @@
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>org.hzero.boot</groupId>
-            <artifactId>hzero-boot-platform</artifactId>
-        </dependency>
+
     </dependencies>
 
     <repositories>

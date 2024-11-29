@@ -2,10 +2,8 @@ package com.hand.demo.infra.repository.impl;
 
 import com.hand.demo.api.dto.InvCountHeaderDTO;
 import com.hand.demo.api.dto.InvStockDTO;
-import org.apache.commons.collections.CollectionUtils;
 import org.hzero.mybatis.base.impl.BaseRepositoryImpl;
 import org.springframework.stereotype.Component;
-import com.hand.demo.domain.entity.InvStock;
 import com.hand.demo.domain.repository.InvStockRepository;
 import com.hand.demo.infra.mapper.InvStockMapper;
 
@@ -40,7 +38,20 @@ public class InvStockRepositoryImpl extends BaseRepositoryImpl<InvStockDTO> impl
     }
 
     @Override
-    public InvStockDTO selectByHeader(InvCountHeaderDTO invCountHeaderDTO) {
+    public List<InvStockDTO> selectByHeader(InvCountHeaderDTO invCountHeaderDTO) {
+        InvStockDTO invStockDTO = new InvStockDTO();
+        invStockDTO.setTenantId(invCountHeaderDTO.getTenantId());
+        invStockDTO.setCompanyId(invCountHeaderDTO.getCompanyId());
+        invStockDTO.setDepartmentId(invCountHeaderDTO.getDepartmentId());
+        invStockDTO.setWarehouseId(invCountHeaderDTO.getWarehouseId());
+        invStockDTO.setMaterialIds(invCountHeaderDTO.getSnapshotMaterialIds());
+        invStockDTO.setBatchIds(invCountHeaderDTO.getSnapshotBatchIds());
+        invStockDTO.setCountDimension(invCountHeaderDTO.getCountDimension());
+        return invStockMapper.selectList(invStockDTO);
+    }
+
+    @Override
+    public boolean checkByHeader(InvCountHeaderDTO invCountHeaderDTO) {
         InvStockDTO invStockDTO = new InvStockDTO();
         invStockDTO.setTenantId(invCountHeaderDTO.getTenantId());
         invStockDTO.setCompanyId(invCountHeaderDTO.getCompanyId());
@@ -49,10 +60,7 @@ public class InvStockRepositoryImpl extends BaseRepositoryImpl<InvStockDTO> impl
         invStockDTO.setMaterialIds(invCountHeaderDTO.getSnapshotMaterialIds());
         invStockDTO.setUnitQuantity(new BigDecimal(1));
         List<InvStockDTO> invStockDTOS = invStockMapper.selectList(invStockDTO);
-        if (invStockDTOS.size() == 0) {
-            return null;
-        }
-        return invStockDTOS.get(0);
+        return !invStockDTOS.isEmpty();
     }
 
 }

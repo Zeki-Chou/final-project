@@ -82,7 +82,7 @@ public class InvCountHeader extends AuditDomain {
 
     @Id
     @GeneratedValue
-    @NotBlank(groups = remove.class)
+    @NotBlank(groups = {Remove.class, Submit.class})
     private Long countHeaderId;
 
     private Date approvedTime;
@@ -119,32 +119,32 @@ public class InvCountHeader extends AuditDomain {
 
     private String attributeCategory;
 
-    @NotBlank(groups = {save.class, execute.class})
+    @NotBlank(groups = {Save.class, Execute.class})
     private Long companyId;
 
     @ApiModelProperty(value = "", required = true)
-    @NotBlank(groups = {execute.class})
+    @NotBlank(groups = {Execute.class})
     private String countDimension;
 
     @ApiModelProperty(value = "", required = true)
-    @NotBlank(groups = {execute.class})
+    @NotBlank(groups = {Execute.class})
     private String countMode;
 
     @ApiModelProperty(value = "", required = true)
-    @NotBlank
+    @NotBlank(groups = {CountSync.class})
     private String countNumber;
 
     @ApiModelProperty(value = "", required = true)
-    @NotBlank(groups = {save.class, execute.class})
+    @NotBlank(groups = {Save.class, Execute.class})
     private String countStatus;
 
     private String countTimeStr;
 
     @ApiModelProperty(value = "", required = true)
-    @NotBlank(groups = {execute.class})
+    @NotBlank(groups = {Execute.class})
     private String countType;
 
-    @NotBlank(groups = {save.class, execute.class})
+    @NotBlank(groups = {Save.class, Execute.class})
     private String counterIds;
 
     private Integer delFlag;
@@ -167,23 +167,24 @@ public class InvCountHeader extends AuditDomain {
 
     private String sourceSystem;
 
-    @NotBlank(groups = {save.class, execute.class})
+    @NotBlank(groups = {Save.class, Execute.class})
     private String supervisorIds;
 
     @ApiModelProperty(value = "", required = true)
     @NotNull
-    @NotBlank(groups = {save.class, execute.class})
+    @NotBlank(groups = {Save.class, Execute.class,CountSync.class})
     private Long tenantId;
 
-    @NotBlank(groups = {save.class, execute.class})
+    @NotBlank(groups = {Save.class, Execute.class})
     private Long warehouseId;
 
     private Long workflowId;
 
-    public interface save{}
-    public interface remove{}
+    public interface Save{}
+    public interface Remove{}
 
-    public interface execute{}
-
+    public interface Execute{}
+    public interface CountSync{}
+    public interface Submit{}
 }
 

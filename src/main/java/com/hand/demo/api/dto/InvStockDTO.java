@@ -10,4 +10,5 @@ public class InvStockDTO extends InvStock {
     private String materialIds;
     private String batchIds;
     private String countDimension;
+
 }

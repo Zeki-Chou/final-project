@@ -2,6 +2,7 @@ package com.hand.demo.api.controller.v1;
 
 import com.hand.demo.api.dto.InvCountHeaderDTO;
 import com.hand.demo.api.dto.InvCountInfoDTO;
+import com.hand.demo.api.dto.WorkFlowEventDTO;
 import com.hand.demo.infra.constant.Constants;
 import com.hand.demo.infra.constant.InvCountHeaderConstants;
 import io.choerodon.core.domain.Page;
@@ -54,13 +55,17 @@ public class InvCountHeaderController extends BaseController {
     @ApiOperation(value = "orderSave")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping
-    public ResponseEntity<List<InvCountHeaderDTO>> save(@RequestBody List<InvCountHeaderDTO> invCountHeaderDTOS) {
-        invCountHeaderDTOS.forEach(headerDTO-> validObject(headerDTO, InvCountHeader.save.class));
+    public ResponseEntity<List<InvCountHeaderDTO>> orderSave(@RequestBody List<InvCountHeaderDTO> invCountHeaderDTOS) {
+        // save validate object
+        invCountHeaderDTOS.forEach(headerDTO-> validObject(headerDTO, InvCountHeader.Save.class));
+        // save check
         InvCountInfoDTO invCountInfoDTO = invCountHeaderService.manualSaveCheck(invCountHeaderDTOS);
-        if(invCountInfoDTO.getErrorList().stream().noneMatch(Objects::nonNull)){
+        if(invCountInfoDTO.getErrorList().stream().anyMatch(Objects::nonNull)){
             throw new CommonException("Validation error: "+invCountInfoDTO.getErrorList());
         }
+        // security token
         SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaderDTOS);
+        // save
         invCountHeaderService.manualSave(invCountHeaderDTOS);
         return Results.success(invCountHeaderDTOS);
     }
@@ -68,13 +73,17 @@ public class InvCountHeaderController extends BaseController {
     @ApiOperation(value = "orderRemove")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @DeleteMapping
-    public ResponseEntity<?> remove(@RequestBody List<InvCountHeaderDTO> invCountHeaderDTOS) {
-        invCountHeaderDTOS.forEach(headerDTO-> validObject(headerDTO, InvCountHeader.remove.class));
+    public ResponseEntity<?> orderRemove(@RequestBody List<InvCountHeaderDTO> invCountHeaderDTOS) {
+        // remove validate object
+        invCountHeaderDTOS.forEach(headerDTO-> validObject(headerDTO, InvCountHeader.Remove.class));
+        // remove check
         InvCountInfoDTO invCountInfoDTO = invCountHeaderService.checkAndRemove(invCountHeaderDTOS);
-        if(invCountInfoDTO.getErrorList().stream().noneMatch(Objects::nonNull)){
+        if(invCountInfoDTO.getErrorList().stream().anyMatch(Objects::nonNull)){
             throw new CommonException("Validation error: "+invCountInfoDTO.getErrorList());
         }
+        // security token
         SecurityTokenHelper.validToken(invCountHeaderDTOS);
+        // remove
         invCountHeaderRepository.batchDeleteByPrimaryKey(invCountHeaderDTOS);
         return Results.success();
     }
@@ -100,18 +109,65 @@ public class InvCountHeaderController extends BaseController {
     @ApiOperation(value = "orderExecution")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping("/execution")
-    public ResponseEntity<List<InvCountHeaderDTO>> execution(@RequestBody List<InvCountHeaderDTO> invCountHeaderDTOS) {
-        invCountHeaderDTOS.forEach(headerDTO-> validObject(headerDTO, InvCountHeader.execute.class));
-        InvCountInfoDTO invCountInfoDTO = invCountHeaderService.executeCheck(invCountHeaderDTOS);
-        if(invCountInfoDTO.getErrorList().stream().noneMatch(Objects::nonNull)){
+    public ResponseEntity<List<InvCountHeaderDTO>> orderExecution(@RequestBody List<InvCountHeaderDTO> invCountHeaderDTOS) {
+        // execute valid object
+        invCountHeaderDTOS.forEach(headerDTO-> validObject(headerDTO, InvCountHeader.Execute.class));
+        // execute check
+        InvCountInfoDTO execInvCountInfoDTO = invCountHeaderService.executeCheck(invCountHeaderDTOS);
+        if(execInvCountInfoDTO.getErrorList().stream().anyMatch(Objects::nonNull)){
+            throw new CommonException("Validation error: "+execInvCountInfoDTO.getErrorList());
+        }
+        // security check
+        SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaderDTOS);
+        List<InvCountHeaderDTO> returnedInvCountHeaderDTOS = invCountHeaderService.execute(invCountHeaderDTOS);
+        // sync wms
+        InvCountInfoDTO  syncInvCountInfoDTO = invCountHeaderService.countSyncWMS(returnedInvCountHeaderDTOS);
+        if(syncInvCountInfoDTO.getErrorList().stream().anyMatch(Objects::nonNull)){
+            throw new CommonException("Validation error: "+syncInvCountInfoDTO.getErrorList());
+        }
+        return Results.success(returnedInvCountHeaderDTOS);
+    }
+    @ApiOperation(value = "orderSubmit")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @PostMapping("orderSubmit")
+    public ResponseEntity<List<InvCountHeaderDTO>> orderSubmit(@RequestBody List<InvCountHeaderDTO> invCountHeaderDTOS) {
+        // submit valid object
+        invCountHeaderDTOS.forEach(headerDTO-> validObject(headerDTO, InvCountHeader.Submit.class));
+        // submit check
+        InvCountInfoDTO invCountInfoDTO = invCountHeaderService.submitCheck(invCountHeaderDTOS);
+        if(invCountInfoDTO.getErrorList().stream().anyMatch(Objects::nonNull)){
             throw new CommonException("Validation error: "+invCountInfoDTO.getErrorList());
         }
+        // security token
         SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaderDTOS);
-        // execute
-        return Results.success(
-                // execute result
-        );
+        // submit
+        List<InvCountHeaderDTO> submittedInvCountHeaderDTOS = invCountHeaderService.submit(invCountHeaderDTOS);
+        return Results.success(submittedInvCountHeaderDTOS);
     }
 
+    @ApiOperation(value = "countResultSync")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @PostMapping("/countResultSync")
+    public ResponseEntity<InvCountHeaderDTO> countResultSync(@RequestBody InvCountHeaderDTO invCountHeaderDTO) {
+        // sync result valid object
+        validObject(invCountHeaderDTO, InvCountHeader.CountSync.class);
+        // sync result
+        invCountHeaderService.countResultSync(invCountHeaderDTO);
+        return Results.success(invCountHeaderDTO);
+    }
+
+    @ApiOperation(value = "Report")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @PostMapping("countingOrderReportDs")
+    public ResponseEntity<List<InvCountHeaderDTO>> countingOrderReportDs(@RequestBody InvCountHeaderDTO invCountHeaderDTO) {
+        return Results.success(invCountHeaderService.countingOrderReportDs(invCountHeaderDTO));
+    }
+
+    @ApiOperation(value = "Submit Approval")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @PostMapping("submitApproval")
+    public ResponseEntity<InvCountHeaderDTO> submitApproval(@RequestBody WorkFlowEventDTO workflowEventDTO) {
+        return Results.success(invCountHeaderService.submitApproval(workflowEventDTO));
+    }
 }
 

@@ -11,8 +11,15 @@
       <console name="Connection" type="STANDARD" schema="" session="Main" />
     </connection>
   </component>
+  <component name="HDBNavigator.Project.DatabaseEditorStateManager">
+    <last-used-providers />
+  </component>
   <component name="HDBNavigator.Project.DatabaseFileManager">
     <open-files />
+  </component>
+  <component name="HDBNavigator.Project.DatasetFilterManager">
+    <filter-actions connection-id="b8908dc1-6777-45a9-94e1-16255ea9dbd6" dataset="hzero_train202410.fexam_inv_count_extra" active-filter-id="" />
+    <filter-actions connection-id="b8908dc1-6777-45a9-94e1-16255ea9dbd6" dataset="hzero_train202410.fexam_iam_department" active-filter-id="" />
   </component>
   <component name="HDBNavigator.Project.ObjectQuickFilterManager">
     <last-used-operator value="EQUAL" />

@@ -1,6 +1,6 @@
 package com.hand.demo.infra.repository.impl;
 
-import org.apache.commons.collections.CollectionUtils;
+import com.hand.demo.api.dto.InvCountHeaderDTO;
 import org.hzero.mybatis.base.impl.BaseRepositoryImpl;
 import org.springframework.stereotype.Component;
 import com.hand.demo.domain.entity.InvWarehouse;
@@ -36,6 +36,5 @@ public class InvWarehouseRepositoryImpl extends BaseRepositoryImpl<InvWarehouse>
         }
         return invWarehouses.get(0);
     }
-
 }
 
