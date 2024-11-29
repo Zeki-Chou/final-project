@@ -1,5 +1,6 @@
 package com.hand.demo.app.service;
 
+import com.hand.demo.api.dto.InvCountHeaderDTO;
 import io.choerodon.core.domain.Page;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 import com.hand.demo.domain.entity.InvCountExtra;
@@ -30,5 +31,6 @@ public interface InvCountExtraService {
      */
     void saveData(List<InvCountExtra> invCountExtras);
 
+    InvCountExtra getExtraOrInitialize(List<InvCountExtra> extras, InvCountHeaderDTO countHeader, String programKey);
 }
 

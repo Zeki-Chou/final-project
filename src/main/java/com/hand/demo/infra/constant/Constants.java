@@ -27,6 +27,10 @@ public class Constants {
         public static final String CODE_FIELD = "code";
 
         public static final String RESULT_STATUS_SUCCESS = "S";
+        public static final String RESULT_STATUS_ERROR = "E";
+
+        public static final String ERR_INVALID_WMS = "The current warehouse is not a WMS warehouse, operations are not allowed";
+        public static final String ERR_COUNT_LINE_INCONSISTENT = "The counting order line data is inconsistent with the INV system, please check the data";
 
     }
 
@@ -46,12 +50,19 @@ public class Constants {
         public static final String WAREHOUSE_SUPERVISOR_INVALID = "The current warehouse is a WMS warehouse, and only the supervisor is allowed to operate";
         public static final String ACCESS_UPDATE_STATUS_INVALID = "only the document creator, counter, and supervisor can modify the document for the status  of in counting, rejected, withdrawn";
 
+        public static final String SUBMIT_STATUS_INVALID = "The operation is allowed only when the status in in counting, processing, rejected, withdrawn.";
+        public static final String SUBMIT_USER_INVALID = "Only the current login user is the supervisor can submit document.";
+        public static final String SUBMIT_COUNT_QTY_INVALID = "There are data rows with empty count quantity. Please check the data.";
+        public static final String SUBMIT_REASON_INVALID = "there is a difference in counting, the reason field must be entered.";
+
         public static final String STATUS_LOV_CODE = "INV.COUNTING.COUNT_STATUS";
         public static final String COUNT_DIMENSION_LOV_CODE = "INV.COUNTING.COUNT_DIMENSION";
         public static final String COUNT_TYPE_LOV_CODE = "INV.COUNTING.COUNT_TYPE";
         public static final String COUNT_MODE_LOV_CODE = "INV.COUNTING.COUNT_MODE";
 
         public static final String CODE_RULE = "INV.COUNTING59.COUNT_NUMBER";
+
+        public static final String COUNTING_WORKFLOW = "FEXAM55.INV.COUNTING.ISWORKFLO";
     }
 
     public static class InvCountExtra {

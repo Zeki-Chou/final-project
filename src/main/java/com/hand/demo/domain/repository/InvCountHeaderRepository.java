@@ -27,5 +27,5 @@ public interface InvCountHeaderRepository extends BaseRepository<InvCountHeader>
      * @param countHeaderId 主键
      * @return 返回值
      */
-    InvCountHeader selectByPrimary(Long countHeaderId);
+    InvCountHeaderDTO selectByPrimary(Long countHeaderId);
 }

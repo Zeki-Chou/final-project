@@ -28,7 +28,7 @@ public class InvCountHeaderRepositoryImpl extends BaseRepositoryImpl<InvCountHea
     }
 
     @Override
-    public InvCountHeader selectByPrimary(Long countHeaderId) {
+    public InvCountHeaderDTO selectByPrimary(Long countHeaderId) {
         InvCountHeaderDTO invCountHeaderDTO = new InvCountHeaderDTO();
         invCountHeaderDTO.setCountHeaderId(countHeaderId);
         List<InvCountHeaderDTO> invCountHeaders = invCountHeaderMapper.selectList(invCountHeaderDTO);
@@ -37,6 +37,5 @@ public class InvCountHeaderRepositoryImpl extends BaseRepositoryImpl<InvCountHea
         }
         return invCountHeaders.get(0);
     }
-
 }
 

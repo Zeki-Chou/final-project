@@ -12,6 +12,7 @@ import java.util.List;
 public class InvCountHeaderDTO extends InvCountHeader implements Cacheable {
     List<InvCountLine> invCountLineList;
     String errorMessage;
+    String status;
 
     @ApiModelProperty(value = "Type String, pass user id, support single, not multi")
     String supervisor;
@@ -23,4 +24,7 @@ public class InvCountHeaderDTO extends InvCountHeader implements Cacheable {
     List<InvCountLineDTO> countOrderLineList;
 
     Integer isWmsWarehouse;
+
+    //temp
+    String token;
 }

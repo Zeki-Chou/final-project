@@ -3,6 +3,8 @@ package com.hand.demo.domain.entity;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.hand.demo.infra.state.ExecuteState;
+import com.hand.demo.infra.state.InitState;
 import io.choerodon.mybatis.annotation.ModifyAudit;
 import io.choerodon.mybatis.annotation.VersionAudit;
 import io.choerodon.mybatis.domain.AuditDomain;
@@ -117,15 +119,15 @@ public class InvCountHeader extends AuditDomain {
     private String attributeCategory;
 
     @ApiModelProperty(value = "", required = true)
-    @NotBlank
+    @NotBlank(groups = {InitState.class, ExecuteState.class})
     private Long companyId;
 
     @ApiModelProperty(value = "", required = true)
-    @NotBlank
+    @NotBlank(groups = {ExecuteState.class})
     private String countDimension;
 
     @ApiModelProperty(value = "", required = true)
-    @NotBlank
+    @NotBlank(groups = {ExecuteState.class})
     private String countMode;
 
     @ApiModelProperty(value = "Support fuzzy search", required = true)
@@ -133,17 +135,18 @@ public class InvCountHeader extends AuditDomain {
     private String countNumber;
 
     @ApiModelProperty(value = "", required = true)
-    @NotBlank
+    @NotBlank(groups = {InitState.class, ExecuteState.class})
     private String countStatus;
 
+    @NotBlank(groups = {ExecuteState.class})
     private String countTimeStr;
 
     @ApiModelProperty(value = "", required = true)
-    @NotBlank
+    @NotBlank(groups = {ExecuteState.class})
     private String countType;
 
     @ApiModelProperty(value = "", required = true)
-    @NotBlank
+    @NotBlank(groups = {InitState.class, ExecuteState.class})
     private String counterIds;
 
     private Integer delFlag;
@@ -167,15 +170,15 @@ public class InvCountHeader extends AuditDomain {
     private String sourceSystem;
 
     @ApiModelProperty(value = "", required = true)
-    @NotBlank
+    @NotBlank(groups = {InitState.class})
     private String supervisorIds;
 
     @ApiModelProperty(value = "", required = true)
-    @NotNull
+    @NotBlank(groups = {InitState.class, ExecuteState.class})
     private Long tenantId;
 
     @ApiModelProperty(value = "", required = true)
-    @NotBlank
+    @NotBlank(groups = {InitState.class})
     private Long warehouseId;
 
     private Long workflowId;

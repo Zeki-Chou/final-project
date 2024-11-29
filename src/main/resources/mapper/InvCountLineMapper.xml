@@ -135,18 +135,16 @@
         </where>
     </select>
 
-    <select id="selectByCountHeaderIds">
+    <select id="selectByCountHeaderIds" resultType="com.hand.demo.api.dto.InvCountLineDTO">
         select
         <include refid = "BaseSql"/>
         from fexam_inv_count_line ficl
         <where>
-            <if test="countHeaderId !=null">
-                and ficl.count_header_id = #{countHeaderId,jdbcType = INTEGER}
-            </if>
-            <foreach collection="headerIds" item="headerId" open="countHeaderId in (" close=")">
+            <foreach collection="headerIds" item="headerId" open="count_header_id in (" close=")">
                 #{headerId}
             </foreach>
         </where>
     </select>
+
 </mapper>
 

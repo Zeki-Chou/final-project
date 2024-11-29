@@ -161,18 +161,19 @@
         <where>
             fis.unit_quantity > 0
             <if test="headers != null and headers.size() > 0">
+                and
                 <foreach item="header" collection="headers" separator="OR" open="(" close=")">
                     <if test="header.tenantId !=null">
-                        and fis.tenant_id = #{tenantId,jdbcType = INTEGER}
+                        fis.tenant_id = #{header.tenantId,jdbcType = INTEGER}
                     </if>
                     <if test="header.companyId !=null">
-                        and fis.company_id = #{companyId,jdbcType = INTEGER}
+                        and fis.company_id = #{header.companyId,jdbcType = INTEGER}
                     </if>
                     <if test="header.departmentId !=null">
-                        and fis.department_id = #{departmentId,jdbcType = INTEGER}
+                        and fis.department_id = #{header.departmentId,jdbcType = INTEGER}
                     </if>
                     <if test="header.warehouseId !=null">
-                        and fis.warehouse_id = #{warehouseId,jdbcType = INTEGER}
+                        and fis.warehouse_id = #{header.warehouseId,jdbcType = INTEGER}
                     </if>
                     <!-- SKU: Check if snapshotMaterialIds is not empty -->
                     <if test="header.countType == 'SKU'">

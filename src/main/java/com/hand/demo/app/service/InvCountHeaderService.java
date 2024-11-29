@@ -72,7 +72,14 @@ public interface InvCountHeaderService {
      * @param invCountHeaderDTO
      * @return
      */
-    public InvCountHeaderDTO countResultSync(InvCountHeaderDTO invCountHeaderDTO)
+    public InvCountHeaderDTO countResultSync(InvCountHeaderDTO invCountHeaderDTO);
 
+    /**
+     * @param countHeaders
+     * @return
+     */
+    InvCountInfoDTO  submitCheck(List<InvCountHeaderDTO> countHeaders);
+
+    List<InvCountHeaderDTO> submit(List<InvCountHeaderDTO> invCountHeaderList);
 }
 

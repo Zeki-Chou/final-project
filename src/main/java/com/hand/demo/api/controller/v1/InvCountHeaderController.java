@@ -7,6 +7,7 @@ import com.hand.demo.domain.entity.InvWarehouse;
 import com.hand.demo.domain.repository.InvWarehouseRepository;
 import com.hand.demo.infra.constant.Constants;
 import com.hand.demo.infra.enums.Enums;
+import com.hand.demo.infra.state.InitState;
 import com.hand.demo.infra.util.Utils;
 import io.choerodon.core.domain.Page;
 import io.choerodon.core.exception.CommonException;
@@ -78,26 +79,25 @@ public class InvCountHeaderController extends BaseController {
     @ApiOperation(value = "创建或更新")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping
-    public ResponseEntity<List<InvCountHeaderDTO>> save(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeaders) {
-        // not null and not blank validation
-        validObject(invCountHeaders, InvCountHeader.class);
-        // token validation when update
+    public ResponseEntity<?> orderSave(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeaders) {
+        invCountHeaders.forEach(header -> validObject(invCountHeaders, InitState.class));
         SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
+        invCountHeaders.forEach(item -> item.setTenantId(organizationId));
 
         InvCountInfoDTO invCountInfoDTO = invCountHeaderService.manualSaveCheck(invCountHeaders);
         if (invCountInfoDTO.getErrSize() > 0) {
-            throw new CommonException(JSON.toJSONString(invCountInfoDTO));
+            return Results.error(invCountInfoDTO);
         }
 
         List<InvCountHeaderDTO> invCountHeaderDTOS = invCountInfoDTO.getValidHeaderDTOS();
-        invCountHeaderDTOS.forEach(item -> item.setTenantId(organizationId));
+
         return Results.success(invCountHeaderService.manualSave(invCountHeaderDTOS));
     }
 
     @ApiOperation(value = "删除")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @DeleteMapping
-    public ResponseEntity<?> remove(@RequestBody List<InvCountHeaderDTO> invCountHeaders) {
+    public ResponseEntity<?> orderRemove(@RequestBody List<InvCountHeaderDTO> invCountHeaders) {
         SecurityTokenHelper.validToken(invCountHeaders);
         InvCountInfoDTO countInfoDTO = invCountHeaderService.checkAndRemove(invCountHeaders);
         if (countInfoDTO.getErrSize() > 0) {
@@ -112,9 +112,31 @@ public class InvCountHeaderController extends BaseController {
     @ApiOperation(value = "counting order execute")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping("/execute")
-    public ResponseEntity<List<InvCountHeaderDTO>> execute(@RequestBody List<InvCountHeaderDTO> invCountHeaders) {
+    public ResponseEntity<List<InvCountHeaderDTO>> orderExecution(@RequestBody List<InvCountHeaderDTO> invCountHeaders) {
         return Results.success();
     }
+
+    @ApiOperation(value = "Test WMS sync")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @PostMapping("/wms-sync")
+    public ResponseEntity<InvCountInfoDTO> testWMSSync(@RequestBody List<InvCountHeaderDTO> invCountHeaders) {
+        return Results.success(invCountHeaderService.countSyncWms(invCountHeaders));
+    }
+
+    @ApiOperation(value = "Test Submit workflow")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @PostMapping("/test-submit")
+    public ResponseEntity<List<InvCountHeaderDTO>> testSubmit(@RequestBody List<InvCountHeaderDTO> invCountHeaders) {
+        return Results.success(invCountHeaderService.submit(invCountHeaders));
+    }
+
+    @ApiOperation(value = "Test Execute")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @PostMapping("/test-execute")
+    public ResponseEntity<List<InvCountHeaderDTO>> testOrderExecute(@RequestBody List<InvCountHeaderDTO> invCountHeaders) {
+        return Results.success(invCountHeaderService.execute(invCountHeaders));
+    }
+
 
 }
 

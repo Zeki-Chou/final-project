@@ -3,6 +3,7 @@ package com.hand.demo.domain.entity;
 import java.math.BigDecimal;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.hand.demo.infra.state.InitState;
 import io.choerodon.mybatis.annotation.ModifyAudit;
 import io.choerodon.mybatis.annotation.VersionAudit;
 import io.choerodon.mybatis.domain.AuditDomain;
@@ -106,23 +107,24 @@ public class InvCountLine extends AuditDomain {
     private Long batchId;
 
     @ApiModelProperty(value = "", required = true)
-    @NotNull
+    @NotBlank(groups = {InitState.class})
     private Long countHeaderId;
 
     private String counterIds;
 
     @ApiModelProperty(value = "", required = true)
-    @NotNull
+    @NotBlank(groups = {InitState.class})
     private Integer lineNumber;
 
     private Long materialId;
 
     private String remark;
 
+    @NotBlank(groups = {InitState.class})
     private BigDecimal snapshotUnitQty;
 
     @ApiModelProperty(value = "", required = true)
-    @NotNull
+    @NotBlank(groups = {InitState.class})
     private Long tenantId;
 
     private String unitCode;

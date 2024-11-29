@@ -126,5 +126,77 @@
             </if>
         </where>
     </select>
+
+    <!-- SQL query to calculate sum of unit_quantity by tenant, company, department, warehouse, and material -->
+    <select id="getSumOnHandQty" resultType="java.math.BigDecimal">
+        SELECT SUM(unit_quantity)
+        FROM fexam_inv_stock fis
+        <where>
+            fis.unit_quantity > 0
+            <if test="tenantId !=null">
+                and fis.tenant_id = #{tenantId,jdbcType = INTEGER}
+            </if>
+            <if test="companyId !=null">
+                and fis.company_id = #{companyId,jdbcType = INTEGER}
+            </if>
+            <if test="departmentId !=null">
+                and fis.department_id = #{departmentId,jdbcType = INTEGER}
+            </if>
+            <if test="warehouseId !=null">
+                and fis.warehouse_id = #{warehouseId,jdbcType = INTEGER}
+            </if>
+            <if test="materialIds != null and materialIds.size() > 0">
+                <foreach item="materialId" collection="materialIds" open="and fis.material_id IN (" separator="," close=")">
+                    #{materialId}
+                </foreach>
+            </if>
+        </where>
+        GROUP BY tenant_id, company_id, department_id, warehouse_id
+    </select>
+
+    <select id="selectStocksByHeaders" resultType="com.hand.demo.domain.entity.InvStock">
+        select
+        <include refid = "BaseSql"/>
+        from fexam_inv_stock fis
+        <where>
+            fis.unit_quantity > 0
+            <if test="headers != null and headers.size() > 0">
+                and
+                <foreach item="header" collection="headers" separator="OR" open="(" close=")">
+                    <if test="header.tenantId !=null">
+                        fis.tenant_id = #{header.tenantId,jdbcType = INTEGER}
+                    </if>
+                    <if test="header.companyId !=null">
+                        and fis.company_id = #{header.companyId,jdbcType = INTEGER}
+                    </if>
+                    <if test="header.departmentId !=null">
+                        and fis.department_id = #{header.departmentId,jdbcType = INTEGER}
+                    </if>
+                    <if test="header.warehouseId !=null">
+                        and fis.warehouse_id = #{header.warehouseId,jdbcType = INTEGER}
+                    </if>
+                    <!-- SKU: Check if snapshotMaterialIds is not empty -->
+                    <if test="header.countType == 'SKU'">
+                        <if test="header.snapshotMaterialIds != null and header.snapshotMaterialIds != ''">
+                            AND FIND_IN_SET(#{header.snapshotMaterialIds}, fis.material_id) > 0
+                        </if>
+                        <!-- Group by material_id for SKU -->
+                        GROUP BY fis.company_id, fis.department_id, fis.warehouse_id, fis.material_id
+                    </if>
+                    <!-- LOT: Check if snapshotMaterialIds and snapshotBatchIds are not empty -->
+                    <if test="header.countType == 'LOT'">
+                        <if test="header.snapshotMaterialIds != null and header.snapshotMaterialIds != ''">
+                            AND FIND_IN_SET(#{header.snapshotMaterialIds}, fis.material_id) > 0
+                        </if>
+                        <if test="header.snapshotBatchIds != null and header.snapshotBatchIds != ''">
+                            AND FIND_IN_SET(#{header.snapshotBatchIds}, fis.batch_id) > 0
+                        </if>
+                        <!-- Group by material_id and batch_id for LOT -->
+                        GROUP BY fis.company_id, fis.department_id, fis.warehouse_id, fis.material_id, fis.batch_id
+                    </if>
+                </foreach>
+            </if>
+        </where>
+    </select>
 </mapper>
 

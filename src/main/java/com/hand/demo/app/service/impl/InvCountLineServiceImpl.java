@@ -53,16 +53,16 @@ public class InvCountLineServiceImpl implements InvCountLineService {
         List<InvCountLine> updateList = invCountLines.stream().filter(line -> line.getCountLineId() != null).collect(Collectors.toList());
 
         String updateCountHeaderIds = generateStringIds(updateList);
-        List<InvCountHeader> invCountHeaders = invCountHeaderRepository.selectByIds(updateCountHeaderIds);
+        List<InvCountHeader> invCountHeaders;
+        if (updateCountHeaderIds.isEmpty()) {
+            invCountHeaders = new ArrayList<>();
+        } else {
+            invCountHeaders = invCountHeaderRepository.selectByIds(updateCountHeaderIds);
+        }
+
         Map<Long, InvCountHeader> invCountHeaderMap = invCountHeaders
                 .stream()
                 .collect(Collectors.toMap(InvCountHeader::getCountHeaderId, Function.identity()));
-
-        insertList.forEach(line -> {
-            InvCountHeader header = invCountHeaderMap.get(line.getCountHeaderId());
-            // initially copy counter ids from header
-            line.setCounterIds(header.getCounterIds());
-        });
 
         updateList.forEach(line -> {
             InvCountHeader header = invCountHeaderMap.get(line.getCountHeaderId());
