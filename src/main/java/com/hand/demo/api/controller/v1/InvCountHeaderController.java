@@ -57,7 +57,7 @@ public class InvCountHeaderController extends BaseController {
         this.invCountHeaderService = invCountHeaderService;
     }
 
-    @ApiOperation(value = "列表")
+    @ApiOperation(value = "list")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping
     public ResponseEntity<Page<InvCountHeaderDTO>> list(InvCountHeaderDTO invCountHeader, @PathVariable Long organizationId,
@@ -67,7 +67,7 @@ public class InvCountHeaderController extends BaseController {
         return Results.success(list);
     }
 
-    @ApiOperation(value = "明细")
+    @ApiOperation(value = "detail")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping("/{countHeaderId}/detail")
     @ProcessCacheValue
@@ -76,7 +76,7 @@ public class InvCountHeaderController extends BaseController {
         return Results.success(invCountHeader);
     }
 
-    @ApiOperation(value = "创建或更新")
+    @ApiOperation(value = "order save")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping
     public ResponseEntity<?> orderSave(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeaders) {
@@ -94,7 +94,7 @@ public class InvCountHeaderController extends BaseController {
         return Results.success(invCountHeaderService.manualSave(invCountHeaderDTOS));
     }
 
-    @ApiOperation(value = "删除")
+    @ApiOperation(value = "order remove")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @DeleteMapping
     public ResponseEntity<?> orderRemove(@RequestBody List<InvCountHeaderDTO> invCountHeaders) {

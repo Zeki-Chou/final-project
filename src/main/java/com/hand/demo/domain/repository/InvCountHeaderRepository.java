@@ -12,7 +12,7 @@ import java.util.List;
  * @author Allan
  * @since 2024-11-25 08:19:18
  */
-public interface InvCountHeaderRepository extends BaseRepository<InvCountHeader> {
+public interface InvCountHeaderRepository extends BaseRepository<InvCountHeaderDTO> {
     /**
      * 查询
      *

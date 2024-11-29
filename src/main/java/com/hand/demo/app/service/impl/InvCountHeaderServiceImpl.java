@@ -71,8 +71,8 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     @Override
     public List<InvCountHeaderDTO> manualSave(List<InvCountHeaderDTO> invCountHeaders) {
 
-        List<InvCountHeader> insertList = invCountHeaders.stream().filter(line -> line.getCountHeaderId() == null).collect(Collectors.toList());
-        List<InvCountHeader> updateList = invCountHeaders.stream().filter(line -> line.getCountHeaderId() != null).collect(Collectors.toList());
+        List<InvCountHeaderDTO> insertList = invCountHeaders.stream().filter(line -> line.getCountHeaderId() == null).collect(Collectors.toList());
+        List<InvCountHeaderDTO> updateList = invCountHeaders.stream().filter(line -> line.getCountHeaderId() != null).collect(Collectors.toList());
 
         insertList.forEach(header -> {
             header.setCountStatus(Enums.InvCountHeader.Status.DRAFT.name());
@@ -80,9 +80,9 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             header.setDelFlag(BaseConstants.Flag.NO);
         });
 
-        List<InvCountHeader> draftUpdateList = filterHeaderListByStatus(updateList, Enums.InvCountHeader.Status.DRAFT.name());
-        List<InvCountHeader> inCountingUpdateList = filterHeaderListByStatus(updateList, Enums.InvCountHeader.Status.INCOUNTING.name());
-        List<InvCountHeader> rejectedUpdateList = filterHeaderListByStatus(updateList, Enums.InvCountHeader.Status.REJECTED.name());
+        List<InvCountHeaderDTO> draftUpdateList = filterHeaderListByStatus(updateList, Enums.InvCountHeader.Status.DRAFT.name());
+        List<InvCountHeaderDTO> inCountingUpdateList = filterHeaderListByStatus(updateList, Enums.InvCountHeader.Status.INCOUNTING.name());
+        List<InvCountHeaderDTO> rejectedUpdateList = filterHeaderListByStatus(updateList, Enums.InvCountHeader.Status.REJECTED.name());
 
         invCountHeaderRepository.batchInsertSelective(insertList);
         invCountHeaderRepository.batchUpdateOptional(inCountingUpdateList, InvCountHeader.FIELD_REMARK, InvCountHeader.FIELD_REASON);
@@ -441,8 +441,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         List<InvCountHeaderDTO> invalidDTO = new ArrayList<>();
 
         List<Long> countHeaderIdList = countHeaders.stream().map(InvCountHeaderDTO::getCountHeaderId).collect(Collectors.toList());
-        List<InvCountHeader> headersDB = invCountHeaderRepository.selectByIds(Utils.generateStringIds(countHeaderIdList));
-        List<InvCountHeaderDTO> headerDTOS = headersDB.stream().map(this::mapToDTO).collect(Collectors.toList());
+        List<InvCountHeaderDTO> headersDB = invCountHeaderRepository.selectByIds(Utils.generateStringIds(countHeaderIdList));
         Map<Long, List<InvCountLineDTO>> lineMap = findCountLines(headersDB);
 
         String withdrawnValue = Enums.InvCountHeader.Status.WITHDRAWN.name();
@@ -452,14 +451,14 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
         CustomUserDetails customUserDetails = DetailsHelper.getUserDetails();
 
-        for(InvCountHeaderDTO header: headerDTOS) {
+        for(InvCountHeaderDTO header: headersDB) {
             header.setErrorMessage("");
             String status = header.getCountStatus();
             List<Long> supervisorIds = Utils.convertStringIdstoList(header.getSupervisorIds());
 
 
-            if (!withdrawnValue.equals(status) || !inCountingValue.equals(status) ||
-                    !processingValue.equals(status) || !rejectedValue.equals(status)) {
+            if (!withdrawnValue.equals(status) && !inCountingValue.equals(status) &&
+                    !processingValue.equals(status) && !rejectedValue.equals(status)) {
                 header.setErrorMessage(Constants.InvCountHeader.SUBMIT_STATUS_INVALID);
             }
 
@@ -509,7 +508,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         return Collections.emptyList();
     }
 
-    private Map<Long, List<InvCountLineDTO>> findCountLines(List<InvCountHeader> headers) {
+    private Map<Long, List<InvCountLineDTO>> findCountLines(List<InvCountHeaderDTO> headers) {
         List<Long> headerIds = headers.stream().map(InvCountHeader::getCountHeaderId).collect(Collectors.toList());
         return invCountLineRepository.selectByCountHeaderIds(headerIds)
                 .stream()
@@ -571,7 +570,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
      * @param status status to find
      * @return inventory count header containing status from parameter
      */
-    private List<InvCountHeader> filterHeaderListByStatus(List<InvCountHeader> invCountHeaders, String status) {
+    private List<InvCountHeaderDTO> filterHeaderListByStatus(List<InvCountHeaderDTO> invCountHeaders, String status) {
         return invCountHeaders
                 .stream()
                 .filter(header -> status.equals(header.getCountStatus()))
@@ -597,7 +596,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
     private List<InvCountHeaderDTO> findHeadersDBFromInput(List<InvCountHeaderDTO> inputDTOList) {
         List<Long> headerIds = inputDTOList.stream().map(InvCountHeaderDTO::getCountHeaderId).collect(Collectors.toList());
-        List<InvCountHeader> headersDB = invCountHeaderRepository.selectByIds(Utils.generateStringIds(headerIds));
+        List<InvCountHeaderDTO> headersDB = invCountHeaderRepository.selectByIds(Utils.generateStringIds(headerIds));
         return headersDB.stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 

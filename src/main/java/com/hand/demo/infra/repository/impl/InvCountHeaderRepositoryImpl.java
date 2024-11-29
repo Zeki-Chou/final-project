@@ -18,7 +18,7 @@ import java.util.List;
  * @since 2024-11-25 08:19:18
  */
 @Component
-public class InvCountHeaderRepositoryImpl extends BaseRepositoryImpl<InvCountHeader> implements InvCountHeaderRepository {
+public class InvCountHeaderRepositoryImpl extends BaseRepositoryImpl<InvCountHeaderDTO> implements InvCountHeaderRepository {
     @Resource
     private InvCountHeaderMapper invCountHeaderMapper;
 
@@ -32,7 +32,7 @@ public class InvCountHeaderRepositoryImpl extends BaseRepositoryImpl<InvCountHea
         InvCountHeaderDTO invCountHeaderDTO = new InvCountHeaderDTO();
         invCountHeaderDTO.setCountHeaderId(countHeaderId);
         List<InvCountHeaderDTO> invCountHeaders = invCountHeaderMapper.selectList(invCountHeaderDTO);
-        if (invCountHeaders.size() == 0) {
+        if (invCountHeaders.isEmpty()) {
             return null;
         }
         return invCountHeaders.get(0);

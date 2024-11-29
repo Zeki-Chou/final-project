@@ -1,5 +1,6 @@
 package com.hand.demo.app.service.impl;
 
+import com.hand.demo.api.dto.InvCountHeaderDTO;
 import com.hand.demo.api.dto.InvCountLineDTO;
 import com.hand.demo.domain.entity.InvCountHeader;
 import com.hand.demo.domain.repository.InvCountHeaderRepository;
@@ -53,7 +54,7 @@ public class InvCountLineServiceImpl implements InvCountLineService {
         List<InvCountLine> updateList = invCountLines.stream().filter(line -> line.getCountLineId() != null).collect(Collectors.toList());
 
         String updateCountHeaderIds = generateStringIds(updateList);
-        List<InvCountHeader> invCountHeaders;
+        List<InvCountHeaderDTO> invCountHeaders;
         if (updateCountHeaderIds.isEmpty()) {
             invCountHeaders = new ArrayList<>();
         } else {
@@ -71,6 +72,10 @@ public class InvCountLineServiceImpl implements InvCountLineService {
                 // check if current user is counter
                 if (!Utils.convertStringIdstoList(header.getCounterIds()).contains(userId)) {
                     line.setUnitQty(null);
+                } else {
+                    // calculation of difference between the snapshot qty and unit qty
+                    BigDecimal unitDiffQty = line.getSnapshotUnitQty().subtract(line.getUnitQty());
+                    line.setUnitDiffQty(unitDiffQty);
                 }
 
                 if (!userId.equals(header.getCreatedBy())) {
@@ -83,9 +88,6 @@ public class InvCountLineServiceImpl implements InvCountLineService {
                 line.setRemark(null);
             }
 
-            // calculation of difference between the snapshot qty and unit qty
-            BigDecimal unitDiffQty = line.getSnapshotUnitQty().subtract(line.getUnitQty());
-            line.setUnitDiffQty(unitDiffQty);
         });
 
         invCountLineRepository.batchInsertSelective(insertList);
