@@ -65,8 +65,6 @@ public class InvCountHeaderController extends BaseController {
         validObject(invCountHeaders);
         SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
         invCountHeaders.forEach(item -> item.setTenantId(organizationId));
-        invCountHeaderService.executeCheck(invCountHeaders);
-        invCountHeaderService.manualSaveCheck(invCountHeaders);
         invCountHeaderService.manualSave(invCountHeaders);
         return Results.success(invCountHeaders);
     }
@@ -76,10 +74,18 @@ public class InvCountHeaderController extends BaseController {
     @DeleteMapping
     public ResponseEntity<?> orderRemove(@RequestBody List<InvCountHeaderDTO> invCountHeaders) {
         SecurityTokenHelper.validToken(invCountHeaders);
-        invCountHeaderService.checkAndRemove(invCountHeaders);
-        return Results.success();
+        return Results.success(invCountHeaderService.checkAndRemove(invCountHeaders));
     }
 
+    @ApiOperation(value = "orderExecution")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @PostMapping("/orderExecution")
+    public ResponseEntity<?> orderExecution(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeaders) {
+        validObject(invCountHeaders);
+        SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
+        invCountHeaders.forEach(item -> item.setTenantId(organizationId));
+        return Results.success(invCountHeaderService.execute(invCountHeaders));
+    }
 
 }
 

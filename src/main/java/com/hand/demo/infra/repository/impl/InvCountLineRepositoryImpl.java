@@ -37,7 +37,7 @@ public class InvCountLineRepositoryImpl extends BaseRepositoryImpl<InvCountLine>
     }
 
     @Override
-    public InvCountLine selectByLastNumber(){
+    public Integer selectLastNumber(){
         return invCountLineMapper.selectLastNumber();
     }
 

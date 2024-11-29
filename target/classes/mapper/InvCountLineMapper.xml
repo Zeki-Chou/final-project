@@ -98,7 +98,7 @@
             </if>
         </where>
     </select>
-    <select id="selectLastNumber" resultType="com.hand.demo.domain.entity.InvCountLine">
+    <select id="selectLastNumber" resultType="java.lang.Integer">
         select MAX(ficl.line_number)
         from fexam_inv_count_line ficl
     </select>

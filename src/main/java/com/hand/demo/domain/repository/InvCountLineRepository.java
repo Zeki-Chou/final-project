@@ -26,5 +26,5 @@ public interface InvCountLineRepository extends BaseRepository<InvCountLine> {
      */
     InvCountLine selectByPrimary(Long countLineId);
 
-    InvCountLine selectByLastNumber();
+    Integer selectLastNumber();
 }

@@ -61,7 +61,7 @@ public class InvCountExtraController extends BaseController {
     public ResponseEntity<List<InvCountExtra>> save(@PathVariable Long organizationId, @RequestBody List<InvCountExtra> invCountExtras) {
         validObject(invCountExtras);
         SecurityTokenHelper.validTokenIgnoreInsert(invCountExtras);
-        invCountExtras.forEach(item -> item.setTenantId(organizationId));
+//        invCountExtras.forEach(item -> item.setTenantId(organizationId));
         invCountExtraService.saveData(invCountExtras);
         return Results.success(invCountExtras);
     }

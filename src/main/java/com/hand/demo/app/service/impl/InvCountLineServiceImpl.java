@@ -2,7 +2,9 @@ package com.hand.demo.app.service.impl;
 
 import com.hand.demo.domain.entity.InvCountHeader;
 import com.hand.demo.domain.repository.InvCountHeaderRepository;
+import groovyjarjarpicocli.CommandLine;
 import io.choerodon.core.domain.Page;
+import io.choerodon.core.exception.CommonException;
 import io.choerodon.mybatis.pagehelper.PageHelper;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,8 +37,8 @@ public class InvCountLineServiceImpl implements InvCountLineService {
     @Override
     public void saveData(List<InvCountLine> invCountLines) {
         //Get Last Line Number
-        InvCountLine lastLine = invCountLineRepository.selectByLastNumber();
-        int lastLineNumber = lastLine.getLineNumber() + 1;
+        Integer lastNumber = invCountLineRepository.selectLastNumber();
+        int generateLineNumber = lastNumber + 1;
 
         // Collect and Mapping Header
         Set<Long> requestHeaderIdsSet = invCountLines.stream()
@@ -63,10 +65,10 @@ public class InvCountLineServiceImpl implements InvCountLineService {
                 invCountLine.setUnitDiffQty(invCountLine.getUnitQty().subtract(invCountLine.getSnapshotUnitQty()).abs());
             }
             if (invCountLine.getCountLineId() == null) {
-                invCountLine.setLineNumber(lastLineNumber);
+                invCountLine.setLineNumber(generateLineNumber);
                 insertList.add(invCountLine);
 
-                lastLineNumber++;
+                generateLineNumber++;
             } else {
                 InvCountHeader header = existingHeaderMap.get(invCountLine.getCountHeaderId());
                 if(header.getCountStatus().equals("INCOUNTING")){

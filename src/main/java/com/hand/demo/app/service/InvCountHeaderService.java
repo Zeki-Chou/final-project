@@ -1,6 +1,7 @@
 package com.hand.demo.app.service;
 
 import com.hand.demo.api.dto.InvCountHeaderDTO;
+import com.hand.demo.api.dto.InvCountInfoDTO;
 import io.choerodon.core.domain.Page;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 import com.hand.demo.domain.entity.InvCountHeader;
@@ -26,16 +27,24 @@ public interface InvCountHeaderService {
 
     InvCountHeaderDTO detail(Long countHeaderId);
 
+    InvCountInfoDTO manualSaveCheck(List<InvCountHeaderDTO> invCountHeaders);
+
     /**
      * 保存数据
      * @param invCountHeaders 数据
      */
-    void manualSave(List<InvCountHeaderDTO> invCountHeaders);
+    List<InvCountHeaderDTO> manualSave(List<InvCountHeaderDTO> invCountHeaders);
 
-    void checkAndRemove(List<InvCountHeaderDTO> invCountHeaderDTOS);
+    InvCountInfoDTO checkAndRemove(List<InvCountHeaderDTO> invCountHeaderDTOS);
 
-    void manualSaveCheck(List<InvCountHeaderDTO> invCountHeaders);
+    InvCountInfoDTO executeCheck(List<InvCountHeaderDTO> invCountHeaderDTOS);
 
-    void executeCheck(List<InvCountHeaderDTO> invCountHeaderDTOS);
+    List<InvCountHeaderDTO> execute(List<InvCountHeaderDTO> invCountHeaderDTOS);
+
+    InvCountInfoDTO countSyncWms(List<InvCountHeaderDTO> invCountHeaderDTOS);
+
+    InvCountHeaderDTO countResultSync(InvCountHeaderDTO invCountHeaderDTO);
+
+    InvCountInfoDTO submitCheck(List<InvCountHeaderDTO> invCountHeaderDTOList);
 }
 

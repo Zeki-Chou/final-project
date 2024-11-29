@@ -23,6 +23,6 @@ public interface InvCountLineMapper extends BaseMapper<InvCountLine> {
      * select Last Number
      * @return LineNumber
      */
-    InvCountLine selectLastNumber();
+    Integer selectLastNumber();
 }
 

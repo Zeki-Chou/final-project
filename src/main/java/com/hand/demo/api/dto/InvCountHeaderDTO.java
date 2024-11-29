@@ -24,5 +24,6 @@ public class InvCountHeaderDTO extends InvCountHeader implements Cacheable {
     private List<SnapshotBatchDTO> snapshotBatchList;
     private Integer isWmsWarehouse;
     private String employeeNumber;
+    private String status;
 
 }
