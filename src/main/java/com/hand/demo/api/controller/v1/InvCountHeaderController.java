@@ -3,6 +3,7 @@ package com.hand.demo.api.controller.v1;
 import com.hand.demo.api.dto.InvCountHeaderDTO;
 import com.hand.demo.api.dto.ValidateHeaderSave;
 import com.hand.demo.api.dto.ValidateOrderExecute;
+import com.hand.demo.api.dto.ValidateResultSync;
 import io.choerodon.core.domain.Page;
 import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.mybatis.pagehelper.annotation.SortDefault;
@@ -89,6 +90,21 @@ public class InvCountHeaderController extends BaseController {
         return Results.success(invCountHeaders);
     }
 
+    @ApiOperation(value = "Result sync")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @PostMapping("/result-sync")
+    public ResponseEntity<InvCountHeaderDTO> sync (
+            @PathVariable Long organizationId,
+            @RequestBody InvCountHeaderDTO invCountHeader
+    ) {
+        validObject(invCountHeader, ValidateResultSync.class);
+//        SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
+        invCountHeader.setTenantId(organizationId);
+        invCountHeaderService.countResultSync(invCountHeader);
+        return Results.success(invCountHeader);
+    }
+
+
     @ApiOperation(value = "Remove")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @DeleteMapping
@@ -100,6 +116,8 @@ public class InvCountHeaderController extends BaseController {
         invCountHeaderService.checkAndRemove(invCountHeaders);
         return Results.success();
     }
+
+
 
 }
 

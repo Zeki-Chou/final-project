@@ -5,6 +5,7 @@ import java.util.Date;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.hand.demo.api.dto.ValidateHeaderSave;
 import com.hand.demo.api.dto.ValidateOrderExecute;
+import com.hand.demo.api.dto.ValidateResultSync;
 import io.choerodon.mybatis.annotation.ModifyAudit;
 import io.choerodon.mybatis.annotation.VersionAudit;
 import io.choerodon.mybatis.domain.AuditDomain;
@@ -148,7 +149,7 @@ public class InvCountHeader extends AuditDomain {
     private String countMode;
 
     @ApiModelProperty(value = "", required = true)
-    @NotBlank
+    @NotBlank(groups = {ValidateResultSync.class})
     private String countNumber;
 
     @ApiModelProperty(value = "", required = true)
@@ -202,7 +203,7 @@ public class InvCountHeader extends AuditDomain {
     private Object supervisorIds;
 
     @ApiModelProperty(value = "", required = true, hidden = true)
-    @NotNull(groups = {ValidateHeaderSave.class, ValidateOrderExecute.class})
+    @NotNull(groups = {ValidateHeaderSave.class, ValidateOrderExecute.class, ValidateResultSync.class})
     private Long tenantId;
 
     @ApiModelProperty(hidden = true)

@@ -198,7 +198,6 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         InvCountInfoDTO infoDTO = new InvCountInfoDTO();
 
         List<String> allowedCountStatusList = getAllowedCountStatusLovValues();
-
         List<InvCountHeaderDTO> headerInDatabaseDTO = getHeaderDTOsFromDb(headerDTOList);
 
         Map<Long, InvCountHeaderDTO> headerDTOMap = headerDTOList.stream()
@@ -505,10 +504,6 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             updateCountExtras.add(syncMsgExtra);
         }
 
-        if (!updateCountHeaders.isEmpty()) {
-            invCountHeaderRepository.batchUpdateByPrimaryKeySelective(new ArrayList<>(updateCountHeaders));
-        }
-
         if (!updateCountExtras.isEmpty()) {
             invCountExtraRepository.batchUpdateByPrimaryKeySelective(updateCountExtras);
         }
@@ -517,6 +512,11 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         if (!errors.isEmpty()) {
             throw new CommonException(errors.toString());
         }
+
+        if (!updateCountHeaders.isEmpty()) {
+            invCountHeaderRepository.batchUpdateByPrimaryKeySelective(new ArrayList<>(updateCountHeaders));
+        }
+
         return infoDTO;
     }
 
