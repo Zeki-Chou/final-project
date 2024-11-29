@@ -54,7 +54,7 @@ public class InvCountLineServiceImpl implements InvCountLineService {
         List<InvCountLine> updateList = invCountLines.stream().filter(line -> line.getCountLineId() != null).collect(Collectors.toList());
 
         String updateCountHeaderIds = generateStringIds(updateList);
-        List<InvCountHeaderDTO> invCountHeaders;
+        List<InvCountHeader> invCountHeaders;
         if (updateCountHeaderIds.isEmpty()) {
             invCountHeaders = new ArrayList<>();
         } else {

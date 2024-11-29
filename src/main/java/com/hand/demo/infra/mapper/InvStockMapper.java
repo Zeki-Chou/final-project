@@ -26,6 +26,6 @@ public interface InvStockMapper extends BaseMapper<InvStock> {
 
     BigDecimal getSumOnHandQty(InvStockDTO invStockDTO);
 
-    List<InvStock> selectStocksByHeaders(List<InvCountHeaderDTO> headers);
+    List<InvStock> selectStocksByHeaders(List<InvCountHeader> headers);
 }
 

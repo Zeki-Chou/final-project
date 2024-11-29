@@ -1,8 +1,7 @@
 package com.hand.demo.infra.repository.impl;
 
-import com.hand.demo.api.dto.InvCountHeaderDTO;
 import com.hand.demo.api.dto.InvStockDTO;
-import org.apache.commons.collections.CollectionUtils;
+import com.hand.demo.domain.entity.InvCountHeader;
 import org.hzero.mybatis.base.impl.BaseRepositoryImpl;
 import org.springframework.stereotype.Component;
 import com.hand.demo.domain.entity.InvStock;
@@ -11,7 +10,6 @@ import com.hand.demo.infra.mapper.InvStockMapper;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -47,7 +45,7 @@ public class InvStockRepositoryImpl extends BaseRepositoryImpl<InvStock> impleme
     }
 
     @Override
-    public List<InvStock> selectStocksByHeaders(List<InvCountHeaderDTO> headers) {
+    public List<InvStock> selectStocksByHeaders(List<InvCountHeader> headers) {
         return invStockMapper.selectStocksByHeaders(headers);
     }
 

@@ -101,11 +101,10 @@ public class InvCountHeaderController extends BaseController {
         SecurityTokenHelper.validToken(invCountHeaders);
         InvCountInfoDTO countInfoDTO = invCountHeaderService.checkAndRemove(invCountHeaders);
         if (countInfoDTO.getErrSize() > 0) {
-            throw new CommonException(JSON.toJSONString(countInfoDTO));
+            return Results.error(countInfoDTO);
         }
-
-        List<InvCountHeader> headerList = new ArrayList<>(invCountHeaders);
-        invCountHeaderRepository.batchDeleteByPrimaryKey(headerList);
+        List<InvCountHeader> headers = new ArrayList<>(invCountHeaders);
+        invCountHeaderRepository.batchDeleteByPrimaryKey(headers);
         return Results.success();
     }
 

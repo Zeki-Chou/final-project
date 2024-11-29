@@ -2,6 +2,7 @@ package com.hand.demo.domain.repository;
 
 import com.hand.demo.api.dto.InvCountHeaderDTO;
 import com.hand.demo.api.dto.InvStockDTO;
+import com.hand.demo.domain.entity.InvCountHeader;
 import org.hzero.mybatis.base.BaseRepository;
 import com.hand.demo.domain.entity.InvStock;
 
@@ -33,5 +34,5 @@ public interface InvStockRepository extends BaseRepository<InvStock> {
 
     BigDecimal getSumOnHandQty(InvStockDTO invStockDTO);
 
-    List<InvStock> selectStocksByHeaders(List<InvCountHeaderDTO> headers);
+    List<InvStock> selectStocksByHeaders(List<InvCountHeader> headers);
 }

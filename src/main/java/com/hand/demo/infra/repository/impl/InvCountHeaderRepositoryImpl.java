@@ -18,7 +18,7 @@ import java.util.List;
  * @since 2024-11-25 08:19:18
  */
 @Component
-public class InvCountHeaderRepositoryImpl extends BaseRepositoryImpl<InvCountHeaderDTO> implements InvCountHeaderRepository {
+public class InvCountHeaderRepositoryImpl extends BaseRepositoryImpl<InvCountHeader> implements InvCountHeaderRepository {
     @Resource
     private InvCountHeaderMapper invCountHeaderMapper;
 
