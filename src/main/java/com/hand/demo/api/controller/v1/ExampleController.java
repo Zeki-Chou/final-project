@@ -51,7 +51,7 @@ public class ExampleController extends BaseController {
     @Permission(level = ResourceLevel.SITE, permissionLogin = true)
     @GetMapping("/test")
     public ResponseEntity<String> test() {
-        String workflowFlag = profileClient.getProfileValueByOptions(0L, null, null,"FEXAM95.INV.COUNTING.ISWORKFLO");
+        String workflowFlag = profileClient.getProfileValueByOptions(0L, null, null,"FEXAM55.INV.COUNTING.ISWORKFLO");
         return Results.success(workflowFlag);
     }
 }

@@ -3,11 +3,11 @@ package com.hand.demo.api.dto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.hand.demo.domain.entity.InvCountHeader;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.hzero.boot.workflow.dto.RunTaskHistory;
 import org.hzero.core.cache.Cacheable;
 
 import java.util.ArrayList;
@@ -42,11 +42,17 @@ public class InvCountHeaderDTO extends InvCountHeader implements Cacheable {
     private Integer isWMSwarehouse;
 
     @ApiModelProperty(hidden = true)
-    private List<InvCountLineDTO> invCountLineDTOList;
+    private List<InvCountLineDTO> countOrderLineList;
+
+    @ApiModelProperty(hidden = true)
+    private Long employeeNumber;
 
     @ApiModelProperty(hidden = true)
     private String errorMsg;
 
     @ApiModelProperty(hidden = true)
     private String status;
+
+    @ApiModelProperty(hidden = true)
+    private List<RunTaskHistory> approvalHistory;
 }

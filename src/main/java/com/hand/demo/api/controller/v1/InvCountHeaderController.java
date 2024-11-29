@@ -1,9 +1,6 @@
 package com.hand.demo.api.controller.v1;
 
-import com.hand.demo.api.dto.InvCountHeaderDTO;
-import com.hand.demo.api.dto.ValidateHeaderSave;
-import com.hand.demo.api.dto.ValidateOrderExecute;
-import com.hand.demo.api.dto.ValidateResultSync;
+import com.hand.demo.api.dto.*;
 import io.choerodon.core.domain.Page;
 import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.mybatis.pagehelper.annotation.SortDefault;
@@ -104,6 +101,19 @@ public class InvCountHeaderController extends BaseController {
         return Results.success(invCountHeader);
     }
 
+    @ApiOperation(value = "Count sync wms")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @PostMapping("/count-sync-wms")
+    public ResponseEntity<InvCountInfoDTO> syncWMS (
+            @PathVariable Long organizationId,
+            @RequestBody List<InvCountHeaderDTO> headerDTOList
+    ) {
+//        validObject(invCountHeader, ValidateResultSync.class);
+//        SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
+        headerDTOList.forEach(invCountHeader -> invCountHeader.setTenantId(organizationId));
+
+        return Results.success(invCountHeaderService.countSyncWms(headerDTOList));
+    }
 
     @ApiOperation(value = "Remove")
     @Permission(level = ResourceLevel.ORGANIZATION)

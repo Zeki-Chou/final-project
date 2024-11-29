@@ -139,5 +139,55 @@
         SELECT MAX(line_number)
         FROM fexam_inv_count_line
     </select>
+
+    <resultMap id="InvLineDTOMap" type="com.hand.demo.api.dto.InvCountLineDTO">
+        <result column="material_code" property="itemCode"/>
+        <result column="material_name" property="itemName"/>
+        <result column="base_unit_code" property="baseUnitCode"/>
+        <result column="batch_code" property="batchCode"/>
+        <result column="counters" property="counters"/>
+    </resultMap>
+
+    <select id="selectCountingDetails" resultMap="InvLineDTOMap">
+        SELECT
+        <include refid = "BaseSql"/>,
+            fim.material_code,
+            fim.material_name,
+            fim.base_unit_code,
+            fib.batch_code,
+            group_concat(iu.real_name SEPARATOR ', ') AS counters
+        FROM fexam_inv_count_line ficl
+        LEFT JOIN fexam_inv_material fim
+            ON ficl.material_id = fim.material_id
+        LEFT JOIN fexam_inv_batch fib
+            ON ficl.batch_id = fib.batch_id
+        LEFT JOIN hzero_platform.iam_user iu
+            ON find_in_set(iu.id, ficl.counter_ids)
+        WHERE ficl.count_header_id = #{countHeaderId}
+        GROUP BY
+        ficl.count_line_id,
+        ficl.attribute_category,
+        ficl.batch_id,
+        ficl.count_header_id,
+        ficl.counter_ids,
+        ficl.line_number,
+        ficl.material_id,
+        ficl.remark,
+        ficl.snapshot_unit_qty,
+        ficl.tenant_id,
+        ficl.unit_code,
+        ficl.unit_diff_qty,
+        ficl.unit_qty,
+        ficl.warehouse_id,
+        ficl.creation_date,
+        ficl.created_by,
+        ficl.last_updated_by,
+        ficl.last_update_date,
+        ficl.object_version_number,
+        fim.material_code,
+        fim.material_name,
+        fim.base_unit_code,
+        fib.batch_code
+    </select>
 </mapper>
 

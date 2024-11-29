@@ -1,7 +1,6 @@
 package com.hand.demo.infra.repository.impl;
 
 import com.hand.demo.api.dto.InvCountLineDTO;
-import org.apache.commons.collections.CollectionUtils;
 import org.hzero.mybatis.base.impl.BaseRepositoryImpl;
 import org.springframework.stereotype.Component;
 import com.hand.demo.domain.entity.InvCountLine;
@@ -41,6 +40,11 @@ public class InvCountLineRepositoryImpl extends BaseRepositoryImpl<InvCountLine>
     @Override
     public Long getCurrentLineNumber() {
         return invCountLineMapper.getCurrentLineNumber();
+    }
+
+    @Override
+    public List<InvCountLineDTO> selectCountingDetails(Long countHeaderId) {
+        return invCountLineMapper.selectCountingDetails(countHeaderId);
     }
 
 }

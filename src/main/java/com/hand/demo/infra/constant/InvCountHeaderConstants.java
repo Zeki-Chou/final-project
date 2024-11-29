@@ -1,10 +1,14 @@
 package com.hand.demo.infra.constant;
 
+import io.choerodon.core.oauth.DetailsHelper;
+
 import java.util.Arrays;
 import java.util.List;
 
 public class InvCountHeaderConstants {
     private InvCountHeaderConstants() {}
+    public static final Long EMPLOYEE_ID = 47355L;
+
     public static final String INV_COUNT_HEADER_COUNT_STATUS = "INV.COUNTING.COUNT_STATUS";
     public static final String INV_COUNT_HEADER_COUNT_DIMENSION = "INV.COUNTING.COUNT_DIMENSION";
     public static final String INV_COUNT_HEADER_COUNT_TYPE = "INV.COUNTING.COUNT_TYPE";
@@ -29,4 +33,8 @@ public class InvCountHeaderConstants {
     public static final String EXTERNAL_WMS_SERVICE_SERVER_CODE = "FEXAM_WMS";
 
     public static final String EXTERNAL_WMS_SERVICE_INTERFACE_CODE = "fexam-wms-api.thirdAddCounting";
+
+    public static final String WORKFLOW_PROFILE_CLIENT = "FEXAM55.INV.COUNTING.ISWORKFLO";
+
+    public static final String FLOW_KEY = "INV_COUNT55_RESULT_SUBMIT";
 }

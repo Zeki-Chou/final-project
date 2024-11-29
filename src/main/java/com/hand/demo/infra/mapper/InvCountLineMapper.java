@@ -1,5 +1,6 @@
 package com.hand.demo.infra.mapper;
 
+import com.hand.demo.api.dto.CountingDetailInfo;
 import com.hand.demo.api.dto.InvCountLineDTO;
 import io.choerodon.mybatis.common.BaseMapper;
 import com.hand.demo.domain.entity.InvCountLine;
@@ -22,5 +23,7 @@ public interface InvCountLineMapper extends BaseMapper<InvCountLine> {
     List<InvCountLineDTO> selectList(InvCountLineDTO invCountLine);
 
     Long getCurrentLineNumber();
+
+    List<InvCountLineDTO> selectCountingDetails(Long countHeaderId);
 }
 

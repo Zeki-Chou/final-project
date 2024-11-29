@@ -49,5 +49,7 @@ public interface InvCountHeaderService {
     InvCountInfoDTO countSyncWms(List<InvCountHeaderDTO> countSyncWms);
 
     InvCountHeaderDTO countResultSync(InvCountHeaderDTO countHeaderDTO);
+
+    List<InvCountHeaderDTO> countingOrderReportDs(List<InvCountHeaderDTO> headerDTOList);
 }
 
