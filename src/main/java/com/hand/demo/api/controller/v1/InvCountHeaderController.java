@@ -3,6 +3,7 @@ package com.hand.demo.api.controller.v1;
 import com.alibaba.fastjson.JSON;
 import com.hand.demo.api.dto.InvCountHeaderDTO;
 import com.hand.demo.api.dto.InvCountInfoDTO;
+import com.hand.demo.api.dto.InvCountLineDTO;
 import com.hand.demo.domain.entity.InvWarehouse;
 import com.hand.demo.domain.repository.InvWarehouseRepository;
 import com.hand.demo.infra.constant.Constants;
@@ -134,6 +135,13 @@ public class InvCountHeaderController extends BaseController {
     @PostMapping("/test-execute")
     public ResponseEntity<List<InvCountHeaderDTO>> testOrderExecute(@RequestBody List<InvCountHeaderDTO> invCountHeaders) {
         return Results.success(invCountHeaderService.execute(invCountHeaders));
+    }
+
+    @ApiOperation(value = "Test Execute Check")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @GetMapping("/test-execute")
+    public ResponseEntity<InvCountInfoDTO> testExecuteCheck(@RequestBody List<InvCountHeaderDTO> invCountHeaders) {
+        return Results.success(invCountHeaderService.executeCheck(invCountHeaders));
     }
 
 
