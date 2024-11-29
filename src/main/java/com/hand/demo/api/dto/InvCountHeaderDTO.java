@@ -43,4 +43,10 @@ public class InvCountHeaderDTO extends InvCountHeader implements Cacheable {
 
     @ApiModelProperty(hidden = true)
     private List<InvCountLineDTO> invCountLineDTOList;
+
+    @ApiModelProperty(hidden = true)
+    private String errorMsg;
+
+    @ApiModelProperty(hidden = true)
+    private String status;
 }

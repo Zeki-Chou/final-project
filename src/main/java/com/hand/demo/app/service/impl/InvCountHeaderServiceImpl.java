@@ -520,6 +520,35 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         return infoDTO;
     }
 
+    @Override
+    public InvCountHeaderDTO countResultSync(InvCountHeaderDTO countHeaderDTO) {
+        InvWarehouse warehouse = invWarehouseRepository.selectByPrimary(countHeaderDTO.getWarehouseId());
+
+        if (!warehouse.getIsWmsWarehouse().equals(1)) {
+            countHeaderDTO.setErrorMsg("The current warehouse is not a WMS warehouse, operations are not allowed");
+            countHeaderDTO.setStatus("E");
+            return countHeaderDTO;
+        }
+
+        Set<Long> lineIdsFromInput = countHeaderDTO.getInvCountLineDTOList()
+                .stream()
+                .map(InvCountLineDTO::getCountLineId)
+                .collect(Collectors.toSet());
+        Set<Long> lineIdsFromDB = invCountLineRepository.select(InvCountLineDTO.FIELD_COUNT_HEADER_ID, countHeaderDTO.getCountHeaderId())
+                .stream()
+                .map(InvCountLine::getCountLineId)
+                .collect(Collectors.toSet());
+
+        if (lineIdsFromInput.size() != lineIdsFromDB.size() || !lineIdsFromInput.equals(lineIdsFromDB)) {
+            countHeaderDTO.setErrorMsg("The counting order line data is inconsistent with the INV system, please check the data");
+            countHeaderDTO.setStatus("E");
+            return countHeaderDTO;
+        }
+
+        invCountLineService.saveData(countHeaderDTO.getInvCountLineDTOList());
+        return countHeaderDTO;
+    }
+
     private ResponsePayloadDTO callWmsApiPushCountOrder(InvCountHeaderDTO header) {
         RequestPayloadDTO requestPayloadDTO = new RequestPayloadDTO();
         requestPayloadDTO.setPayload(JSON.toJSONString(header));
