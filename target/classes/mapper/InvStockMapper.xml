@@ -40,7 +40,7 @@
 
     <select id="getTotalQuantity" resultType="java.math.BigDecimal">
         SELECT SUM(fis.unit_quantity) AS total_quantity
-        FROM stock fis
+        from fexam_inv_stock fis
         WHERE 1=1
         <if test="tenantId != null">
             AND fis.tenant_id = #{tenantId}
@@ -76,7 +76,7 @@
 
     <select id="getQuantities" resultType="java.math.BigDecimal">
         SELECT fis.unit_quantity
-        FROM stock fis
+        FROM fexam_inv_stock fis
         WHERE 1=1
         <if test="tenantId != null">
             AND fis.tenant_id = #{tenantId}
@@ -188,7 +188,8 @@
     </select>
 
     <select id = "getListForQuantity" resultType = "com.hand.demo.domain.entity.InvStock">
-            <include refid="BaseSql"/>
+        select
+        <include refid="BaseSql"/>
             <if test="dimension != null">
                 , SUM(fis.unit_quantity) AS unit_quantity
             </if>
@@ -242,11 +243,11 @@
                     #{batchId}
                 </foreach>
             </if>
-            <if test="dimension != 'LOT'">-->
-                GROUP BY fis.material_id
+            <if test="dimension != 'LOT'">
+                GROUP BY fis.material_id, fis.stock_id
             </if>
-            <if test="dimension == 'LOT'">-->
-                GROUP BY fis.material_id, fis.batch_id
+            <if test="dimension == 'LOT'">
+                GROUP BY fis.material_id, fis.batch_id, fis.stock_id
             </if>
         </where>
     </select>

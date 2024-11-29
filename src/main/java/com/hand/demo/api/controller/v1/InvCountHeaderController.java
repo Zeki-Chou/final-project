@@ -68,16 +68,30 @@ public class InvCountHeaderController extends BaseController {
     @ApiOperation(value = "Save Header Exam")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping
-    public ResponseEntity<List<InvCountHeaderDTO>> save(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeaders) {
+    public ResponseEntity<List<InvCountHeaderDTO>> orderExecution(@PathVariable Long organizationId,
+                                                                  @RequestBody List<InvCountHeaderDTO> invCountHeaders) {
         validObject(invCountHeaders);
         SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
         invCountHeaders.forEach(item -> item.setTenantId(organizationId));
-        InvCountInfoDTO invCountInfoDTO = invCountHeaderService.manualSaveCheck(invCountHeaders);
-        if (!invCountInfoDTO.getErrMsg().isEmpty()) {
-            throw new CommonException(JSON.toJSONString(invCountInfoDTO.getListErrMsg()));
+        InvCountInfoDTO invCountInfoSaveVerif = invCountHeaderService.manualSaveCheck(invCountHeaders);
+        if (!invCountInfoSaveVerif.getErrMsg().isEmpty()) {
+            throw new CommonException(JSON.toJSONString(invCountInfoSaveVerif.getListErrMsg()));
         }
-        List<InvCountHeaderDTO> dtos =  invCountHeaderService.manualSave(invCountHeaders);
-        return Results.success(dtos);
+        List<InvCountHeaderDTO> manualSaveDTO =  invCountHeaderService.manualSave(invCountHeaders);
+
+        InvCountInfoDTO invCountExecuteVerif = invCountHeaderService.executeCheck(manualSaveDTO);
+        if (!invCountExecuteVerif.getErrMsg().isEmpty()) {
+            throw new CommonException(JSON.toJSONString(invCountExecuteVerif.getErrMsg()));
+        }
+
+        List<InvCountHeaderDTO> executeDTO =  invCountHeaderService.execute(manualSaveDTO);
+
+        InvCountInfoDTO countSyncWms = invCountHeaderService.countSyncWms(executeDTO);
+        if (!countSyncWms.getErrMsg().isEmpty()) {
+            throw new CommonException(JSON.toJSONString(invCountExecuteVerif.getListErrMsg()));
+        }
+
+        return Results.success(executeDTO);
     }
 
     @ApiOperation(value = "Remove Header Exam")
@@ -93,6 +107,5 @@ public class InvCountHeaderController extends BaseController {
         invCountHeaderRepository.batchDeleteByPrimaryKey(headers);
         return Results.success();
     }
-
 }
 

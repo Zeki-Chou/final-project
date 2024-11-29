@@ -27,6 +27,6 @@ public interface InvStockMapper extends BaseMapper<InvStock> {
 
     List<BigDecimal> getQuantities(InvCountHeaderDTO invCountHeaderDTO);
 
-    List<InvStock> getListForQuantity(InvCountHeaderDTO invCountHeaderDTO);
+    List<InvStock> getListForQuantity(InvStockDTO invStockDTO);
 }
 

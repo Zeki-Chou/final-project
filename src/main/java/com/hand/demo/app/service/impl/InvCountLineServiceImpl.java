@@ -51,7 +51,7 @@ public class InvCountLineServiceImpl implements InvCountLineService {
         });
 
         invCountLineRepository.batchInsertSelective(insertList);
-        updateState(updateList);
+//        updateState(updateList);
         invCountLineRepository.batchUpdateByPrimaryKeySelective(updateList);
     }
 

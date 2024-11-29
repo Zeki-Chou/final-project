@@ -39,5 +39,11 @@ public interface InvCountHeaderService {
     InvCountInfoDTO checkAndRemove(List<InvCountHeaderDTO> invCountHeaderDTOS);
 
     InvCountHeaderDTO detail(Long id);
+
+    InvCountInfoDTO executeCheck(List<InvCountHeaderDTO> invCountHeaderDTOS);
+
+    List<InvCountHeaderDTO> execute(List<InvCountHeaderDTO> invCountHeaderDTOS);
+
+    InvCountInfoDTO countSyncWms(List<InvCountHeaderDTO> invCountHeaderDTOS);
 }
 

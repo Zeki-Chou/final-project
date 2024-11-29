@@ -11,7 +11,7 @@ import java.util.List;
 @Getter
 @Setter
 public class InvStockDTO extends InvStock {
-    List<InvMaterial> snapshotMaterialList;
-    List<InvBatch> snapshotBatchList;
+    List<Long> snapshotMaterialList;
+    List<Long> snapshotBatchList;
     String dimension;
 }

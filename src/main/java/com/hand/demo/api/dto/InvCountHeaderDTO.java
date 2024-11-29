@@ -32,4 +32,5 @@ public class InvCountHeaderDTO extends InvCountHeader implements Cacheable {
     private String serverCode;
     private String interfaceCode;
     private String employeeNumber;
+    private String status;
 }
