@@ -36,4 +36,6 @@ public interface InvCountHeaderService {
     List<InvCountHeaderDTO> countingOrderExecute(List<InvCountHeaderDTO> invCountHeaderDTOList);
     InvCountInfoDTO countingOrderSynchronizeWMS(List<InvCountHeaderDTO> invCountHeaderDTOList);
     InvCountHeaderDTO countingResultSynchronous(InvCountHeaderDTO invCountHeaderDTO);
+    InvCountInfoDTO countingOrderSaveVerification (List<InvCountHeaderDTO> invCountHeadersDTO);
+    InvCountInfoDTO countingOrderExecuteVerification(List<InvCountHeaderDTO> invCountHeaderDTOList);
 }

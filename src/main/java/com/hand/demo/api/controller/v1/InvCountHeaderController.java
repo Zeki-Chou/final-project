@@ -57,16 +57,29 @@ public class InvCountHeaderController extends BaseController {
     public ResponseEntity<List<InvCountHeaderDTO>> execute(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeadersDTO) {
         validObject(invCountHeadersDTO);
         SecurityTokenHelper.validTokenIgnoreInsert(invCountHeadersDTO);
-
         invCountHeadersDTO.forEach(item -> item.setTenantId(organizationId));
 
-        InvCountInfoDTO invCountInfoDTO = invCountHeaderService.countingOrderSynchronizeWMS(invCountHeadersDTO);
+//      countingOrderSaveVerification
+        InvCountInfoDTO invCountInfoDTO = invCountHeaderService.countingOrderSaveVerification(invCountHeadersDTO);
         if(invCountInfoDTO.getErrorMessage() != null && invCountInfoDTO.getErrorMessage().size() > 0) {
             throw new CommonException(JSON.toJSONString(invCountInfoDTO));
         }
 
-        List<InvCountHeaderDTO> invCountHeaderDTOList = invCountHeaderService.countingOrderExecute(invCountHeadersDTO);
-        return Results.success(invCountHeaderDTOList);
+//      Counting order save
+        invCountHeaderService.countingOrderSave(invCountHeadersDTO);
+
+//      Counting order execute verification
+        InvCountInfoDTO invCountInfoDTOExecute = invCountHeaderService.countingOrderExecuteVerification(invCountHeadersDTO);
+        if(invCountInfoDTO.getErrorMessage() != null && invCountInfoDTO.getErrorMessage().size() > 0) {
+            throw new CommonException(JSON.toJSONString(invCountInfoDTO));
+        }
+
+//      Counting order execute
+        invCountHeaderService.countingOrderExecute(invCountHeadersDTO);
+
+//      Counting order synchronization
+        invCountHeaderService.countingOrderSynchronizeWMS(invCountHeadersDTO);
+        return Results.success(invCountHeadersDTO);
     }
 
     @ApiOperation(value = "orderSave")
@@ -76,8 +89,16 @@ public class InvCountHeaderController extends BaseController {
         validObject(invCountHeadersDTO);
         SecurityTokenHelper.validTokenIgnoreInsert(invCountHeadersDTO);
         invCountHeadersDTO.forEach(item -> item.setTenantId(organizationId));
+
+//      countingOrderSaveVerification
+        InvCountInfoDTO invCountInfoDTO = invCountHeaderService.countingOrderSaveVerification(invCountHeadersDTO);
+        if(invCountInfoDTO.getErrorMessage() != null && invCountInfoDTO.getErrorMessage().size() > 0) {
+            throw new CommonException(JSON.toJSONString(invCountInfoDTO));
+        }
+
+        invCountInfoDTO.setErrorMessage(null);
+//      countingOrderSave
         List<InvCountHeaderDTO> invCountHeaderDTOList = invCountHeaderService.countingOrderSave(invCountHeadersDTO);
-        InvCountInfoDTO invCountInfoDTO = new InvCountInfoDTO();
         invCountInfoDTO.setInvCountHeaderDTOList(invCountHeaderDTOList);
         return Results.success(invCountInfoDTO);
     }
@@ -100,8 +121,8 @@ public class InvCountHeaderController extends BaseController {
     @ApiOperation(value = "countResultSync")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping("/resultSync")
-    public ResponseEntity<InvCountHeaderDTO> resultSync(@PathVariable Long organizationId, InvCountHeaderDTO invCountHeaderDTO) {
-        SecurityTokenHelper.validToken(invCountHeaderDTO);
+    public ResponseEntity<InvCountHeaderDTO> resultSync(@PathVariable Long organizationId, @RequestBody InvCountHeaderDTO invCountHeaderDTO) {
+//        SecurityTokenHelper.validToken(invCountHeaderDTO);
         return Results.success(invCountHeaderService.countingResultSynchronous(invCountHeaderDTO));
     }
 }

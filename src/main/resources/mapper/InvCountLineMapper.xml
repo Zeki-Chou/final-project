@@ -2,7 +2,6 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.hand.demo.infra.mapper.InvCountLineMapper">
 
-
     <sql id = "BaseSql">
         ficl.count_line_id,
         ficl.attribute1,
@@ -40,7 +39,7 @@
         ficl.object_version_number
     </sql>
 
-    <select id = "selectList" resultType = "com.hand.demo.domain.entity.InvCountLine">
+    <select id = "selectList" resultType = "com.hand.demo.api.controller.v1.DTO.InvCountLineDTO">
         select
         <include refid = "BaseSql"/>
         from fexam_inv_count_line ficl

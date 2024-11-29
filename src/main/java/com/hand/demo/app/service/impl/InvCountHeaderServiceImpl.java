@@ -387,7 +387,12 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     }
 
     public InvCountHeaderDTO countingResultSynchronous(InvCountHeaderDTO invCountHeaderDTO) {
-        InvWarehouse invWarehouse = invWarehouseRepository.selectByPrimary(invCountHeaderDTO.getWarehouseId());
+        InvCountHeader invCountHeaderDb = invCountHeaderRepository.selectByPrimary(invCountHeaderDTO.getCountHeaderId());
+
+        JSONObject jsonObject = new JSONObject(iamRemoteService.selectSelf().getBody());
+        Long userId = jsonObject.getLong("id");
+
+        InvWarehouse invWarehouse = invWarehouseRepository.selectByPrimary(invCountHeaderDb.getWarehouseId());
         List<String> errorMsg = new ArrayList<>();
         if (invWarehouse == null || !Integer.valueOf(1).equals(invWarehouse.getIsWmsWarehouse())) {
             errorMsg.add("The current warehouse is not a WMS warehouse, operations are not allowed");
@@ -535,7 +540,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         return invCountHeaderDTOListNew;
     }
 
-    public InvCountInfoDTO executeCheck(List<InvCountHeaderDTO> invCountHeaderDTOList) {
+    public InvCountInfoDTO countingOrderExecuteVerification(List<InvCountHeaderDTO> invCountHeaderDTOList) {
 // create invCountHeader map db by id
         List<Long> headerIds = invCountHeaderDTOList.stream().map(InvCountHeaderDTO::getCountHeaderId).collect(Collectors.toList());
         String joinHeaderId = String.join(",", headerIds.stream()
@@ -654,11 +659,11 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     }
 
     public List<InvCountHeaderDTO> countingOrderExecute(List<InvCountHeaderDTO> invCountHeaders) {
-        //      validation data
-        InvCountInfoDTO invCountInfoDTO = executeCheck(invCountHeaders);
-        if(invCountInfoDTO.getErrorMessage() != null && invCountInfoDTO.getErrorMessage().size() > 0) {
-            throw new CommonException(JSON.toJSONString(invCountInfoDTO));
-        }
+//        //      validation data
+//        InvCountInfoDTO invCountInfoDTO = executeCheck(invCountHeaders);
+//        if(invCountInfoDTO.getErrorMessage() != null && invCountInfoDTO.getErrorMessage().size() > 0) {
+//            throw new CommonException(JSON.toJSONString(invCountInfoDTO));
+//        }
 
         // create invCountHeader map db by id
         List<Long> headerIds = invCountHeaders.stream().map(InvCountHeaderDTO::getCountHeaderId).collect(Collectors.toList());
@@ -675,7 +680,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             InvCountHeader invCountHeaderNew = new InvCountHeader();
             invCountHeaderNew.setCountHeaderId(invCountHeader.getCountHeaderId());
             invCountHeaderNew.setCountStatus("INCOUNTING");
-            invCountHeaderNew.setObjectVersionNumber(invCountHeader.getObjectVersionNumber());
+            invCountHeaderNew.setObjectVersionNumber(invCountHeader.getObjectVersionNumber() + 1);
             invCountHeaderUpdateList.add(invCountHeaderNew);
 
             InvCountHeader invCountHeaderDb = invCountHeaderMap.get(invCountHeader.getCountHeaderId());
@@ -718,7 +723,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                 invCountLine.setBatchId(invStock.getBatchId());
                 invCountLine.setUnitCode(invStock.getUnitCode());
                 invCountLine.setSnapshotUnitQty(invStock.getSnapshotUnitQty());
-                invCountLine.setCounterIds(invCountHeaderDb.getCounterIds());
+                invCountLine.setCounterIds(invCountHeader.getCounterIds());
 
                 invCountLineInsertList.add(invCountLine);
                 i++;
@@ -730,7 +735,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         return invCountHeaders;
     }
 
-    public InvCountInfoDTO dataValidation (List<InvCountHeaderDTO> invCountHeadersDTO) {
+    public InvCountInfoDTO countingOrderSaveVerification (List<InvCountHeaderDTO> invCountHeadersDTO) {
         InvCountInfoDTO invCountInfoDTO = new InvCountInfoDTO();
         List<String> errorMessage = new ArrayList<>();
         List<String> statusValidation1 = new ArrayList<>();
@@ -831,12 +836,12 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
     @Override
     public List<InvCountHeaderDTO> countingOrderSave(List<InvCountHeaderDTO> invCountHeadersDTO) {
-//      validation data
-        InvCountInfoDTO invCountInfoDTO = dataValidation(invCountHeadersDTO);
-
-        if(invCountInfoDTO.getErrorMessage() != null && invCountInfoDTO.getErrorMessage().size() > 0) {
-            throw new CommonException(JSON.toJSONString(invCountInfoDTO));
-        }
+////      validation data
+//        InvCountInfoDTO invCountInfoDTO = countingOrderSaveVerification(invCountHeadersDTO);
+//
+//        if(invCountInfoDTO.getErrorMessage() != null && invCountInfoDTO.getErrorMessage().size() > 0) {
+//            throw new CommonException(JSON.toJSONString(invCountInfoDTO));
+//        }
 
 //      update
         List<InvCountHeaderDTO> updateList = invCountHeadersDTO.stream().filter(line -> line.getCountHeaderId() != null).collect(Collectors.toList());
