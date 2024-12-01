@@ -43,8 +43,8 @@ public class InvCountLineRepositoryImpl extends BaseRepositoryImpl<InvCountLine>
     }
 
     @Override
-    public List<InvCountLineDTO> selectCountingDetails(Long countHeaderId) {
-        return invCountLineMapper.selectCountingDetails(countHeaderId);
+    public List<InvCountLineDTO> selectCountingDetails(List<Long> countHeaderIds) {
+        return invCountLineMapper.selectCountingDetails(countHeaderIds);
     }
 
 }

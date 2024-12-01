@@ -139,25 +139,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             }
         }
 
-
-        List<InvCountLineDTO> linesToSave = new ArrayList<>();
         invCountHeaderRepository.batchInsertSelective(new ArrayList<>(insertList));
-        invCountHeaders.forEach(header -> {
-            List<InvCountLineDTO> invCountLines = header.getCountOrderLineList();
-            if (invCountLines != null && !invCountLines.isEmpty()) {
-                invCountLines.forEach(line -> {
-                    line.setCountHeaderId(header.getCountHeaderId());
-                    line.setCounterIds(header.getCounterIds());
-                    linesToSave.add(line);
-                });
-            }
-        });
-
-        if (!linesToSave.isEmpty()) {
-            invCountLineService.saveData(linesToSave);
-        }
-
-//        invCountHeaderRepository.batchUpdateByPrimaryKeySelective(new ArrayList<>(updateList));
     }
 
     @Override
@@ -404,11 +386,9 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         for(InvCountHeaderDTO headerDTO : headerInDatabaseDTO) {
             if (!InvCountHeaderConstants.HEADER_COUNT_DESIRED_SUBMISSION_STATUSES.contains(headerDTO.getCountStatus())) {
                 setErrorCountInfoError(headerDTO, infoDTO, "The operation is allowed only when the status in in counting, processing, rejected, withdrawn.");
-            }
-            if (!isSupervisor(parseCommaSeperatedIds(headerDTO.getSupervisorIds().toString()))) {
+            } else if (!isSupervisor(parseCommaSeperatedIds(headerDTO.getSupervisorIds().toString()))) {
                 setErrorCountInfoError(headerDTO, infoDTO, "Only the current login user is the supervisor can submit document.");
-            }
-            if (unitQtys.contains(null)) {
+            } else if (unitQtys.contains(null)) {
                 setErrorCountInfoError(headerDTO, infoDTO, "There are data rows with empty count quantity. Please check the data.");
             }
             InvCountLine line = lineByHeaderId.get(headerDTO.getCountHeaderId());
@@ -423,16 +403,47 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
     @Override
     public List<InvCountHeaderDTO> submit(List<InvCountHeaderDTO> headerDTOList) {
-        String workflowFlag = profileClient.getProfileValueByOptions(DetailsHelper.getUserDetails().getTenantId(), null, null,InvCountHeaderConstants.WORKFLOW_PROFILE_CLIENT);
-        WorkFlowEventDTO workFlowEventDTO = new WorkFlowEventDTO();
-        if (workflowFlag.equals("1")) {
-//            workflowClient.startInstanceByFlowKey(
-//
-//            )
-        } else {
+        List<InvCountHeaderDTO> headerDTOsFromDB = getHeaderDTOsFromDb(headerDTOList).stream().filter(Objects::nonNull).collect(Collectors.toList());
 
+        // get department ids from each header
+        String departmentIds = headerDTOsFromDB.stream()
+                .map(InvCountHeaderDTO::getDepartmentId)
+                .map(String::valueOf)
+                .distinct()
+                .collect(Collectors.joining(","));
+
+        // get list of departments of the corresponding headers
+        List<IamDepartment> departmentList = iamDepartmentRepository.selectByIds(departmentIds);
+
+        // Group department code by department Id
+        Map<Long, String> departmentCodeById = departmentList.stream().collect(Collectors.toMap(IamDepartment::getDepartmentId, IamDepartment::getDepartmentCode));
+
+        String workflowFlag = profileClient.getProfileValueByOptions(DetailsHelper.getUserDetails().getTenantId(), null, null,InvCountHeaderConstants.WORKFLOW_PROFILE_CLIENT);
+
+        List<InvCountHeaderDTO> headersToUpdate = new ArrayList<>();
+
+        for(InvCountHeaderDTO headerDTO : headerDTOsFromDB) {
+            if (workflowFlag.equals("1")) {
+                Map<String, Object> paramMap = new HashMap<>();
+                paramMap.put(InvCountHeaderConstants.DEPARTMENT_CODE, departmentCodeById.get(headerDTO.getDepartmentId()));
+                workflowClient.startInstanceByFlowKey(
+                        headerDTO.getTenantId(),
+                        InvCountHeaderConstants.FLOW_KEY,
+                        headerDTO.getCountNumber(),
+                        InvCountHeaderConstants.DIMENSION,
+                        InvCountHeaderConstants.EMPLOYEE_ID.toString(),
+                        paramMap
+                );
+            } else {
+                headerDTO.setCountStatus(InvCountHeaderConstants.COUNT_STATUS_CONFIRMED);
+                headersToUpdate.add(headerDTO);
+            }
         }
-        return Collections.emptyList();
+
+        if (!headersToUpdate.isEmpty()) {
+            invCountHeaderRepository.batchUpdateOptional(new ArrayList<>(headersToUpdate), InvCountHeaderDTO.FIELD_COUNT_STATUS);
+        }
+        return headerDTOList;
     }
 
     @Override
@@ -585,13 +596,6 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                     return headerDTO;
                 }).collect(Collectors.toList());
 
-        // Get all lines for all headers
-        List<InvCountLineDTO> allLines = getLinesByHeaderIds(headerIdsLong);
-
-        // Group lines by header ID
-        Map<Long, List<InvCountLineDTO>> linesByHeaderId = allLines.stream()
-                .collect(Collectors.groupingBy(InvCountLineDTO::getCountHeaderId));
-
         // Get all snapshot materials
         String allSnapshotMaterialIds = invCountHeaderDTOs.stream()
                 .map(header -> header.getSnapshotMaterialIds().toString())
@@ -616,8 +620,14 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                         .setBatchCode(batch.getBatchCode()))
                 .collect(Collectors.toList());
 
-        // Get warehouses for all headers
+        // Group warehouses by ID: {warehouseId: InvWarehouse}
         Map<Long, InvWarehouse> invWarehouseById = getWarehouseMappedById(invCountHeaderDTOs);
+
+        // Get all headers lines
+        List<InvCountLineDTO> lineDTOList = invCountLineRepository.selectCountingDetails(new ArrayList<>(headerIdsLong));
+
+        // Group lines by header ID's: {headerId: [InvCountLineDTO1, InvCountLineDTO2, ...]
+        Map<Long, List<InvCountLineDTO>> linesByHeaderId = lineDTOList.stream().collect(Collectors.groupingBy(InvCountLineDTO::getCountHeaderId));
 
         // Process each header
         return invCountHeaderDTOs.stream()
@@ -661,7 +671,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     }
 
     private List<CounterDTO> getCounters(String counterIds) {
-        List<String> ids = Arrays.asList(counterIds.split(","));
+        List<String> ids = Arrays.stream(counterIds.split(",")).map(String::trim).collect(Collectors.toList());
         return ids.stream().map(id -> new CounterDTO().setId(Long.parseLong(id))).collect(Collectors.toList());
     }
 

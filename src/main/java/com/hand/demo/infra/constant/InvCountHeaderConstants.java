@@ -9,6 +9,7 @@ public class InvCountHeaderConstants {
     private InvCountHeaderConstants() {}
     public static final Long EMPLOYEE_ID = 47355L;
 
+    // LOV
     public static final String INV_COUNT_HEADER_COUNT_STATUS = "INV.COUNTING.COUNT_STATUS";
     public static final String INV_COUNT_HEADER_COUNT_DIMENSION = "INV.COUNTING.COUNT_DIMENSION";
     public static final String INV_COUNT_HEADER_COUNT_TYPE = "INV.COUNTING.COUNT_TYPE";
@@ -23,6 +24,8 @@ public class InvCountHeaderConstants {
 
     public static final String COUNT_STATUS_REJECTED = "REJECTED";
 
+    public static final String COUNT_STATUS_CONFIRMED = "CONFIRMED";
+
     public static final String COUNT_NUMBER_CODE_RULE = "INV.COUNTING61.COUNT_NUMBER";
 
     public static final String WMS_SYNC_PROGRAM_KEY_STATUS = "wms_sync_status";
@@ -34,7 +37,12 @@ public class InvCountHeaderConstants {
 
     public static final String EXTERNAL_WMS_SERVICE_INTERFACE_CODE = "fexam-wms-api.thirdAddCounting";
 
+    // Submit Workflow
     public static final String WORKFLOW_PROFILE_CLIENT = "FEXAM55.INV.COUNTING.ISWORKFLO";
 
     public static final String FLOW_KEY = "INV_COUNT55_RESULT_SUBMIT";
+
+    public static final String DIMENSION = "EMPLOYEE";
+
+    public static final String DEPARTMENT_CODE = "departmentCode";
 }

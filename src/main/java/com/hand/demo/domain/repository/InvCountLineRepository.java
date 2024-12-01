@@ -31,5 +31,5 @@ public interface InvCountLineRepository extends BaseRepository<InvCountLine> {
 
     Long getCurrentLineNumber();
 
-    List<InvCountLineDTO> selectCountingDetails(Long countHeaderId);
+    List<InvCountLineDTO> selectCountingDetails(List<Long> countHeaderIds);
 }

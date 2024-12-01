@@ -163,7 +163,14 @@
             ON ficl.batch_id = fib.batch_id
         LEFT JOIN hzero_platform.iam_user iu
             ON find_in_set(iu.id, ficl.counter_ids)
-        WHERE ficl.count_header_id = #{countHeaderId}
+        <where>
+            <if test="countHeaderIds != null and countHeaderIds.size > 0">
+                count_header_id IN
+                <foreach collection="countHeaderIds" item="headerId" open="(" separator="," close=")">
+                    #{headerId}
+                </foreach>
+            </if>
+        </where>
         GROUP BY
         ficl.count_line_id,
         ficl.attribute_category,

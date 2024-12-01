@@ -115,6 +115,20 @@ public class InvCountHeaderController extends BaseController {
         return Results.success(invCountHeaderService.countSyncWms(headerDTOList));
     }
 
+    @ApiOperation(value = "Counting Order Report")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @PostMapping("/report")
+    public ResponseEntity<List<InvCountHeaderDTO>> report (
+            @PathVariable Long organizationId,
+            @RequestBody List<InvCountHeaderDTO> headerDTOList
+    ) {
+//        validObject(invCountHeader, ValidateResultSync.class);
+//        SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
+        headerDTOList.forEach(invCountHeader -> invCountHeader.setTenantId(organizationId));
+
+        return Results.success(invCountHeaderService.countingOrderReportDs(headerDTOList));
+    }
+
     @ApiOperation(value = "Remove")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @DeleteMapping
