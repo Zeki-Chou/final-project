@@ -1,10 +1,10 @@
 package com.hand.demo.app.service.impl;
 
-import com.hand.demo.api.dto.InvCountHeaderDTO;
 import com.hand.demo.api.dto.InvCountLineDTO;
 import com.hand.demo.domain.entity.InvCountHeader;
 import com.hand.demo.domain.repository.InvCountHeaderRepository;
-import com.hand.demo.infra.enums.Enums;
+import com.hand.demo.infra.constant.Constants;
+import com.hand.demo.infra.enums.HeaderStatus;
 import com.hand.demo.infra.util.Utils;
 import io.choerodon.core.domain.Page;
 import io.choerodon.mybatis.pagehelper.PageHelper;
@@ -48,40 +48,49 @@ public class InvCountLineServiceImpl implements InvCountLineService {
     @Override
     public void saveData(List<InvCountLineDTO> invCountLines) {
         JSONObject iamJSON = Utils.getIamJSONObject(iamRemoteService);
-        Long userId = iamJSON.getLong("id");
+        Long userId = iamJSON.getLong(Constants.Iam.FIELD_ID);
 
         List<InvCountLine> insertList = invCountLines.stream().filter(line -> line.getCountLineId() == null).collect(Collectors.toList());
         List<InvCountLine> updateList = invCountLines.stream().filter(line -> line.getCountLineId() != null).collect(Collectors.toList());
 
-        String updateCountHeaderIds = generateStringIds(updateList);
-        List<InvCountHeader> invCountHeaders;
-        if (updateCountHeaderIds.isEmpty()) {
-            invCountHeaders = new ArrayList<>();
-        } else {
-            invCountHeaders = invCountHeaderRepository.selectByIds(updateCountHeaderIds);
+        List<Long> headerIdList = updateList.stream().map(InvCountLine::getCountHeaderId).collect(Collectors.toList());
+        List<Long> updateLineIdList = updateList.stream().map(InvCountLine::getCountLineId).collect(Collectors.toList());
+        String updateCountHeaderIds = Utils.generateStringIds(headerIdList);
+        List<InvCountHeader> invCountHeaders = new ArrayList<>();
+        List<InvCountLine> countLinesDB = new ArrayList<>();
+
+        if (!updateList.isEmpty()) {
+            invCountHeaders.addAll(invCountHeaderRepository.selectByIds(updateCountHeaderIds));
+            countLinesDB.addAll(invCountLineRepository.selectByIds(Utils.generateStringIds(updateLineIdList)));
         }
 
         Map<Long, InvCountHeader> invCountHeaderMap = invCountHeaders
                 .stream()
                 .collect(Collectors.toMap(InvCountHeader::getCountHeaderId, Function.identity()));
 
+        Map<Long, InvCountLine> countLinesMapDB = countLinesDB
+                .stream()
+                .collect(Collectors.toMap(InvCountLine::getCountLineId, Function.identity()));
+
         updateList.forEach(line -> {
             InvCountHeader header = invCountHeaderMap.get(line.getCountHeaderId());
-            //check if header status is in counting
-            if (Enums.InvCountHeader.Status.INCOUNTING.name().equals(header.getCountStatus())) {
-                // check if current user is counter
-                if (!Utils.convertStringIdstoList(header.getCounterIds()).contains(userId)) {
+            InvCountLine lineDB = countLinesMapDB.get(line.getCountLineId());
+            List<Long> lineCounterIdsDB = Utils.convertStringIdstoList(lineDB.getCounterIds());
+            List<Long> lineCounterIds = Utils.convertStringIdstoList(line.getCounterIds());
+            boolean validCounterIdsUpdate = lineCounterIds.stream().anyMatch(lineCounterIdsDB::contains);
+
+            // only in counting status can update
+            if (HeaderStatus.INCOUNTING.name().equals(header.getCountStatus())) {
+                if (!lineCounterIdsDB.contains(userId)) { // check if current user is counter listed in counterIDs
                     line.setUnitQty(null);
-                } else {
-                    // calculation of difference between the snapshot qty and unit qty
+                } else { // calculation of difference between the snapshot qty and unit qty
                     BigDecimal unitDiffQty = line.getSnapshotUnitQty().subtract(line.getUnitQty());
                     line.setUnitDiffQty(unitDiffQty);
                 }
 
-                if (!userId.equals(header.getCreatedBy())) {
+                if (!validCounterIdsUpdate && userId.equals(header.getCreatedBy())) { // document creator can only modify counter id within the line counter ids
                     line.setCounterIds(null);
                 }
-
             } else {
                 line.setUnitQty(null);
                 line.setUnitDiffQty(null);
@@ -92,15 +101,6 @@ public class InvCountLineServiceImpl implements InvCountLineService {
 
         invCountLineRepository.batchInsertSelective(insertList);
         invCountLineRepository.batchUpdateByPrimaryKeySelective(updateList);
-    }
-
-    private String generateStringIds(List<InvCountLine> invCountLines) {
-        Set<String> headerIds = invCountLines
-                .stream()
-                .map(line -> String.valueOf(line.getCountHeaderId()))
-                .collect(Collectors.toSet());
-
-        return String.join(",", headerIds);
     }
 }
 

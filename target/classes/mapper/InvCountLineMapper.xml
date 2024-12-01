@@ -140,9 +140,12 @@
         <include refid = "BaseSql"/>
         from fexam_inv_count_line ficl
         <where>
-            <foreach collection="headerIds" item="headerId" open="count_header_id in (" close=")">
-                #{headerId}
-            </foreach>
+            <!--    add the if condition        -->
+            <if test="headerIds != null and headerIds.size() > 0">
+                <foreach collection="headerIds" item="headerId" open="count_header_id in (" close=")" separator=",">
+                    #{headerId}
+                </foreach>
+            </if>
         </where>
     </select>
 

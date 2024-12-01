@@ -31,7 +31,7 @@ public class Constants {
 
         public static final String ERR_INVALID_WMS = "The current warehouse is not a WMS warehouse, operations are not allowed";
         public static final String ERR_COUNT_LINE_INCONSISTENT = "The counting order line data is inconsistent with the INV system, please check the data";
-
+        public static final String SUCCESS_MSG = "Successfully syncing the data into local";
     }
 
     public static class CodeBuilder {
@@ -63,6 +63,12 @@ public class Constants {
         public static final String CODE_RULE = "INV.COUNTING59.COUNT_NUMBER";
 
         public static final String COUNTING_WORKFLOW = "FEXAM55.INV.COUNTING.ISWORKFLO";
+    }
+
+    public static class InvWarehouse {
+        private InvWarehouse() {}
+
+        public static final String WAREHOUSE_NOT_FOUND = "warehouse not found";
     }
 
     public static class InvCountExtra {

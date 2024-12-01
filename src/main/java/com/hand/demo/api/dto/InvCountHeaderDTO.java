@@ -10,21 +10,35 @@ import java.util.List;
 
 @Data
 public class InvCountHeaderDTO extends InvCountHeader implements Cacheable {
-    List<InvCountLine> invCountLineList;
-    String errorMessage;
-    String status;
+    @ApiModelProperty(hidden = true)
+    private List<InvCountLine> invCountLineList;
+
+    @ApiModelProperty(hidden = true)
+    private String errorMessage;
+
+    @ApiModelProperty(hidden = true)
+    private String status;
 
     @ApiModelProperty(value = "Type String, pass user id, support single, not multi")
-    String supervisor;
+    private String supervisor;
 
-    List<UserInfoDTO> counterList;
-    List<UserInfoDTO> supervisorList;
-    List<MaterialInfoDTO> snapshotMaterialList;
-    List<BatchInfoDTO> snapshotBatchList;
-    List<InvCountLineDTO> countOrderLineList;
+    @ApiModelProperty(hidden = true)
+    private List<UserInfoDTO> counterList;
 
-    Integer isWmsWarehouse;
+    @ApiModelProperty(hidden = true)
+    private List<UserInfoDTO> supervisorList;
 
-    //temp
-    String token;
+    @ApiModelProperty(hidden = true)
+    private List<MaterialInfoDTO> snapshotMaterialList;
+
+    @ApiModelProperty(hidden = true)
+    private List<BatchInfoDTO> snapshotBatchList;
+
+    @ApiModelProperty(hidden = true)
+    private List<InvCountLineDTO> countOrderLineList;
+
+    @ApiModelProperty(hidden = true)
+    private Integer isWmsWarehouse;
+
+    private String token; // temp
 }

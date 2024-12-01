@@ -1,32 +1,20 @@
 package com.hand.demo.api.controller.v1;
 
-import com.alibaba.fastjson.JSON;
 import com.hand.demo.api.dto.InvCountHeaderDTO;
 import com.hand.demo.api.dto.InvCountInfoDTO;
-import com.hand.demo.api.dto.InvCountLineDTO;
-import com.hand.demo.domain.entity.InvWarehouse;
-import com.hand.demo.domain.repository.InvWarehouseRepository;
-import com.hand.demo.infra.constant.Constants;
-import com.hand.demo.infra.enums.Enums;
+import com.hand.demo.infra.state.ExecuteState;
 import com.hand.demo.infra.state.InitState;
-import com.hand.demo.infra.util.Utils;
 import io.choerodon.core.domain.Page;
-import io.choerodon.core.exception.CommonException;
 import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.mybatis.pagehelper.annotation.SortDefault;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 import io.choerodon.mybatis.pagehelper.domain.Sort;
 import io.choerodon.swagger.annotation.Permission;
 import io.swagger.annotations.ApiOperation;
-import org.hzero.boot.apaas.common.userinfo.infra.feign.IamRemoteService;
-import org.hzero.boot.platform.lov.adapter.LovAdapter;
-import org.hzero.boot.platform.lov.dto.LovValueDTO;
-import org.hzero.core.base.BaseConstants;
 import org.hzero.core.base.BaseController;
 import org.hzero.core.cache.ProcessCacheValue;
 import org.hzero.core.util.Results;
 import org.hzero.mybatis.helper.SecurityTokenHelper;
-import org.json.JSONObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.hand.demo.app.service.InvCountHeaderService;
@@ -35,9 +23,7 @@ import com.hand.demo.domain.repository.InvCountHeaderRepository;
 import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * (InvCountHeader)表控制层
@@ -112,8 +98,32 @@ public class InvCountHeaderController extends BaseController {
     @ApiOperation(value = "counting order execute")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping("/execute")
-    public ResponseEntity<List<InvCountHeaderDTO>> orderExecution(@RequestBody List<InvCountHeaderDTO> invCountHeaders) {
-        return Results.success();
+    public ResponseEntity<?> orderExecution(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeaders) {
+        invCountHeaders.forEach(header -> validObject(invCountHeaders, ExecuteState.class));
+        SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
+        invCountHeaders.forEach(item -> item.setTenantId(organizationId));
+
+        InvCountInfoDTO saveInvCountInfoDTO = invCountHeaderService.manualSaveCheck(invCountHeaders);
+        if (saveInvCountInfoDTO.getErrSize() > 0) {
+            return Results.error(saveInvCountInfoDTO);
+        }
+
+        List<InvCountHeaderDTO> invCountHeaderDTOS = saveInvCountInfoDTO.getValidHeaderDTOS();
+        List<InvCountHeaderDTO> saveResult = invCountHeaderService.manualSave(invCountHeaderDTOS);
+
+        InvCountInfoDTO executeInvCountInfoDTO = invCountHeaderService.executeCheck(saveResult);
+        if (executeInvCountInfoDTO.getErrSize() > 0) {
+            return Results.error(executeInvCountInfoDTO);
+        }
+
+        return Results.success(invCountHeaderService.execute(executeInvCountInfoDTO.getValidHeaderDTOS()));
+    }
+
+    @ApiOperation(value = "Count order Submit")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @PostMapping("/submit")
+    public ResponseEntity<?> orderSubmit(@RequestBody List<InvCountHeaderDTO> invCountHeaders) {
+        return Results.success(invCountHeaderService.countSyncWms(invCountHeaders));
     }
 
     @ApiOperation(value = "Test WMS sync")
@@ -141,7 +151,15 @@ public class InvCountHeaderController extends BaseController {
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping("/test-execute")
     public ResponseEntity<InvCountInfoDTO> testExecuteCheck(@RequestBody List<InvCountHeaderDTO> invCountHeaders) {
+        invCountHeaders.forEach(header -> validObject(header, ExecuteState.class));
         return Results.success(invCountHeaderService.executeCheck(invCountHeaders));
+    }
+
+    @ApiOperation(value = "Test submit check")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @GetMapping("/test-submit-check")
+    public ResponseEntity<InvCountInfoDTO> testSubmitCheck(@RequestBody List<InvCountHeaderDTO> invCountHeaders) {
+        return Results.success(invCountHeaderService.submitCheck(invCountHeaders));
     }
 
 

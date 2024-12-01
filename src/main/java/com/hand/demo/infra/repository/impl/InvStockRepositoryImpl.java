@@ -40,7 +40,7 @@ public class InvStockRepositoryImpl extends BaseRepositoryImpl<InvStock> impleme
     }
 
     @Override
-    public BigDecimal getSumOnHandQty(InvStockDTO invStockDTO) {
+    public List<BigDecimal> getSumOnHandQty(InvStockDTO invStockDTO) {
         return invStockMapper.getSumOnHandQty(invStockDTO);
     }
 
