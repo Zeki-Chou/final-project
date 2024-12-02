@@ -3,6 +3,7 @@ package com.hand.demo.app.service.impl;
 import com.hand.demo.api.dto.BatchInfoDTO;
 import com.hand.demo.api.dto.MaterialInfoDTO;
 import com.hand.demo.domain.entity.InvMaterial;
+import com.hand.demo.infra.util.Utils;
 import io.choerodon.core.domain.Page;
 import io.choerodon.mybatis.pagehelper.PageHelper;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import com.hand.demo.domain.entity.InvBatch;
 import com.hand.demo.domain.repository.InvBatchRepository;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,6 +47,16 @@ public class InvBatchServiceImpl implements InvBatchService {
                 .stream()
                 .map(this::createNewBatchInfoDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<InvBatch> findBatchesByStringIds(String batchIds) {
+        return invBatchRepository.selectByIds(batchIds);
+    }
+
+    @Override
+    public List<InvBatch> findBatchesByListIds(List<Long> batchIds) {
+        return invBatchRepository.selectByIds(Utils.generateStringIds(batchIds));
     }
 
     private BatchInfoDTO createNewBatchInfoDTO(InvBatch batch) {

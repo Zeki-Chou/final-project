@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import com.hand.demo.domain.entity.InvWarehouse;
 import com.hand.demo.domain.repository.InvWarehouseRepository;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -54,6 +55,16 @@ public class InvWarehouseServiceImpl implements InvWarehouseService {
                 .stream()
                 .map(InvWarehouse::getWarehouseId)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<InvWarehouse> findWarehousesByIds(String warehouseIds) {
+        return invWarehouseRepository.selectByIds(warehouseIds);
+    }
+
+    @Override
+    public List<InvWarehouse> findWarehousesByListIds(List<Long> ids) {
+        return invWarehouseRepository.selectByIds(Utils.generateStringIds(ids));
     }
 
 }

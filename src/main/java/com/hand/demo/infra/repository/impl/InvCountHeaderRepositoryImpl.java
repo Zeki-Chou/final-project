@@ -9,6 +9,7 @@ import com.hand.demo.domain.repository.InvCountHeaderRepository;
 import com.hand.demo.infra.mapper.InvCountHeaderMapper;
 
 import javax.annotation.Resource;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -36,6 +37,11 @@ public class InvCountHeaderRepositoryImpl extends BaseRepositoryImpl<InvCountHea
             return null;
         }
         return invCountHeaders.get(0);
+    }
+
+    @Override
+    public List<InvCountHeaderDTO> selectHeaderReport(InvCountHeaderDTO invCountHeader) {
+        return invCountHeaderMapper.selectHeaderReport(invCountHeader);
     }
 }
 

@@ -143,7 +143,7 @@ public class InvCountHeaderController extends BaseController {
     @ApiOperation(value = "Count order approval callback")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PutMapping("/approval-callback")
-    public ResponseEntity<InvCountHeaderDTO> orderApprovalCallback(@RequestBody WorkFlowEventDTO workFlowEventDTO) {
+    public ResponseEntity<InvCountHeaderDTO> orderApprovalCallback(@RequestBody WorkFlowEventDTO workFlowEventDTO, @PathVariable Long organizationId) {
         return Results.success(invCountHeaderService.updateApprovalCallback(workFlowEventDTO));
     }
 
@@ -159,6 +159,13 @@ public class InvCountHeaderController extends BaseController {
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PutMapping("/result-sync")
     public ResponseEntity<InvCountHeaderDTO> countResultSync(@RequestBody InvCountHeaderDTO invCountHeader) {
+        return Results.success(invCountHeaderService.countResultSync(invCountHeader));
+    }
+
+    @ApiOperation(value = "Count order report")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @PutMapping("/report-data")
+    public ResponseEntity<InvCountHeaderDTO> countReportData(@RequestBody InvCountHeaderDTO invCountHeader) {
         return Results.success(invCountHeaderService.countResultSync(invCountHeader));
     }
 

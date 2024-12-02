@@ -38,5 +38,9 @@ public interface InvBatchService {
      * @return
      */
     List<BatchInfoDTO> convertBatchIdsToList(String batchIds);
+
+    List<InvBatch> findBatchesByStringIds(String batchIds);
+
+    List<InvBatch> findBatchesByListIds(List<Long> batchIds);
 }
 

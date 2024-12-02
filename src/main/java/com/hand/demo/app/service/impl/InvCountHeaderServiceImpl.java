@@ -25,6 +25,7 @@ import org.hzero.boot.platform.lov.adapter.LovAdapter;
 import org.hzero.boot.platform.lov.dto.LovValueDTO;
 import org.hzero.boot.platform.profile.ProfileClient;
 import org.hzero.boot.workflow.WorkflowClient;
+import org.hzero.boot.workflow.dto.RunInstance;
 import org.hzero.core.base.BaseConstants;
 import org.json.JSONObject;
 import org.springframework.beans.BeanUtils;
@@ -69,7 +70,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     public Page<InvCountHeaderDTO> selectList(PageRequest pageRequest, InvCountHeaderDTO invCountHeader) {
 
         Page<InvCountHeaderDTO> countHeaderDTOS = PageHelper.doPageAndSort(pageRequest, () -> invCountHeaderRepository.selectList(invCountHeader));
-        Map<Long, List<InvCountLineDTO>> lineMap = findCountLines(countHeaderDTOS);
+        Map<Long, List<InvCountLineDTO>> lineMap = findCountLines(countHeaderDTOS.getContent());
         countHeaderDTOS.forEach(header -> {
             List<InvCountLineDTO> lineDTOList = lineMap.getOrDefault(header.getCountHeaderId(), new ArrayList<>());
             header.setCountOrderLineList(lineDTOList);
@@ -330,9 +331,9 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
             List<Long> headerCounterIds = Utils.convertStringIdstoList(invCountHeaderDTO.getCounterIds());
             List<Long> supervisorIds = Utils.convertStringIdstoList(invCountHeaderDTO.getSupervisorIds());
-            List<Long> headerAndSupervisorIds = new ArrayList<>();
-            headerAndSupervisorIds.addAll(headerCounterIds);
-            headerAndSupervisorIds.addAll(supervisorIds);
+            List<Long> counterAndSupervisorIds = new ArrayList<>();
+            counterAndSupervisorIds.addAll(headerCounterIds);
+            counterAndSupervisorIds.addAll(supervisorIds);
 
             String headerStatus = invCountHeaderDTO.getCountStatus();
             Long headerWarehouseId = invCountHeaderDTO.getWarehouseId();
@@ -345,7 +346,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             } else if (validManualUpdateStatus.contains(headerStatus)) {
                 if (warehouseWMSIds.contains(headerWarehouseId) && !supervisorIds.contains(userId)) {
                     invCountHeaderDTO.setErrorMessage(Constants.InvCountHeader.WAREHOUSE_SUPERVISOR_INVALID);
-                } else if (headerAndSupervisorIds.contains(userId) && !userId.equals(documentCreatorId)) {
+                } else if (counterAndSupervisorIds.contains(userId) && !userId.equals(documentCreatorId)) {
                     invCountHeaderDTO.setErrorMessage(Constants.InvCountHeader.ACCESS_UPDATE_STATUS_INVALID);
                 }
             }
@@ -582,7 +583,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
         List<InvCountHeader> updateList = new ArrayList<>();
         List<Long> departmentIds = invoiceHeaders.stream().map(InvCountHeader::getDepartmentId).collect(Collectors.toList());
-        List<IamDepartment> departmentCodeList = iamDepartmentRepository.selectByIds(Utils.generateStringIds(departmentIds));
+        List<IamDepartment> departmentCodeList = iamDepartmentService.findDepartmentsByStringIds(Utils.generateStringIds(departmentIds));
         Map<Long, String> departmentCodeMap = departmentCodeList.stream().collect(Collectors.toMap(IamDepartment::getDepartmentId, IamDepartment::getDepartmentCode));
 
         // Determine whether to start workflow
@@ -637,6 +638,42 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         workflowClient.flowWithdrawFlowKey(organizationId, Constants.Workflow.FLOW_KEY, dto.getBusinessKey());
     }
 
+    @Override
+    public List<InvCountHeaderDTO> countingOrderReportDs(InvCountHeaderDTO countHeader) {
+        List<InvCountHeaderDTO> countHeaderDTOS = invCountHeaderRepository.selectList(countHeader);
+        Map<Long, List<InvCountLineDTO>> lineMap = findCountLines(countHeaderDTOS);
+        countHeaderDTOS.forEach(header -> {
+            List<InvCountLineDTO> lineDTOList = lineMap.getOrDefault(header.getCountHeaderId(), new ArrayList<>());
+            header.setCountOrderLineList(lineDTOList);
+        });
+
+        List<Long> materialIds = new ArrayList<>();
+        List<Long> departmentIds = new ArrayList<>();
+        List<Long> warehouseIds = new ArrayList<>();
+        List<Long> batchIds = new ArrayList<>();
+
+        countHeaderDTOS.forEach(header -> {
+            materialIds.addAll(Utils.convertStringIdstoList(header.getSnapshotMaterialIds()));
+            departmentIds.add(header.getDepartmentId());
+            warehouseIds.add(header.getWarehouseId());
+            batchIds.addAll(Utils.convertStringIdstoList(header.getSnapshotBatchIds()));
+        });
+
+        List<InvMaterial> materials = invMaterialService.findMaterialsByListIds(materialIds);
+        List<IamDepartment> departments = iamDepartmentService.findDepartmentsByListIds(departmentIds);
+        List<InvWarehouse> warehouses = invWarehouseService.findWarehousesByListIds(warehouseIds);
+        List<InvBatch> batches = invBatchService.findBatchesByListIds(batchIds);
+
+        // key: warehouse value: warehousecode
+        Map<Long, String> warehouseMap = warehouses.stream().collect(Collectors.toMap(InvWarehouse::getWarehouseId, InvWarehouse::getWarehouseCode));
+        Map<Long, String> departmentMap = departments.stream().collect(Collectors.toMap(IamDepartment::getDepartmentId, IamDepartment::getDepartmentCode));
+
+        // TODO probably best to make a mapper for select List
+
+        return null;
+
+    }
+
     private Map<Long, List<InvCountLineDTO>> findCountLines(List<InvCountHeaderDTO> headers) {
         List<Long> headerIds = headers.stream().map(InvCountHeader::getCountHeaderId).collect(Collectors.toList());
         return invCountLineRepository.selectByCountHeaderIds(headerIds)
@@ -667,13 +704,9 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         return codeRuleBuilder.generateCode(Constants.InvCountHeader.CODE_RULE, variableMap);
     }
 
-    private UserInfoDTO createNewUserInfoDTO(Long id) {
-        return new UserInfoDTO(id);
-    }
-
     private List<UserInfoDTO> convertUserIdToList(String userIds) {
         return Arrays.stream(userIds.split(","))
-                .map(id -> createNewUserInfoDTO(Long.valueOf(id)))
+                .map(id -> new UserInfoDTO(Long.valueOf(id)))
                 .collect(Collectors.toList());
     }
 

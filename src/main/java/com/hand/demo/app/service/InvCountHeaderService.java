@@ -95,5 +95,6 @@ public interface InvCountHeaderService {
 
     void withdrawWorkflow(Long organizationId, WorkFlowEventDTO dto);
 
+    List<InvCountHeaderDTO> countingOrderReportDs(InvCountHeaderDTO countHeader);
 }
 

@@ -40,5 +40,23 @@ public class InvCountHeaderDTO extends InvCountHeader implements Cacheable {
     @ApiModelProperty(hidden = true)
     private Integer isWmsWarehouse;
 
+    @ApiModelProperty(hidden = true)
+    private String countDimensionMeaning;
+
+    @ApiModelProperty(hidden = true)
+    private String countTypeMeaning;
+
+    @ApiModelProperty(hidden = true)
+    private String countStatusMeaning;
+
+    @ApiModelProperty(hidden = true)
+    private String creatorName;
+
+    @ApiModelProperty(hidden = true)
+    private String warehouseCode;
+
+    @ApiModelProperty(hidden = true)
+    private String departmentCode;
+
     private String token; // temp
 }

@@ -32,5 +32,7 @@ public interface InvMaterialService {
     void saveData(List<InvMaterial> invMaterials);
 
     List<MaterialInfoDTO> convertMaterialIdsToList(String materialIds);
+
+    List<InvMaterial> findMaterialsByListIds(List<Long> ids);
 }
 

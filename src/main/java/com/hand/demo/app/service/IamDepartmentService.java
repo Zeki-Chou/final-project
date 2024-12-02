@@ -31,5 +31,9 @@ public interface IamDepartmentService {
     void saveData(List<IamDepartment> iamDepartments);
 
     List<Long> findByIds(List<Long> ids);
+
+    List<IamDepartment> findDepartmentsByStringIds(String departmentIds);
+
+    List<IamDepartment> findDepartmentsByListIds(List<Long> ids);
 }
 

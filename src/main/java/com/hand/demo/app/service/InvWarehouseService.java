@@ -33,5 +33,9 @@ public interface InvWarehouseService {
     List<Long> findByIds(List<Long> ids);
 
     List<Long> getWMSWarehouseIds();
+
+    List<InvWarehouse> findWarehousesByIds(String warehouseIds);
+
+    List<InvWarehouse> findWarehousesByListIds(List<Long> ids);
 }
 

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import com.hand.demo.domain.entity.IamDepartment;
 import com.hand.demo.domain.repository.IamDepartmentRepository;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,6 +43,16 @@ public class IamDepartmentServiceImpl implements IamDepartmentService {
         String departmentIds = Utils.generateStringIds(ids);
         List<IamDepartment> departments = iamDepartmentRepository.selectByIds(departmentIds);
         return departments.stream().map(IamDepartment::getDepartmentId).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<IamDepartment> findDepartmentsByStringIds(String departmentIds) {
+        return iamDepartmentRepository.selectByIds(departmentIds);
+    }
+
+    @Override
+    public List<IamDepartment> findDepartmentsByListIds(List<Long> ids) {
+        return iamDepartmentRepository.selectByIds(Utils.generateStringIds(ids));
     }
 }
 

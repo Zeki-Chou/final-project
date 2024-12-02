@@ -148,6 +148,14 @@
         </where>
     </select>
 
+    <select id="selectLineReport">
+        select
+        <include refid = "BaseSql"/>
+        ,
+        from fexam_inv_count_line ficl
+
+    </select>
+
     <select id="selectHighestLineNumber" resultType="java.lang.Integer">
         select max(line_number)
         from fexam_inv_count_line ficl

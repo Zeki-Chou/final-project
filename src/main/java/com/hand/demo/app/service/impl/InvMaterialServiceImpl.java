@@ -1,10 +1,10 @@
 package com.hand.demo.app.service.impl;
 
 import com.hand.demo.api.dto.MaterialInfoDTO;
+import com.hand.demo.infra.util.Utils;
 import io.choerodon.core.domain.Page;
 import io.choerodon.mybatis.pagehelper.PageHelper;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
-import org.springframework.beans.factory.annotation.Autowired;
 import com.hand.demo.app.service.InvMaterialService;
 import org.springframework.stereotype.Service;
 import com.hand.demo.domain.entity.InvMaterial;
@@ -47,6 +47,11 @@ public class InvMaterialServiceImpl implements InvMaterialService {
                 .stream()
                 .map(this::createNewMaterialInfoDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<InvMaterial> findMaterialsByListIds(List<Long> ids) {
+        return invMaterialRepository.selectByIds(Utils.generateStringIds(ids));
     }
 
     private MaterialInfoDTO createNewMaterialInfoDTO(InvMaterial material) {
