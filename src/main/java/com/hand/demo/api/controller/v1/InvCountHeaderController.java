@@ -129,9 +129,17 @@ public class InvCountHeaderController extends BaseController {
 
     @ApiOperation(value = "Count order approval callback")
     @Permission(level = ResourceLevel.ORGANIZATION)
-    @PostMapping("/approval-callback")
-    public ResponseEntity<?> orderApprovalCallback(@RequestBody WorkFlowEventDTO workFlowEventDTO) {
-        return Results.success(invCountHeaderService.);
+    @PutMapping("/approval-callback")
+    public ResponseEntity<InvCountHeaderDTO> orderApprovalCallback(@RequestBody WorkFlowEventDTO workFlowEventDTO) {
+        return Results.success(invCountHeaderService.updateApprovalCallback(workFlowEventDTO));
+    }
+
+    @ApiOperation(value = "Count order withdraw callback")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @PutMapping("/withdraw-callback")
+    public ResponseEntity<InvCountHeaderDTO> orderWithdrawCallback(@RequestBody WorkFlowEventDTO workFlowEventDTO, @PathVariable Long organizationId) {
+        invCountHeaderService.withdrawWorkflow(organizationId, workFlowEventDTO);
+        return Results.success();
     }
 
     @ApiOperation(value = "Test WMS sync")

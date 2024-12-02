@@ -600,6 +600,11 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         }
     }
 
+    @Override
+    public void withdrawWorkflow(Long organizationId, WorkFlowEventDTO dto) {
+        workflowClient.flowWithdrawFlowKey(organizationId, Constants.Workflow.FLOW_KEY, dto.getBusinessKey());
+    }
+
     private Map<Long, List<InvCountLineDTO>> findCountLines(List<InvCountHeaderDTO> headers) {
         List<Long> headerIds = headers.stream().map(InvCountHeader::getCountHeaderId).collect(Collectors.toList());
         return invCountLineRepository.selectByCountHeaderIds(headerIds)

@@ -87,6 +87,13 @@ public interface InvCountHeaderService {
      */
     List<InvCountHeaderDTO> submit(List<InvCountHeaderDTO> invoiceHeaders);
 
+    /**
+     * @param workFlowEventDTO
+     * @return
+     */
     InvCountHeaderDTO updateApprovalCallback(WorkFlowEventDTO workFlowEventDTO);
+
+    void withdrawWorkflow(Long organizationId, WorkFlowEventDTO dto);
+
 }
 
