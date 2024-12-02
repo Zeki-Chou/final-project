@@ -14,6 +14,16 @@ public class Constants {
         public static final String FIELD_ID = "id";
     }
 
+    public static class Workflow {
+        private Workflow() {}
+
+        public static final String FLOW_KEY = "INV_COUNT59_RESULT_SUBMIT";
+        public static final String DIMENSION = "EMPLOYEE";
+        public static final String STARTER = "47359";
+
+        public static final String DEPARTMENT_FIELD = "departmentCode";
+    }
+
     public static class ExternalService {
 
         private ExternalService() {}

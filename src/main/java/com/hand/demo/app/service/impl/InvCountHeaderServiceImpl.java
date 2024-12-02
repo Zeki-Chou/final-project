@@ -541,17 +541,36 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     }
 
     @Override
-    public List<InvCountHeaderDTO> submit(List<InvCountHeaderDTO> invCountHeaderList) {
-        //TODO: Get configuration file value
-        String workflowFlag = profileClient.getProfileValueByOptions(BaseConstants.DEFAULT_TENANT_ID, 2280L, 2L,Constants.InvCountHeader.COUNTING_WORKFLOW);
-        //TODO: Determine whether to start workflow
-        if (!workflowFlag.isEmpty() && Long.valueOf(workflowFlag).equals(1L)) {
-//            workflowClient.startInstanceByFlowKey();
-        } else {
-            //TODO: update document status to confirmed
+    public List<InvCountHeaderDTO> submit(List<InvCountHeaderDTO> invoiceHeaders) {
+        CustomUserDetails userDetails = DetailsHelper.getUserDetails();
+        // Get configuration file value
+        String workflowFlag = profileClient.getProfileValueByOptions(userDetails.getTenantId(), 2280L, 2L,Constants.InvCountHeader.COUNTING_WORKFLOW);
+
+        List<InvCountHeader> updateList = new ArrayList<>();
+
+        // Determine whether to start workflow
+        for (InvCountHeaderDTO header: invoiceHeaders) {
+            Map<String, Object> variableMap = new HashMap<>();
+            variableMap.put(Constants.Workflow.DEPARTMENT_FIELD, header.getDepartmentId());
+
+            if (!workflowFlag.isEmpty() && Integer.valueOf(workflowFlag).equals(BaseConstants.Flag.YES)) {
+                workflowClient.startInstanceByFlowKey(
+                        BaseConstants.DEFAULT_TENANT_ID,
+                        Constants.Workflow.FLOW_KEY,
+                        header.getCountNumber(),
+                        Constants.Workflow.DIMENSION,
+                        Constants.Workflow.STARTER,
+                        variableMap
+                );
+            } else {
+                // update document status to CONFIRMED
+                header.setStatus(HeaderStatus.CONFIRMED.name());
+                updateList.add(header);
+            }
         }
 
-        return Collections.emptyList();
+        List<InvCountHeader> updateRes = invCountHeaderRepository.batchUpdateByPrimaryKeySelective(updateList);
+        return updateRes.stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
     private Map<Long, List<InvCountLineDTO>> findCountLines(List<InvCountHeaderDTO> headers) {
