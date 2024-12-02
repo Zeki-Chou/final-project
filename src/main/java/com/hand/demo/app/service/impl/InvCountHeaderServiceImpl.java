@@ -578,6 +578,28 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         return updateRes.stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
+    @Override
+    public InvCountHeaderDTO updateApprovalCallback(WorkFlowEventDTO workFlowEventDTO) {
+        InvCountHeaderDTO headerRecord = new InvCountHeaderDTO();
+        headerRecord.setCountNumber(workFlowEventDTO.getBusinessKey());
+        List<InvCountHeaderDTO> countHeaderList = invCountHeaderRepository.selectList(headerRecord);
+
+        // don't need if guard because of submitCheck
+        InvCountHeaderDTO dto = countHeaderList.get(0);
+        String status = workFlowEventDTO.getDocStatus();
+        dto.setCountStatus(status);
+        if (HeaderStatus.APPROVED.name().equals(status)) {
+            dto.setApprovedTime(workFlowEventDTO.getApprovedTime());
+        }
+
+        int updated = invCountHeaderRepository.updateByPrimaryKeySelective(dto);
+        if (updated == 1) {
+            return dto;
+        } else {
+            return null;
+        }
+    }
+
     private Map<Long, List<InvCountLineDTO>> findCountLines(List<InvCountHeaderDTO> headers) {
         List<Long> headerIds = headers.stream().map(InvCountHeader::getCountHeaderId).collect(Collectors.toList());
         return invCountLineRepository.selectByCountHeaderIds(headerIds)

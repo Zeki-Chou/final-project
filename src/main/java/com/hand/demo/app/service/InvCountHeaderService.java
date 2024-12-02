@@ -81,6 +81,12 @@ public interface InvCountHeaderService {
      */
     InvCountInfoDTO  submitCheck(List<InvCountHeaderDTO> countHeaders);
 
+    /**
+     * @param invoiceHeaders
+     * @return
+     */
     List<InvCountHeaderDTO> submit(List<InvCountHeaderDTO> invoiceHeaders);
+
+    InvCountHeaderDTO updateApprovalCallback(WorkFlowEventDTO workFlowEventDTO);
 }
 

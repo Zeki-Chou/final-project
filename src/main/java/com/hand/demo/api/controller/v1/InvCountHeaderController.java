@@ -2,6 +2,7 @@ package com.hand.demo.api.controller.v1;
 
 import com.hand.demo.api.dto.InvCountHeaderDTO;
 import com.hand.demo.api.dto.InvCountInfoDTO;
+import com.hand.demo.api.dto.WorkFlowEventDTO;
 import com.hand.demo.infra.state.ExecuteState;
 import com.hand.demo.infra.state.InitState;
 import io.choerodon.core.domain.Page;
@@ -124,6 +125,13 @@ public class InvCountHeaderController extends BaseController {
     @PostMapping("/submit")
     public ResponseEntity<?> orderSubmit(@RequestBody List<InvCountHeaderDTO> invCountHeaders) {
         return Results.success(invCountHeaderService.countSyncWms(invCountHeaders));
+    }
+
+    @ApiOperation(value = "Count order approval callback")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @PostMapping("/approval-callback")
+    public ResponseEntity<?> orderApprovalCallback(@RequestBody WorkFlowEventDTO workFlowEventDTO) {
+        return Results.success(invCountHeaderService.);
     }
 
     @ApiOperation(value = "Test WMS sync")
