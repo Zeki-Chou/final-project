@@ -544,7 +544,12 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     public List<InvCountHeaderDTO> submit(List<InvCountHeaderDTO> invoiceHeaders) {
         CustomUserDetails userDetails = DetailsHelper.getUserDetails();
         // Get configuration file value
-        String workflowFlag = profileClient.getProfileValueByOptions(userDetails.getTenantId(), 2280L, 2L,Constants.InvCountHeader.COUNTING_WORKFLOW);
+        String workflowFlag = profileClient.getProfileValueByOptions(
+                userDetails.getTenantId(),
+                userDetails.getUserId(),
+                userDetails.getRoleId(),
+                Constants.InvCountHeader.COUNTING_WORKFLOW
+        );
 
         List<InvCountHeader> updateList = new ArrayList<>();
 
