@@ -72,7 +72,7 @@ public class Constants {
 
         public static final String CODE_RULE = "INV.COUNTING59.COUNT_NUMBER";
 
-        public static final String COUNTING_WORKFLOW = "FEXAM55.INV.COUNTING.ISWORKFLO";
+        public static final String COUNTING_WORKFLOW = "FEXAM59.INV.COUNTING.ISWORKFLO";
     }
 
     public static class InvWarehouse {
