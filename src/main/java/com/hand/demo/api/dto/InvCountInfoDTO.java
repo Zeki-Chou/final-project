@@ -12,4 +12,5 @@ import java.util.List;
 public class InvCountInfoDTO {
     private List<InvCountHeaderDTO> invalidHeaders;
     private List<InvCountHeaderDTO> validHeaders;
+    private List<String> errorMessages;
 }

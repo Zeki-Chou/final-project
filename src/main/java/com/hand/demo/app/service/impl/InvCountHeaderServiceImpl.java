@@ -1,6 +1,8 @@
 package com.hand.demo.app.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.hand.demo.api.dto.*;
 import com.hand.demo.app.service.InvCountLineService;
 import com.hand.demo.domain.entity.*;
@@ -11,10 +13,14 @@ import io.choerodon.core.exception.CommonException;
 import io.choerodon.core.oauth.DetailsHelper;
 import io.choerodon.mybatis.pagehelper.PageHelper;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
+import org.hzero.boot.interfaces.sdk.dto.RequestPayloadDTO;
+import org.hzero.boot.interfaces.sdk.dto.ResponsePayloadDTO;
+import org.hzero.boot.interfaces.sdk.invoke.InterfaceInvokeSdk;
 import org.hzero.boot.platform.code.builder.CodeRuleBuilder;
 import org.hzero.boot.platform.lov.adapter.LovAdapter;
 import org.hzero.boot.platform.lov.dto.LovValueDTO;
 import org.hzero.core.base.BaseConstants;
+import org.hzero.mybatis.domian.Condition;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.hand.demo.app.service.InvCountHeaderService;
@@ -66,6 +72,12 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
     @Autowired
     private InvStockRepository invStockRepository;
+
+    @Autowired
+    private InvCountExtraRepository invCountExtraRepository;
+
+    @Autowired
+    private InterfaceInvokeSdk interfaceInvokeSdk;
 
     @Override
     public Page<InvCountHeaderDTO> selectList(PageRequest pageRequest, InvCountHeaderDTO invCountHeader) {
@@ -342,18 +354,16 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     private void executeOrder(List<InvCountHeaderDTO> invCountHeaders) {
 
         List<InvStock> stocks = invStockRepository.selectList(new InvStock());
-        Map<String, List<InvStock>> stockMap = new HashMap<>();
-
-        for (InvStock stock : stocks) {
-            long departmentId = (stock.getDepartmentId() != null) ? stock.getDepartmentId() : 0L;
-            String key = (stock.getTenantId() != 0L)
-                    ? stock.getTenantId() + stock.getCompanyId().toString() + departmentId + stock.getWarehouseId().toString() + stock.getMaterialId().toString()
-                    : stock.getCompanyId().toString() + departmentId + stock.getWarehouseId().toString() + stock.getMaterialId().toString();
-            stockMap.computeIfAbsent(key, k -> new ArrayList<>()).add(stock);
-        }
+        Map<String, List<InvStock>> stockMap = stocks.stream()
+                .collect(Collectors.groupingBy(stock -> {
+                    long departmentId = (stock.getDepartmentId() != null) ? stock.getDepartmentId() : 0L;
+                    return (stock.getTenantId() != 0L)
+                            ? stock.getTenantId() + stock.getCompanyId().toString() + departmentId + stock.getWarehouseId().toString() + stock.getMaterialId().toString()
+                            : stock.getCompanyId().toString() + departmentId + stock.getWarehouseId().toString() + stock.getMaterialId().toString();
+                }));
 
         for (InvCountHeaderDTO headerDTO : invCountHeaders) {
-            headerDTO.setCountStatus("INCOUNTING");
+            headerDTO.setCountStatus(Constants.COUNT_INCOUNTING_STATUS);
 
             long tenantId = (headerDTO.getTenantId() != null) ? headerDTO.getTenantId() : 0L;
             String[] materialIds = headerDTO.getSnapshotMaterialIds().split(",");
@@ -363,18 +373,20 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
             List<InvCountLineDTO> lineList = new ArrayList<>();
 
-            if (headerDTO.getCountDimension().equals("SKU")) {
-
+            if (headerDTO.getCountDimension().equals(Constants.COUNT_SKU_DIMENSION)) {
                 for (String materialId : materialIds) {
                     BigDecimal snapUnitQty = BigDecimal.ZERO;
                     String unitCode = "";
                     Long batchId = null;
 
-                    for (InvStock stock : stockMap.get(keyBase + materialId)) {
-                        if (materialId.equals(stock.getMaterialId().toString())) {
-                            snapUnitQty = snapUnitQty.add(stock.getUnitQuantity());
-                            unitCode = stock.getUnitCode();
-                            batchId = stock.getBatchId();
+                    List<InvStock> matchingStocks = stockMap.get(keyBase + materialId);
+                    if (matchingStocks != null) {
+                        for (InvStock stock : matchingStocks) {
+                            if (materialId.equals(stock.getMaterialId().toString())) {
+                                snapUnitQty = snapUnitQty.add(stock.getUnitQuantity());
+                                unitCode = stock.getUnitCode();
+                                batchId = stock.getBatchId();
+                            }
                         }
                     }
 
@@ -390,32 +402,31 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
                     lineList.add(line);
                 }
-            } else if (headerDTO.getCountDimension().equals("LOT")) {
-
+            } else if (headerDTO.getCountDimension().equals(Constants.COUNT_LOT_DIMENSION)) {
                 for (String materialId : materialIds) {
-                    for (InvStock stock : stockMap.get(keyBase + materialId)) {
-                        BigDecimal snapUnitQty = BigDecimal.ZERO;
-                        String unitCode = "";
-
-                        // Process based on batch ID
+                    List<InvStock> matchingStocks = stockMap.get(keyBase + materialId);
+                    if (matchingStocks != null) {
                         for (String batchId : headerDTO.getSnapshotBatchIds().split(",")) {
                             Long batchIdLong = Long.parseLong(batchId);
-                            if (materialId.equals(stock.getMaterialId().toString()) && batchIdLong.equals(stock.getBatchId())) {
-                                snapUnitQty = snapUnitQty.add(stock.getUnitQuantity());
-                                unitCode = stock.getUnitCode();
+                            for (InvStock stock : matchingStocks) {
+                                if (materialId.equals(stock.getMaterialId().toString()) && batchIdLong.equals(stock.getBatchId())) {
+                                    BigDecimal snapUnitQty = BigDecimal.ZERO;
+                                    String unitCode = stock.getUnitCode();
+                                    snapUnitQty = snapUnitQty.add(stock.getUnitQuantity());
+
+                                    InvCountLineDTO line = new InvCountLineDTO();
+                                    line.setTenantId(headerDTO.getTenantId());
+                                    line.setCountHeaderId(headerDTO.getCountHeaderId());
+                                    line.setWarehouseId(headerDTO.getWarehouseId());
+                                    line.setMaterialId(Long.parseLong(materialId));
+                                    line.setUnitCode(unitCode);
+                                    line.setSnapshotUnitQty(snapUnitQty);
+                                    line.setCounterIds(headerDTO.getCounterIds());
+                                    line.setBatchId(batchIdLong);
+
+                                    lineList.add(line);
+                                }
                             }
-
-                            InvCountLineDTO line = new InvCountLineDTO();
-                            line.setTenantId(headerDTO.getTenantId());
-                            line.setCountHeaderId(headerDTO.getCountHeaderId());
-                            line.setWarehouseId(headerDTO.getWarehouseId());
-                            line.setMaterialId(Long.parseLong(materialId));
-                            line.setUnitCode(unitCode);
-                            line.setSnapshotUnitQty(snapUnitQty);
-                            line.setCounterIds(headerDTO.getCounterIds());
-                            line.setBatchId(batchIdLong);
-
-                            lineList.add(line);
                         }
                     }
                 }
@@ -424,7 +435,9 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             headerDTO.setInvCountLineList(lineList);
         }
 
-        invCountHeaderRepository.batchUpdateOptional(new ArrayList<>(invCountHeaders), InvCountHeader.FIELD_COUNT_STATUS);
+        List<InvCountHeader> headerList = new ArrayList<>();
+        invCountHeaderRepository.batchUpdateOptional(headerList, InvCountHeader.FIELD_COUNT_STATUS);
+
         saveLines(invCountHeaders);
     }
 
@@ -516,10 +529,139 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                 }
             }
         }
-        
+
         if (!invalidHeaders.isEmpty()) {
             throw new CommonException("Invalid Count Headers: " + String.join(", ", invalidHeaders));
         }
+    }
+
+    @Override
+    public InvCountInfoDTO countSyncWms(List<InvCountHeaderDTO> invCountHeaderDTOS) {
+
+        List<InvWarehouse> warehouseList = invWarehouseRepository.selectList(new InvWarehouse());
+        Map<Long, InvWarehouse> warehouseMap = warehouseList.stream()
+                .collect(Collectors.toMap(InvWarehouse::getWarehouseId, warehouse -> warehouse));
+
+        List<Long> headerIdList = invCountHeaderDTOS.stream()
+                .map(InvCountHeaderDTO::getCountHeaderId)
+                .collect(Collectors.toList());
+
+        Condition conditionLine = new Condition(InvCountLine.class);
+        Condition.Criteria criteriaLine = conditionLine.createCriteria();
+        criteriaLine.andIn(InvCountLine.FIELD_COUNT_HEADER_ID, headerIdList);
+        List<InvCountLine> lineList = invCountLineRepository.selectByCondition(conditionLine);
+        Map<Long, List<InvCountLine>> lineMap = lineList.stream()
+                .collect(Collectors.groupingBy(InvCountLine::getCountHeaderId));
+
+        Condition conditionExtra = new Condition(InvCountExtra.class);
+        Condition.Criteria criteriaExtra = conditionExtra.createCriteria();
+        criteriaExtra.andEqualTo(InvCountExtra.FIELD_ENABLEDFLAG, 1);
+        List<InvCountExtra> extraList = invCountExtraRepository.selectByCondition(conditionExtra);
+        Map<Long, List<InvCountExtra>> extraMap = extraList.stream()
+                .collect(Collectors.groupingBy(InvCountExtra::getSourceid));
+
+        List<String> errorList = new ArrayList<>();
+        List<InvCountHeaderDTO> updateList = new ArrayList<>();
+        List<InvCountExtra> insertExtraList = new ArrayList<>();
+        List<InvCountExtra> updateExtraList = new ArrayList<>();
+
+        for (InvCountHeaderDTO headerDTO : invCountHeaderDTOS) {
+
+            InvWarehouse warehouse = warehouseMap.get(headerDTO.getWarehouseId());
+            if (warehouse == null) {
+                String errorMsg = "Header Id " + headerDTO.getCountHeaderId() + " error: Warehouse is not Found";
+                errorList.add(errorMsg);
+                continue;
+            }
+
+            List<InvCountExtra> existingExtras = extraMap.getOrDefault(headerDTO.getCountHeaderId(), Collections.emptyList());
+            Map<String, InvCountExtra> mapOldExtras = existingExtras.stream()
+                    .collect(Collectors.toMap(InvCountExtra::getProgramkey, extra -> extra));
+
+            if (CollUtil.isEmpty(mapOldExtras)) {
+                InvCountExtra syncStatusExtra = new InvCountExtra()
+                        .setTenantid(BaseConstants.DEFAULT_TENANT_ID)
+                        .setSourceid(headerDTO.getCountHeaderId())
+                        .setEnabledflag(1)
+                        .setProgramkey(Constants.Extra.PROG_KEY_STATUS);
+
+                InvCountExtra syncMsgExtra = new InvCountExtra()
+                        .setTenantid(BaseConstants.DEFAULT_TENANT_ID)
+                        .setSourceid(headerDTO.getCountHeaderId())
+                        .setEnabledflag(1)
+                        .setProgramkey(Constants.Extra.PROG_KEY_ERR_MSG);
+
+                insertExtraList.add(syncStatusExtra);
+                insertExtraList.add(syncMsgExtra);
+                mapOldExtras.put(syncStatusExtra.getProgramkey(), syncStatusExtra);
+                mapOldExtras.put(syncMsgExtra.getProgramkey(), syncMsgExtra);
+            }
+
+            InvCountExtra syncStatusExtra = mapOldExtras.get(Constants.Extra.PROG_KEY_STATUS);
+            InvCountExtra syncMsgExtra = mapOldExtras.get(Constants.Extra.PROG_KEY_ERR_MSG);
+
+            boolean isWmsWarehouse = warehouse.getIsWmsWarehouse().equals(1);
+            if (isWmsWarehouse) {
+
+                Map<String, Object> wmsParams = new HashMap<>();
+                wmsParams.put("countHeaderId", headerDTO.getCountHeaderId());
+                wmsParams.put("countOrderLineList", lineMap.get(headerDTO.getCountHeaderId()));
+                wmsParams.put("employeeNumber", DetailsHelper.getUserDetails().getUsername());
+
+                // Call invokeWms and pass the headerDTO
+                ResponsePayloadDTO responsePayloadDTO = invokeWms(headerDTO);
+                // Assuming the ResponsePayloadDTO has a getPayload method that returns a JSONObject or a String
+                JSONObject response = JSON.parseObject(responsePayloadDTO.getPayload());
+
+                if ("S".equals(response.getString("returnStatus"))) {
+
+                    syncStatusExtra.setProgramvalue("SUCCESS");
+                    syncMsgExtra.setProgramvalue("");
+                    headerDTO.setRelatedWmsOrderCode(response.getString("code"));
+                } else {
+
+                    syncStatusExtra.setProgramvalue("ERROR");
+                    syncMsgExtra.setProgramvalue(response.getString("returnMsg"));
+                }
+            } else {
+
+                syncStatusExtra.setProgramvalue("SKIP");
+            }
+
+            updateExtraList.add(syncStatusExtra);
+            updateExtraList.add(syncMsgExtra);
+            updateList.add(headerDTO);
+        }
+
+        if (CollUtil.isNotEmpty(insertExtraList)) {
+            invCountExtraRepository.batchInsertSelective(insertExtraList);
+        }
+        if (CollUtil.isNotEmpty(updateExtraList)) {
+            invCountExtraRepository.batchUpdateByPrimaryKeySelective(updateExtraList);
+        }
+
+        if (CollUtil.isNotEmpty(errorList)) {
+            InvCountInfoDTO infoDTO = new InvCountInfoDTO();
+            infoDTO.setErrorMessages(errorList);
+            return infoDTO;
+        }
+
+        if (CollUtil.isNotEmpty(updateList)) {
+            invCountHeaderRepository.batchUpdateByPrimaryKeySelective(new ArrayList<>(updateList));
+        }
+
+        return new InvCountInfoDTO();
+    }
+
+
+
+    private ResponsePayloadDTO invokeWms(InvCountHeaderDTO invCountHeaderDTO) {
+        RequestPayloadDTO requestPayloadDTO = new RequestPayloadDTO();
+        requestPayloadDTO.setPayload(JSON.toJSONString(invCountHeaderDTO));
+        return interfaceInvokeSdk.invoke(Constants.Interface.INTERFACE_NAME_SPACE,
+                Constants.Interface.INTERFACE_SERVER_CODE,
+                Constants.Interface.INTERFACE_CODE,
+                requestPayloadDTO);
     }
 
 }

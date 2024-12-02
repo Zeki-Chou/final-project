@@ -1,6 +1,7 @@
 package com.hand.demo.app.service;
 
 import com.hand.demo.api.dto.InvCountHeaderDTO;
+import com.hand.demo.api.dto.InvCountInfoDTO;
 import io.choerodon.core.domain.Page;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 
@@ -35,5 +36,7 @@ public interface InvCountHeaderService {
     InvCountHeaderDTO detail(Long countHeaderId);
 
     void execute(List<InvCountHeaderDTO> invCountHeaders);
+
+    InvCountInfoDTO countSyncWms(List<InvCountHeaderDTO> invCountHeaderDTOS);
 }
 
