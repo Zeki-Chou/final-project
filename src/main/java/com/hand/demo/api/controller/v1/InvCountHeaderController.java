@@ -142,6 +142,13 @@ public class InvCountHeaderController extends BaseController {
         return Results.success();
     }
 
+    @ApiOperation(value = "Count result sync")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @PostMapping("/result-sync")
+    public ResponseEntity<InvCountHeaderDTO> countResultSync(@RequestBody InvCountHeaderDTO invCountHeader) {
+        return Results.success(invCountHeaderService.countResultSync(invCountHeader));
+    }
+
     @ApiOperation(value = "Test WMS sync")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping("/wms-sync")
