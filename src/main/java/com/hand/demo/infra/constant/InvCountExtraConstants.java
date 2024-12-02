@@ -17,7 +17,7 @@ public class InvCountExtraConstants {
         }
 
         public static class EnabledFlag {
-            public final static Integer DEFAULT = EnabledFlag.ENABLED;
+            public final static Integer DEFAULT = 1;
 
             public final static Integer ENABLED = 1;
 

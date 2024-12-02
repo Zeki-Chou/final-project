@@ -8,18 +8,22 @@ import java.lang.reflect.Field;
 public class Utils {
     private Utils() {}
     public static <T> void populateNullFields(T source, T target) {
-        Field[] fields = source.getClass().getDeclaredFields();
-        for (Field field : fields) {
-            try {
-                field.setAccessible(true);
-                Object targetValue = field.get(target);
-                if (targetValue == null) {
+        Class<?> currentClass = source.getClass();
+        while (currentClass != null) {
+            Field[] fields = currentClass.getDeclaredFields();
+            for (Field field : fields) {
+                try {
+                    field.setAccessible(true);
+                    Object targetValue = field.get(target);
                     Object sourceValue = field.get(source);
-                    field.set(target, sourceValue);
+                    if (targetValue == null && sourceValue != null) {
+                        field.set(target, sourceValue);
+                    }
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException("Error copying non-null fields", e);
                 }
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException("Error copying non-null fields", e);
             }
+            currentClass = currentClass.getSuperclass();
         }
     }
 }

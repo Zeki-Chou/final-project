@@ -10,6 +10,7 @@ import com.hand.demo.infra.mapper.InvStockMapper;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * (InvStock)资源库
@@ -58,8 +59,7 @@ public class InvStockRepositoryImpl extends BaseRepositoryImpl<InvStockDTO> impl
         invStockDTO.setDepartmentId(invCountHeaderDTO.getDepartmentId());
         invStockDTO.setWarehouseId(invCountHeaderDTO.getWarehouseId());
         invStockDTO.setMaterialIds(invCountHeaderDTO.getSnapshotMaterialIds());
-        invStockDTO.setUnitQuantity(new BigDecimal(1));
-        List<InvStockDTO> invStockDTOS = invStockMapper.selectList(invStockDTO);
+        List<InvStockDTO> invStockDTOS = invStockMapper.selectList(invStockDTO).stream().filter(stockDTO->stockDTO.getUnitQuantity().compareTo(BigDecimal.ZERO) > 0).collect(Collectors.toList());
         return !invStockDTOS.isEmpty();
     }
 

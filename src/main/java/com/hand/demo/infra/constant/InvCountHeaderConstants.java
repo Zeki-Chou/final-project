@@ -19,7 +19,8 @@ public class InvCountHeaderConstants {
 
     public static class Profile{
         public static class CountingWorkflow{
-            public final static String  NAME =  "FEXAM95.INV.COUNTING.ISWORKFLOW";
+            public final static String  NAME =  "FEXAM60.INV.COUNTING.ISWORKFLOW";
+            public final static String ENABLED ="1";
         }
     }
     public static class InterfaceSDK{
@@ -27,12 +28,26 @@ public class InvCountHeaderConstants {
             public final static String  NAMESPACE ="HZERO";
             public final static String  SERVER_CODE ="FEXAM_WMS";
             public final static String INTERFACE_CODE="fexam-wms-api.thirdAddCounting";
-            public final static String RESPONSE_KEY_STATUS = "returnStatus";
-            public final static String RESPONSE_KEY_MSG = "returnMsg";
-            public final static String RESPONSE_KEY_CODE = "code";
-            public final static String RESPONSE_VALUE_STATUS_SUCCESS = "S";
 
-        }
+
+            public static class RequestHeader {
+                public final static String KEY_ORGANIZATION_ID = "H-Invoke-Path-organizationId";
+                public final static String KEY_AUTHORIZATION = "Authorization";
+                public final static String KEY_CONTENT_TYPE = "Content-Type";
+                public final static String VALUE_CONTENT_TYPE = "application/json";
+                public final static String VALUE_AUTHORIZATION = "485c7281-af58-46da-9a5e-939507bdb016";
+
+
+
+            }
+            public static class ResponseHeader {
+                public final static String KEY_STATUS = "returnStatus";
+                public final static String KEY_MSG = "returnMsg";
+                public final static String KEY_CODE = "code";
+
+                public final static String VALUE_STATUS_SUCCESS = "S";
+            }
+            }
     }
     public static class Lov {
         public static class Status {
@@ -50,11 +65,11 @@ public class InvCountHeaderConstants {
     }
     public static class Value {
         public static class DelFlag {
-            public final static Integer DEFAULT =DelFlag.EXIST;
+            public final static Integer DEFAULT =0;
             public final static Integer EXIST = 0;
         }
         public static class CountStatus {
-            public final static String DEFAULT = CountStatus.DRAFT;
+            public final static String DEFAULT = "DRAFT";
 
             public final static String DRAFT = "DRAFT";
             public final static String IN_COUNTING = "INCOUNTING";
@@ -66,6 +81,10 @@ public class InvCountHeaderConstants {
 
         }
 
+        public static class CountType {
+            public final static String MONTH = "MONTH";
+            public final static String YEAR = "YEAR";
+        }
     }
     public static class CodeRule {
         public static class CountNumber {

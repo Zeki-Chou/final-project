@@ -8,6 +8,7 @@
         <result column="type" property="countType"/>
         <result column="created_by" property="createdBy"/>
         <result column="status" property="countStatus"/>
+        <result column="creator_name" property="creatorName"/>
         <result column="count_time_str" property="countTimeStr"/>
         <result column="creation_date" property="creationDate"/>
         <result column="mode" property="countMode"/>
@@ -18,6 +19,7 @@
         <result column="warehouse_is_wms_warehouse" property="isWMSWarehouse"/>
         <result column="department_department_code" property="departmentCode"/>
         <result column="tenant_tenant_num" property="tenantNum"/>
+        <result column="object_version_number" property="objectVersionNumber"/>
 
         <!-- Counter List -->
         <collection property="counterList" ofType="com.hand.demo.api.dto.UserDTO">
@@ -47,6 +49,7 @@
         <collection property="invCountLineDTOList" ofType="com.hand.demo.api.dto.InvCountLineDTO">
             <id column="line_id" property="countLineId"/>
             <result column="line_header_id" property="countHeaderId"/>
+            <result column="line_tenant_id" property="tenantId"/>
             <result column="line_line_number" property="lineNumber"/>
             <result column="line_material_name" property="materialName"/>
             <result column="line_unit_code" property="unitCode"/>
@@ -68,12 +71,13 @@
         h.count_number          AS number,
         h.count_type            AS type,
         h.created_by            AS created_by,
+        cn.real_name            AS creator_name,
         h.count_status          AS status,
         h.count_time_str        AS count_time_str,
         h.creation_date         AS creation_date,
-        h.creation_date         AS creation_date,
         h.count_mode            AS mode,
         h.count_dimension       AS dimension,
+        h.object_version_number AS object_version_number,
         h.remark                AS remark,
         h.reason                AS reason,
         c.id                    AS counter_id,
@@ -93,12 +97,13 @@
         l.snapshot_unit_qty     AS line_snapshot_unit_qty,
         l.unit_qty              AS line_unit_qty,
         l.unit_diff_qty         AS line_unit_diff_qty,
+        l.tenant_id             AS line_tenant_id,
         lu.id                   AS line_counter_id,
         lu.real_name            AS line_counter_name,
         l.remark                AS line_remark,
         w.warehouse_code        AS warehouse_warehouse_code,
-        w.is_wms_warehouse      AS warehouse_is_wms_warehouse
-        d.department_code       AS department_department_code
+        w.is_wms_warehouse      AS warehouse_is_wms_warehouse,
+        d.department_code       AS department_department_code,
         t.tenant_num            AS tenant_tenant_num
     </sql>
 
@@ -108,6 +113,7 @@
         FROM
         fexam_inv_count_header h
         LEFT JOIN hzero_platform.hpfm_tenant t  ON t.tenant_id = h.tenant_id
+        LEFT JOIN hzero_platform.iam_user cn    ON cn.id = h.created_by
         LEFT JOIN hzero_platform.iam_user c     ON FIND_IN_SET(c.id, h.counter_ids) > 0
         LEFT JOIN hzero_platform.iam_user s     ON FIND_IN_SET(s.id, h.supervisor_ids) > 0
         LEFT JOIN fexam_inv_material m          ON FIND_IN_SET(m.material_id, h.snapshot_material_ids) > 0
@@ -141,6 +147,9 @@
             </if>
             <if test="supervisorIds != null">
                 and FIND_IN_SET(#{supervisorIds, jdbcType=INTEGER}, h.supervisor_ids) > 0
+            </if>
+            <if test="ids != null">
+                and FIND_IN_SET(h.count_header_id,#{ids, jdbcType=INTEGER}) > 0
             </if>
         </where>
     </select>

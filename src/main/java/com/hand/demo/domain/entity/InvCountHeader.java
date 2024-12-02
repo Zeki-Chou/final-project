@@ -21,6 +21,7 @@ import java.util.Date;
 import lombok.Getter;
 import lombok.Setter;
 import org.hzero.boot.platform.lov.annotation.LovValue;
+import org.hzero.boot.platform.lov.annotation.ProcessLovValue;
 
 /**
  * (InvCountHeader)实体类
@@ -82,7 +83,7 @@ public class InvCountHeader extends AuditDomain {
 
     @Id
     @GeneratedValue
-    @NotBlank(groups = {Remove.class, Submit.class})
+    @NotNull(groups = {Remove.class, Submit.class})
     private Long countHeaderId;
 
     private Date approvedTime;
@@ -119,15 +120,17 @@ public class InvCountHeader extends AuditDomain {
 
     private String attributeCategory;
 
-    @NotBlank(groups = {Save.class, Execute.class})
+    @NotNull(groups = {Save.class, Execute.class})
     private Long companyId;
 
     @ApiModelProperty(value = "", required = true)
     @NotBlank(groups = {Execute.class})
+    @LovValue(lovCode = InvCountHeaderConstants.Lov.Dimension.CODE)
     private String countDimension;
 
     @ApiModelProperty(value = "", required = true)
     @NotBlank(groups = {Execute.class})
+    @LovValue(lovCode = InvCountHeaderConstants.Lov.Mode.CODE)
     private String countMode;
 
     @ApiModelProperty(value = "", required = true)
@@ -136,12 +139,14 @@ public class InvCountHeader extends AuditDomain {
 
     @ApiModelProperty(value = "", required = true)
     @NotBlank(groups = {Save.class, Execute.class})
+    @LovValue(lovCode = InvCountHeaderConstants.Lov.Status.CODE)
     private String countStatus;
 
     private String countTimeStr;
 
     @ApiModelProperty(value = "", required = true)
     @NotBlank(groups = {Execute.class})
+    @LovValue(lovCode = InvCountHeaderConstants.Lov.Type.CODE)
     private String countType;
 
     @NotBlank(groups = {Save.class, Execute.class})
@@ -171,11 +176,10 @@ public class InvCountHeader extends AuditDomain {
     private String supervisorIds;
 
     @ApiModelProperty(value = "", required = true)
-    @NotNull
-    @NotBlank(groups = {Save.class, Execute.class,CountSync.class})
+    @NotNull(groups = {Save.class, Execute.class,CountSync.class})
     private Long tenantId;
 
-    @NotBlank(groups = {Save.class, Execute.class})
+    @NotNull(groups = {Save.class, Execute.class})
     private Long warehouseId;
 
     private Long workflowId;
