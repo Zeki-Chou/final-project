@@ -151,7 +151,6 @@
     <select id="selectLineReport">
         select
         <include refid = "BaseSql"/>
-        ,
         from fexam_inv_count_line ficl
 
     </select>
