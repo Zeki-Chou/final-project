@@ -41,6 +41,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -122,8 +123,8 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
     @Override
     public InvCountInfoDTO manualSaveCheck(List<InvCountHeaderDTO> invCountHeaderDTOS) {
-        List<LovValueDTO> validStatusList = lovAdapter.queryLovValue(InvCountHeaderConstant.INV_COUNTING_COUNT_STATUS,
-                BaseConstants.DEFAULT_TENANT_ID);
+//        List<LovValueDTO> validStatusList = lovAdapter.queryLovValue(InvCountHeaderConstant.INV_COUNTING_COUNT_STATUS,
+//                BaseConstants.DEFAULT_TENANT_ID);
         String remoteResponse = iamRemoteService.selectSelf().getBody();
         JSONObject jsonObject = new JSONObject(remoteResponse);
 
@@ -158,8 +159,8 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                     }
 
                     if (Arrays.asList("INCOUNTING", "REJECTED", "WITHDRAWN").contains(data.getCountStatus())) {
-                        if (warehouseWMSIds.contains(data.getWarehouseId()) && !Arrays.asList(data.getSupervisorIds().split(","))
-                                .contains(String.valueOf(jsonObject.getLong("id")))) {
+                        if (warehouseWMSIds.contains(data.getWarehouseId()) &&
+                                !Arrays.asList(data.getSupervisorIds().split(",")).contains(String.valueOf(jsonObject.getLong("id")))) {
                             data.setErrMsg(String.valueOf(
                                     lineError.append("The current warehouse is a WMS warehouse, and only the supervisor is allowed to operate. (")
                                             .append(data.getCountHeaderId()).append("), ")
@@ -168,10 +169,10 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
                         if ((data.getSupervisorIds() == null ||
                                 !Arrays.asList(data.getSupervisorIds().split(","))
-                                        .contains(String.valueOf(jsonObject.getLong("id")))) ||
+                                        .contains(String.valueOf(jsonObject.getLong("id")))) &&
                                 (data.getCounterIds() == null ||
                                         !Arrays.asList(data.getCounterIds().split(","))
-                                                .contains(String.valueOf(jsonObject.getLong("id")))) ||
+                                                .contains(String.valueOf(jsonObject.getLong("id")))) &&
                                 jsonObject.getLong("id") != data.getCreatedBy())
                         {
                             data.setErrMsg(
@@ -203,6 +204,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
         if (errorMessages.length() == 0 ) {
             invCountInfoDTO.setSuccessMsg("Success");
+            invCountInfoDTO.setListSuccessMsg(invCountHeaderDTOS);
         }
 
         return invCountInfoDTO;
@@ -237,52 +239,21 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                 .collect(Collectors.toList());
 
         List<InvCountHeader> listInsert = invCountHeaderRepository.batchInsertSelective(insertList);
-//        List<InvCountHeader> insertResult = invCountHeaderRepository.batchInsertSelective(insertList);
 
-//        List<InvCountLine> listLines = invCountLineRepository.selectAll();
-//        AtomicInteger lineNumber = new AtomicInteger(
-//                !listLines.isEmpty() ? listLines.get(listLines.size() - 1).getLineNumber() : 0
-//        );
-
-//        insertResult.forEach(header -> {
-//            List<InvCountLine> lineMap = stringListMap.get(header.getCountNumber());
-//            for (InvCountLine line : lineMap) {
-//                line.setCountHeaderId(header.getCountHeaderId());
-//                line.setLineNumber(lineNumber.incrementAndGet());
-//                lines.add(line);
-//            }
-//        });
-
-//        List<InvCountHeader> updateResult = invCountHeaderRepository.batchUpdateByPrimaryKeySelective(updateList);
         updateState(updateList);
-//        updateList.forEach(header -> {
-//            List<InvCountLine> lineMap = stringListMap.get(header.getCountHeaderId());
-//            lines.addAll(lineMap);
-//        });
 
-
-//        List<InvCountLineDTO> invCountLineDTOS = new ArrayList<>();
         List<InvCountHeaderDTO> dtos = new ArrayList<>();
-//
         listInsert.forEach(data -> {
             InvCountHeaderDTO dto = new InvCountHeaderDTO();
             BeanUtils.copyProperties(data, dto);
             dtos.add(dto);
         });
-//
+
         updateList.forEach(data -> {
             InvCountHeaderDTO dto = new InvCountHeaderDTO();
             BeanUtils.copyProperties(data, dto);
             dtos.add(dto);
         });
-//
-//        for (InvCountLine line : lines) {
-//            InvCountLineDTO dto = new InvCountLineDTO();
-//            BeanUtils.copyProperties(line, dto);
-//            invCountLineDTOS.add(dto);
-//        }
-
-//        invCountLineService.saveData(invCountLineDTOS);
         return dtos;
     }
 
@@ -411,10 +382,12 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         invCountHeaderRepository.batchUpdateOptional(invCountHeaders.stream().filter(data ->
                         Objects.equals(data.getCountStatus(), "REJECTED")).collect(Collectors.toList()),
                 InvCountHeader.FIELD_REASON);
-        invCountHeaderRepository.batchUpdateByPrimaryKeySelective(invCountHeaders.stream().filter(data ->
-                Objects.equals(data.getCountStatus(), "DRAFT")).collect(Collectors.toList()));
+//        invCountHeaderRepository.batchUpdateByPrimaryKeySelective(invCountHeaders.stream().filter(data ->
+//                Objects.equals(data.getCountStatus(), "DRAFT")).collect(Collectors.toList()));
     }
 
+    @Transactional
+    @Override
     public InvCountInfoDTO executeCheck(List<InvCountHeaderDTO> invCountHeaderDTOS) {
         InvCountInfoDTO invCountInfoDTO = new InvCountInfoDTO();
         StringBuilder errorMessages = new StringBuilder();
@@ -519,6 +492,18 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                 ));
             }
 
+            if (invCountHeaderDTO.getCountType().equals("MONTH")) {
+                LocalDateTime dateTime = LocalDateTime.ofInstant(invCountHeaderDTO.getCreationDate().toInstant(), ZoneId.systemDefault());
+                DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM");
+                invCountHeaderDTO.setCountTimeStr(dateTime.format(outputFormatter));
+            }
+
+            if (invCountHeaderDTO.getCountType().equals("YEAR")) {
+                LocalDateTime dateTime = LocalDateTime.ofInstant(invCountHeaderDTO.getCreationDate().toInstant(), ZoneId.systemDefault());
+                DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("yyyy");
+                invCountHeaderDTO.setCountTimeStr(dateTime.format(outputFormatter));
+            }
+
             if (lineError.length() > 0) {
                 errorMessages.append("Header Data: ").append(invCountHeaderDTO.getCountHeaderId()).append(", ")
                         .append(lineError).append("\n");
@@ -539,6 +524,8 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         return invCountInfoDTO;
     }
 
+    @Transactional
+    @Override
     public List<InvCountHeaderDTO> execute(List<InvCountHeaderDTO> invCountHeaderDTOS) {
         List<InvCountLineDTO> lines = new ArrayList<>();
         invCountHeaderDTOS.forEach(header -> {
@@ -584,6 +571,9 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 //            }
             InvStockDTO invStockDTO = new InvStockDTO();
             invStockDTO.setDimension(header.getCountDimension());
+            invStockDTO.setTenantId(header.getTenantId());
+            invStockDTO.setCompanyId(header.getCompanyId());
+            invStockDTO.setDepartmentId(header.getDepartmentId());
             invStockDTO.setSnapshotMaterialList(invMaterialRepository.selectByIds(header.getSnapshotMaterialIds()).stream().map(InvMaterial::getMaterialId).collect(Collectors.toList()));
             invStockDTO.setSnapshotBatchList(invBatchRepository.selectByIds(header.getSnapshotBatchIds()).stream().map(InvBatch::getBatchId).collect(Collectors.toList()));
 
@@ -700,12 +690,16 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
             if (Objects.equals(jsonObject.getString("returnStatus"), "S")) {
                 syncStatusExtra.setProgramvalue("SUCCESS");
+                syncStatusExtra.setSourceid(invCountHeaderDTO.getCountHeaderId());
                 syncMsgExtra.setProgramvalue("");
-                invCountHeaderDTO.setRelatedWmsOrderCode(jsonObject.getString("CODE"));
+                syncMsgExtra.setSourceid(invCountHeaderDTO.getCountHeaderId());
+                invCountHeaderDTO.setRelatedWmsOrderCode(jsonObject.getString("code"));
                 invCountHeaderRepository.updateOptional(invCountHeaderDTO, InvCountHeaderDTO.FIELD_RELATED_WMS_ORDER_CODE);
             } else {
                 syncStatusExtra.setProgramvalue("ERROR");
+                syncStatusExtra.setSourceid(invCountHeaderDTO.getCountHeaderId());
                 syncMsgExtra.setProgramvalue(jsonObject.getString("returnMsg"));
+                syncMsgExtra.setSourceid(invCountHeaderDTO.getCountHeaderId());
                 invCountHeaderDTO.setErrMsg(String.valueOf(lineError.append("Error sync: ")
                         .append(syncMsgExtra.getProgramvalue())
                         .append(", ")));
@@ -742,18 +736,20 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         RequestPayloadDTO requestPayloadDTO = new RequestPayloadDTO();
         Map<String, String> paramMap = new HashMap<>();
         paramMap.put("Authorization", "bearer " + TokenUtils.getToken());
-        requestPayloadDTO.setRequestParamMap(paramMap);
+        requestPayloadDTO.setHeaderParamMap(paramMap);
         requestPayloadDTO.setPayload(JSON.toJSONString(invCountHeaderDTO));
         requestPayloadDTO.setMediaType("application/json");
         return  interfaceInvokeSdk.invoke(invCountHeaderDTO.getNamespace(), invCountHeaderDTO.getServerCode(),
                 invCountHeaderDTO.getInterfaceCode(), requestPayloadDTO);
     }
 
+    @Override
     public InvCountHeaderDTO countResultSync(InvCountHeaderDTO invCountHeaderDTO) {
-        Integer isWMS = invWarehouseRepository.selectOne(new InvWarehouse().setWarehouseId(invCountHeaderDTO.getWarehouseId()))
-                .getIsWmsWarehouse();
+        InvCountHeader header = invCountHeaderRepository.selectOne(new InvCountHeader().setCountNumber(invCountHeaderDTO.getCountNumber()));
+        Integer isWMS = invWarehouseRepository.selectOne(new InvWarehouse().setWarehouseId(header.getWarehouseId())).getIsWmsWarehouse();
         String errorMsg;
         String status;
+        List<InvCountLine> linesFromDB = invCountLineRepository.select("countHeaderId", header.getCountHeaderId());
 
         if (isWMS==1) {
             errorMsg = "The current warehouse is not a WMS warehouse, operations are not allowed";
@@ -762,10 +758,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             invCountHeaderDTO.setStatus(status);
         }
 
-        List<InvCountLine> lineFromDB = invCountLineRepository.select(InvCountLine.FIELD_COUNT_HEADER_ID,
-                invCountHeaderDTO.getCountHeaderId());
-
-        if (invCountHeaderDTO.getCountOrderLineList().size() != lineFromDB.size()) {
+        if (invCountHeaderDTO.getCountOrderLineList().size() != linesFromDB.size()) {
             errorMsg = "The counting order line data is inconsistent with the INV system, please check the data";
             status="E";
             invCountHeaderDTO.setErrMsg(invCountHeaderDTO.getErrMsg() + errorMsg);
@@ -776,7 +769,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                 .map(InvCountLine::getCountLineId)
                 .collect(Collectors.toSet());
 
-        Set<Long> lineIdsFromDB = lineFromDB.stream()
+        Set<Long> lineIdsFromDB = linesFromDB.stream()
                 .map(InvCountLine::getCountLineId)
                 .collect(Collectors.toSet());
 
@@ -795,24 +788,32 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             invCountHeaderDTO.setStatus(status);
         }
 
+        Map<Long, BigDecimal> unitQtyDTO = invCountHeaderDTO.getCountOrderLineList().stream()
+                .collect(Collectors.toMap(InvCountLine::getCountLineId, InvCountLine::getUnitQty));
 
-        // Check data consistency
-//                If(The number of rows is inconsistent or lineId can not match) {
-//                    errorMsg = "The counting order line data is inconsistent with the INV system, please check the data";
-//                    status="E";
-//                }
-        // Update the line data
-//                updateLines(including unitQty,unitDiffQty,remark)
-
-        if (!invCountHeaderDTO.getErrMsg().isEmpty()) {
+        if (invCountHeaderDTO.getErrMsg() != null) {
             throw new CommonException(invCountHeaderDTO.getErrMsg());
         }
 
-        invCountLineRepository.batchUpdateByPrimaryKeySelective(invCountHeaderDTO.getCountOrderLineList());
+        linesFromDB.forEach(data -> {
+            data.setUnitQty(unitQtyDTO.get(data.getCountLineId()));
+            data.setUnitDiffQty(data.getUnitQty().subtract(data.getSnapshotUnitQty()));
+        });
+
+        List<InvCountLineDTO> lineDTOS = new ArrayList<>();
+        for (InvCountLine line : linesFromDB) {
+            InvCountLineDTO dto = new InvCountLineDTO();
+            BeanUtils.copyProperties(line, dto);
+            lineDTOS.add(dto);
+        }
+
+//        invCountLineRepository.batchUpdateByPrimaryKeySelective(invCountHeaderDTO.getCountOrderLineList());
+        invCountLineService.saveData(lineDTOS);
 
         return invCountHeaderDTO;
     }
 
+    @Override
     public InvCountInfoDTO submitCheck(List<InvCountHeaderDTO> invCountHeaderDTOS) {
         List<String> allowedStatuses = Arrays.asList(
                 "INCOUNTING",
@@ -822,12 +823,35 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         );
         String remoteResponse = iamRemoteService.selectSelf().getBody();
         JSONObject jsonObject = new JSONObject(remoteResponse);
-        List<String> supervisorIds = invCountHeaderDTOS.stream().map(InvCountHeaderDTO::getSupervisorIds)
-                .collect(Collectors.toList());
+
+//        List<String> supervisorIds = invCountHeaderDTOS.stream().map(InvCountHeaderDTO::getSupervisorIds)
+//                .collect(Collectors.toList());
+
+        String supervisorIds = invCountHeaderDTOS.stream()
+                .map(InvCountHeaderDTO::getSupervisorIds)
+                .collect(Collectors.joining(","));
+
+        String id = String.valueOf(jsonObject.getLong("id"));
+
+        boolean isSupervisor = Arrays.asList(supervisorIds.split(",")).contains(id);
+
         StringBuilder errorMessages = new StringBuilder();
         InvCountInfoDTO invCountInfoDTO = new InvCountInfoDTO();
+        String headerIds = invCountHeaderDTOS.stream().map(InvCountHeaderDTO::getCountHeaderId)
+                .map(String::valueOf)
+                .collect(Collectors.joining(","));
+        List<InvCountHeader> listHeader = invCountHeaderRepository.selectByIds(headerIds);
+        List<InvCountHeaderDTO> listHeaderDTO = new ArrayList<>();
 
-        for (InvCountHeaderDTO invCountHeaderDTO : invCountHeaderDTOS) {
+        for (InvCountHeader header : listHeader) {
+            InvCountHeaderDTO dto = new InvCountHeaderDTO();
+            BeanUtils.copyProperties(header, dto);
+            dto.setCountOrderLineList(invCountLineRepository.select(InvCountLine.FIELD_COUNT_HEADER_ID,
+                    header.getCountHeaderId()));
+            listHeaderDTO.add(dto);
+        }
+
+        for (InvCountHeaderDTO invCountHeaderDTO : listHeaderDTO) {
             StringBuilder lineError = new StringBuilder();
 
             if (!allowedStatuses.contains(invCountHeaderDTO.getCountStatus())) {
@@ -835,7 +859,8 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                         .append(invCountHeaderDTO.getCountStatus())
                         .append(", ")));
             }
-            if (!supervisorIds.contains(String.valueOf(jsonObject.getLong("id")))) {
+//            String id = String.valueOf(jsonObject.getLong("id"));
+            if (!isSupervisor) {
                 invCountHeaderDTO.setErrMsg(String.valueOf(lineError.append("Only supervisor that allowed to submit")
                         .append(", ")));
             }
@@ -850,10 +875,10 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                         .append(", ")));
             }
 
-            long countRemarkNullWithDiffQty = invCountHeaderDTO.getCountOrderLineList().stream().filter(data ->
+            long countReasonWithDiffQty = invCountHeaderDTO.getCountOrderLineList().stream().filter(data ->
                     data.getUnitDiffQty().compareTo(BigDecimal.ZERO) != 0).count();
 
-            if (countRemarkNullWithDiffQty == 0) {
+            if (countReasonWithDiffQty == 0) {
                 if (invCountHeaderDTO.getReason().isEmpty()) {
                     invCountHeaderDTO.setErrMsg(String.valueOf(lineError.append("There's diff but reason still empty: ")
                             .append(invCountHeaderDTO.getCountOrderLineList())
@@ -883,16 +908,19 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
     }
 
+    @Transactional
+    @Override
     public List<InvCountHeaderDTO> submit(List<InvCountHeaderDTO> invCountHeaderDTOS) {
         String workflowFlag = profileClient.getProfileValueByOptions(BaseConstants.DEFAULT_TENANT_ID, null,
-                null, "FEXAM95.INV.COUNTING.ISWORKFLOW");
+                null, "FEXAM58.INV.COUNTING.ISWORKFLO");
+
         String departmentIds = invCountHeaderDTOS.stream().map(InvCountHeaderDTO::getDepartmentId)
                 .map(String::valueOf)
                 .collect(Collectors.joining(","));
         Map<Long, String> listDepartment = iamDepartmentRepository.selectByIds(departmentIds).stream()
                 .collect(Collectors.toMap(IamDepartment::getDepartmentId, IamDepartment::getDepartmentCode));
 
-        if (workflowFlag.equals("YES")) {
+        if (workflowFlag.equals("1")) {
             for (InvCountHeaderDTO invCountHeaderDTO : invCountHeaderDTOS) {
                 Map<String, Object> mapsDepartment = new HashMap<>();
                 mapsDepartment.put("departmentCode", listDepartment.get(invCountHeaderDTO.getDepartmentId()));
@@ -907,13 +935,14 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                 invCountHeader.setCountStatus("CONFIRMED");
             });
 
-            invCountHeaderRepository.batchInsertSelective(invCountHeaders);
+            invCountHeaderRepository.batchUpdateByPrimaryKeySelective(invCountHeaders);
         }
 
-        return null;
+        return invCountHeaderDTOS;
     }
 
-    public InvCountHeaderDTO approvalCallback(WorkFlowEventDTO workFlowEventRequestDTO) {
+    @Override
+    public InvCountHeaderDTO submitCallback(Long organizationId, WorkFlowEventDTO workFlowEventRequestDTO) {
         Condition condition = new Condition(InvCountHeader.class);
 
         Condition.Criteria criteria = condition.createCriteria();

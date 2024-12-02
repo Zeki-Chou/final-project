@@ -3,6 +3,7 @@ package com.hand.demo.api.controller.v1;
 import com.alibaba.fastjson.JSON;
 import com.hand.demo.api.dto.InvCountHeaderDTO;
 import com.hand.demo.api.dto.InvCountInfoDTO;
+import com.hand.demo.api.dto.WorkFlowEventDTO;
 import io.choerodon.core.domain.Page;
 import io.choerodon.core.exception.CommonException;
 import io.choerodon.core.iam.ResourceLevel;
@@ -84,7 +85,7 @@ public class InvCountHeaderController extends BaseController {
             throw new CommonException(JSON.toJSONString(invCountExecuteVerif.getErrMsg()));
         }
 
-        List<InvCountHeaderDTO> executeDTO =  invCountHeaderService.execute(manualSaveDTO);
+        List<InvCountHeaderDTO> executeDTO =  invCountHeaderService.execute(invCountExecuteVerif.getListSuccessMsg());
 
         InvCountInfoDTO countSyncWms = invCountHeaderService.countSyncWms(executeDTO);
         if (!countSyncWms.getErrMsg().isEmpty()) {
@@ -92,6 +93,48 @@ public class InvCountHeaderController extends BaseController {
         }
 
         return Results.success(executeDTO);
+    }
+
+
+    @ApiOperation(value = "Submit counting result")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @PostMapping("/submit")
+    public ResponseEntity<List<InvCountHeaderDTO>> orderSubmit(@PathVariable Long organizationId,
+                                                                  @RequestBody List<InvCountHeaderDTO> invCountHeaders) {
+        validObject(invCountHeaders);
+        SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
+        invCountHeaders.forEach(item -> item.setTenantId(organizationId));
+        InvCountInfoDTO invCountInfoSaveVerif = invCountHeaderService.manualSaveCheck(invCountHeaders);
+        if (!invCountInfoSaveVerif.getErrMsg().isEmpty()) {
+            throw new CommonException(JSON.toJSONString(invCountInfoSaveVerif.getListErrMsg()));
+        }
+
+        List<InvCountHeaderDTO> manualSaveDTO =  invCountHeaderService.manualSave(invCountHeaders);
+
+        InvCountInfoDTO invCountExecuteVerif = invCountHeaderService.submitCheck(manualSaveDTO);
+        if (!invCountExecuteVerif.getErrMsg().isEmpty()) {
+            throw new CommonException(JSON.toJSONString(invCountExecuteVerif.getErrMsg()));
+        }
+
+        List<InvCountHeaderDTO> executeDTO =  invCountHeaderService.submit(invCountExecuteVerif.getListSuccessMsg());
+
+        return Results.success(executeDTO);
+    }
+
+    @ApiOperation(value = "Submit Call Back")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @PostMapping("/submit-callback")
+    public ResponseEntity<InvCountHeader> submitCallback(@PathVariable Long organizationId,
+                                                           @RequestBody WorkFlowEventDTO workFlowEventDTO) {
+        return Results.success(invCountHeaderService.submitCallback(organizationId, workFlowEventDTO));
+    }
+
+    @ApiOperation(value = "countResultSync")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @PostMapping("/countResultSync")
+    public ResponseEntity<InvCountHeader> countResultSync(@PathVariable Long organizationId,
+                                                         @RequestBody InvCountHeaderDTO invCountHeaderDTO) {
+        return Results.success(invCountHeaderService.countResultSync(invCountHeaderDTO));
     }
 
     @ApiOperation(value = "Remove Header Exam")

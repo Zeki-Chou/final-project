@@ -2,6 +2,7 @@ package com.hand.demo.app.service;
 
 import com.hand.demo.api.dto.InvCountHeaderDTO;
 import com.hand.demo.api.dto.InvCountInfoDTO;
+import com.hand.demo.api.dto.WorkFlowEventDTO;
 import io.choerodon.core.domain.Page;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 import com.hand.demo.domain.entity.InvCountHeader;
@@ -45,5 +46,13 @@ public interface InvCountHeaderService {
     List<InvCountHeaderDTO> execute(List<InvCountHeaderDTO> invCountHeaderDTOS);
 
     InvCountInfoDTO countSyncWms(List<InvCountHeaderDTO> invCountHeaderDTOS);
+
+    InvCountHeaderDTO submitCallback(Long organizationId, WorkFlowEventDTO workFlowEventRequestDTO);
+
+    InvCountHeaderDTO countResultSync(InvCountHeaderDTO invCountHeaderDTO);
+
+    List<InvCountHeaderDTO> submit(List<InvCountHeaderDTO> invCountHeaderDTOS);
+
+    InvCountInfoDTO submitCheck(List<InvCountHeaderDTO> invCountHeaderDTOS);
 }
 
