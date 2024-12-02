@@ -61,6 +61,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     private final InterfaceInvokeSdk interfaceInvokeSdk;
     private final InvBatchService invBatchService;
     private final InvMaterialService invMaterialService;
+    private final IamDepartmentRepository iamDepartmentRepository;
     private final ProfileClient profileClient;
     private final WorkflowClient workflowClient;
 
@@ -183,10 +184,15 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         List<MaterialInfoDTO> materialInfoDTOList = invMaterialService.convertMaterialIdsToList(header.getSnapshotMaterialIds());
         List<BatchInfoDTO> batchInfoDTOList = invBatchService.convertBatchIdsToList(header.getSnapshotBatchIds());
 
+        InvCountLine lineRecord = new InvCountLine();
+        lineRecord.setCountHeaderId(countHeaderId);
+        List<InvCountLineDTO> invCountLineList = invCountLineRepository.selectList(lineRecord);
+
         header.setCounterList(counterList);
         header.setSupervisorList(supervisorList);
         header.setSnapshotBatchList(batchInfoDTOList);
         header.setSnapshotMaterialList(materialInfoDTOList);
+        header.setCountOrderLineList(invCountLineList);
         return header;
     }
 
@@ -454,16 +460,21 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public InvCountHeaderDTO countResultSync(InvCountHeaderDTO invCountHeaderDTO) {
 
         //Check data consistency
         InvCountLine lineRecord = new InvCountLine();
         lineRecord.setCountHeaderId(invCountHeaderDTO.getCountHeaderId());
-        List<InvCountLine> countLinesDB = invCountLineRepository.selectList(lineRecord);
+        List<InvCountLineDTO> countLinesDB = invCountLineRepository.selectList(lineRecord);
+
+        // from db
         List<Long> countLinesDBIds = countLinesDB
                 .stream()
                 .map(InvCountLine::getCountLineId)
                 .collect(Collectors.toList());
+
+        // from input
         List<Long> countLinesDTOIds = invCountHeaderDTO.getCountOrderLineList()
                 .stream()
                 .map(InvCountLine::getCountLineId)
@@ -477,15 +488,32 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         if (BaseConstants.Flag.NO.equals(warehouse.getIsWmsWarehouse())) {
             invCountHeaderDTO.setErrorMessage(Constants.ExternalService.ERR_INVALID_WMS);
             invCountHeaderDTO.setStatus(Constants.ExternalService.RESULT_STATUS_ERROR);
-        } else if (invCountHeaderDTO.getCounterList().size() != countLinesDB.size() || !countLinesDBIdsSet.equals(countLinesDTOIdsSet)) {
+        } else if (invCountHeaderDTO.getCountOrderLineList().size() != countLinesDB.size() || !countLinesDBIdsSet.equals(countLinesDTOIdsSet)) {
             invCountHeaderDTO.setErrorMessage(Constants.ExternalService.ERR_COUNT_LINE_INCONSISTENT);
             invCountHeaderDTO.setStatus(Constants.ExternalService.RESULT_STATUS_ERROR);
         } else {
-            invCountLineService.saveData(invCountHeaderDTO.getCountOrderLineList());
+            Map<Long, BigDecimal> lineInputMap = invCountHeaderDTO.getCountOrderLineList()
+                                                                    .stream()
+                                                                    .collect(Collectors.toMap(InvCountLine::getCountLineId, InvCountLine::getUnitQty));
+
+            this.addUnitDiffQty(countLinesDB, lineInputMap);
+            List<InvCountLine> updateList = new ArrayList<>(countLinesDB);
+            invCountLineRepository.batchUpdateByPrimaryKeySelective(updateList);
             invCountHeaderDTO.setStatus(Constants.ExternalService.RESULT_STATUS_SUCCESS);
         }
 
         return invCountHeaderDTO;
+    }
+
+    private void addUnitDiffQty(List<InvCountLineDTO> countOrderLineList, Map<Long, BigDecimal> lineInputMap) {
+        countOrderLineList.forEach(line -> {
+            BigDecimal inputUnitQty = lineInputMap.get(line.getCountLineId());
+            if (line.getUnitQty() != null) {
+                BigDecimal unitDiffQty = line.getSnapshotUnitQty().subtract(inputUnitQty);
+                line.setUnitQty(inputUnitQty);
+                line.setUnitDiffQty(unitDiffQty);
+            }
+        });
     }
 
     @Override
@@ -541,6 +569,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public List<InvCountHeaderDTO> submit(List<InvCountHeaderDTO> invoiceHeaders) {
         CustomUserDetails userDetails = DetailsHelper.getUserDetails();
         // Get configuration file value
@@ -552,11 +581,14 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         );
 
         List<InvCountHeader> updateList = new ArrayList<>();
+        List<Long> departmentIds = invoiceHeaders.stream().map(InvCountHeader::getDepartmentId).collect(Collectors.toList());
+        List<IamDepartment> departmentCodeList = iamDepartmentRepository.selectByIds(Utils.generateStringIds(departmentIds));
+        Map<Long, String> departmentCodeMap = departmentCodeList.stream().collect(Collectors.toMap(IamDepartment::getDepartmentId, IamDepartment::getDepartmentCode));
 
         // Determine whether to start workflow
         for (InvCountHeaderDTO header: invoiceHeaders) {
             Map<String, Object> variableMap = new HashMap<>();
-            variableMap.put(Constants.Workflow.DEPARTMENT_FIELD, header.getDepartmentId());
+            variableMap.put(Constants.Workflow.DEPARTMENT_FIELD, departmentCodeMap.get(header.getDepartmentId()));
 
             if (!workflowFlag.isEmpty() && Integer.valueOf(workflowFlag).equals(BaseConstants.Flag.YES)) {
                 workflowClient.startInstanceByFlowKey(
@@ -636,9 +668,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     }
 
     private UserInfoDTO createNewUserInfoDTO(Long id) {
-        UserInfoDTO dto = new UserInfoDTO();
-        dto.setId(id);
-        return dto;
+        return new UserInfoDTO(id);
     }
 
     private List<UserInfoDTO> convertUserIdToList(String userIds) {
@@ -697,10 +727,10 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     }
 
     private List<InvCountLineDTO> transferDataToCountOrderLine(InvCountHeader header, List<InvStock> headerStocks) {
+        int highestLineNumber = invCountLineRepository.selectHighestLineNumber() + 1;
         List<InvCountLineDTO> invCountLines = new ArrayList<>();
 
-        for (int i = 0; i < headerStocks.size(); i++) {
-            InvStock stock = headerStocks.get(i);
+        for (InvStock stock: headerStocks) {
             InvCountLineDTO dto = new InvCountLineDTO();
 
             dto.setCountHeaderId(header.getCountHeaderId());
@@ -708,13 +738,14 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             dto.setBatchId(stock.getBatchId());
             dto.setMaterialId(stock.getMaterialId());
             dto.setWarehouseId(stock.getWarehouseId());
-            dto.setLineNumber(i+1);
+            dto.setLineNumber(highestLineNumber);
             dto.setUnitCode(stock.getUnitCode());
             dto.setSnapshotUnitQty(stock.getUnitQuantity());
             dto.setTenantId(header.getTenantId());
             dto.setCounterIds(header.getCounterIds());
 
             invCountLines.add(dto);
+            highestLineNumber++;
         }
         return invCountLines;
     }

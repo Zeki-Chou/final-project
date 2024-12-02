@@ -21,8 +21,12 @@ import java.util.stream.Collectors;
  */
 @Service
 public class InvMaterialServiceImpl implements InvMaterialService {
-    @Autowired
-    private InvMaterialRepository invMaterialRepository;
+
+    private final InvMaterialRepository invMaterialRepository;
+
+    public InvMaterialServiceImpl(InvMaterialRepository invMaterialRepository) {
+        this.invMaterialRepository = invMaterialRepository;
+    }
 
     @Override
     public Page<InvMaterial> selectList(PageRequest pageRequest, InvMaterial invMaterial) {
@@ -46,10 +50,7 @@ public class InvMaterialServiceImpl implements InvMaterialService {
     }
 
     private MaterialInfoDTO createNewMaterialInfoDTO(InvMaterial material) {
-        MaterialInfoDTO dto = new MaterialInfoDTO();
-        dto.setId(material.getMaterialId());
-        dto.setCode(material.getMaterialCode());
-        return dto;
+        return new MaterialInfoDTO(material.getMaterialId(), material.getMaterialCode());
     }
 }
 

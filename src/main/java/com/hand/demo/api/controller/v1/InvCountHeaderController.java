@@ -5,6 +5,7 @@ import com.hand.demo.api.dto.InvCountInfoDTO;
 import com.hand.demo.api.dto.WorkFlowEventDTO;
 import com.hand.demo.infra.state.ExecuteState;
 import com.hand.demo.infra.state.InitState;
+import com.hand.demo.infra.state.SubmitState;
 import io.choerodon.core.domain.Page;
 import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.mybatis.pagehelper.annotation.SortDefault;
@@ -68,7 +69,7 @@ public class InvCountHeaderController extends BaseController {
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping
     public ResponseEntity<?> orderSave(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeaders) {
-        invCountHeaders.forEach(header -> validObject(invCountHeaders, InitState.class));
+        invCountHeaders.forEach(header -> validObject(header, InitState.class));
         SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
         invCountHeaders.forEach(item -> item.setTenantId(organizationId));
 
@@ -100,7 +101,7 @@ public class InvCountHeaderController extends BaseController {
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping("/execute")
     public ResponseEntity<?> orderExecution(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeaders) {
-        invCountHeaders.forEach(header -> validObject(invCountHeaders, ExecuteState.class));
+        invCountHeaders.forEach(header -> validObject(header, ExecuteState.class));
         SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
         invCountHeaders.forEach(item -> item.setTenantId(organizationId));
 
@@ -124,7 +125,19 @@ public class InvCountHeaderController extends BaseController {
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping("/submit")
     public ResponseEntity<?> orderSubmit(@RequestBody List<InvCountHeaderDTO> invCountHeaders) {
-        return Results.success(invCountHeaderService.countSyncWms(invCountHeaders));
+        invCountHeaders.forEach(header -> validObject(header, SubmitState.class));
+        InvCountInfoDTO saveInvCountInfoDTO = invCountHeaderService.manualSaveCheck(invCountHeaders);
+        if (saveInvCountInfoDTO.getErrSize() > 0) {
+            return Results.error(saveInvCountInfoDTO);
+        }
+
+        List<InvCountHeaderDTO> saveResult = invCountHeaderService.manualSave(saveInvCountInfoDTO.getValidHeaderDTOS());
+        InvCountInfoDTO submitInvCountInfoDTO = invCountHeaderService.submitCheck(saveResult);
+        if (submitInvCountInfoDTO.getErrSize() > 0) {
+            return Results.error(submitInvCountInfoDTO);
+        }
+
+        return Results.success(invCountHeaderService.submit(submitInvCountInfoDTO.getValidHeaderDTOS()));
     }
 
     @ApiOperation(value = "Count order approval callback")
@@ -144,7 +157,7 @@ public class InvCountHeaderController extends BaseController {
 
     @ApiOperation(value = "Count result sync")
     @Permission(level = ResourceLevel.ORGANIZATION)
-    @PostMapping("/result-sync")
+    @PutMapping("/result-sync")
     public ResponseEntity<InvCountHeaderDTO> countResultSync(@RequestBody InvCountHeaderDTO invCountHeader) {
         return Results.success(invCountHeaderService.countResultSync(invCountHeader));
     }

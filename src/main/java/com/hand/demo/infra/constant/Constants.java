@@ -17,7 +17,7 @@ public class Constants {
     public static class Workflow {
         private Workflow() {}
 
-        public static final String FLOW_KEY = "INV_COUNT59_RESULT_SUBMIT";
+        public static final String FLOW_KEY = "FLOW1862410154289512449";
         public static final String DIMENSION = "EMPLOYEE";
         public static final String STARTER = "47359";
 

@@ -48,10 +48,7 @@ public class InvBatchServiceImpl implements InvBatchService {
     }
 
     private BatchInfoDTO createNewBatchInfoDTO(InvBatch batch) {
-        BatchInfoDTO dto = new BatchInfoDTO();
-        dto.setBatchId(batch.getBatchId());
-        dto.setBatchCode(batch.getBatchCode());
-        return dto;
+         return new BatchInfoDTO(batch.getBatchId(), batch.getBatchCode());
     }
 }
 

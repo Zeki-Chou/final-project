@@ -30,6 +30,5 @@ public interface InvCountLineService {
      * @param invCountLines 数据
      */
     void saveData(List<InvCountLineDTO> invCountLines);
-
 }
 

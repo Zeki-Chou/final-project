@@ -19,7 +19,7 @@ public interface InvCountLineMapper extends BaseMapper<InvCountLine> {
      * @param invCountLine 查询条件
      * @return 返回值
      */
-    List<InvCountLine> selectList(InvCountLine invCountLine);
+    List<InvCountLineDTO> selectList(InvCountLine invCountLine);
 
     /**
      * @param headerIds
@@ -27,5 +27,9 @@ public interface InvCountLineMapper extends BaseMapper<InvCountLine> {
      */
     List<InvCountLineDTO> selectByCountHeaderIds(List<Long> headerIds);
 
+    /**
+     * @return
+     */
+    Integer selectHighestLineNumber();
 }
 

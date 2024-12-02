@@ -1,7 +1,6 @@
 package com.hand.demo.infra.repository.impl;
 
 import com.hand.demo.api.dto.InvCountLineDTO;
-import org.apache.commons.collections.CollectionUtils;
 import org.hzero.mybatis.base.impl.BaseRepositoryImpl;
 import org.springframework.stereotype.Component;
 import com.hand.demo.domain.entity.InvCountLine;
@@ -9,7 +8,6 @@ import com.hand.demo.domain.repository.InvCountLineRepository;
 import com.hand.demo.infra.mapper.InvCountLineMapper;
 
 import javax.annotation.Resource;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -24,15 +22,15 @@ public class InvCountLineRepositoryImpl extends BaseRepositoryImpl<InvCountLine>
     private InvCountLineMapper invCountLineMapper;
 
     @Override
-    public List<InvCountLine> selectList(InvCountLine invCountLine) {
+    public List<InvCountLineDTO> selectList(InvCountLine invCountLine) {
         return invCountLineMapper.selectList(invCountLine);
     }
 
     @Override
-    public InvCountLine selectByPrimary(Long countLineId) {
+    public InvCountLineDTO selectByPrimary(Long countLineId) {
         InvCountLine invCountLine = new InvCountLine();
         invCountLine.setCountLineId(countLineId);
-        List<InvCountLine> invCountLines = invCountLineMapper.selectList(invCountLine);
+        List<InvCountLineDTO> invCountLines = invCountLineMapper.selectList(invCountLine);
         if (invCountLines.isEmpty()) {
             return null;
         }
@@ -42,6 +40,12 @@ public class InvCountLineRepositoryImpl extends BaseRepositoryImpl<InvCountLine>
     @Override
     public List<InvCountLineDTO> selectByCountHeaderIds(List<Long> headerIds) {
         return invCountLineMapper.selectByCountHeaderIds(headerIds);
+    }
+
+    @Override
+    public Integer selectHighestLineNumber() {
+        Integer highestLineNumber = invCountLineMapper.selectHighestLineNumber();
+        return highestLineNumber == null ? 1 : highestLineNumber;
     }
 
 }

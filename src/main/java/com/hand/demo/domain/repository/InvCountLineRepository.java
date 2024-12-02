@@ -19,7 +19,7 @@ public interface InvCountLineRepository extends BaseRepository<InvCountLine> {
      * @param invCountLine 查询条件
      * @return 返回值
      */
-    List<InvCountLine> selectList(InvCountLine invCountLine);
+    List<InvCountLineDTO> selectList(InvCountLine invCountLine);
 
     /**
      * 根据主键查询（可关联表）
@@ -27,11 +27,13 @@ public interface InvCountLineRepository extends BaseRepository<InvCountLine> {
      * @param countLineId 主键
      * @return 返回值
      */
-    InvCountLine selectByPrimary(Long countLineId);
+    InvCountLineDTO selectByPrimary(Long countLineId);
 
     /**
      * @param headerIds
      * @return
      */
     List<InvCountLineDTO> selectByCountHeaderIds(List<Long> headerIds);
+
+    Integer selectHighestLineNumber();
 }
