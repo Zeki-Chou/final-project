@@ -42,7 +42,7 @@ public class InvCountHeaderController extends BaseController {
     @Autowired
     private InvCountHeaderService invCountHeaderService;
 
-    @ApiOperation(value = "列表")
+    @ApiOperation(value = "List")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping
     public ResponseEntity<Page<InvCountHeaderDTO>> list(InvCountHeaderDTO invCountHeader, @PathVariable Long organizationId,
@@ -52,7 +52,7 @@ public class InvCountHeaderController extends BaseController {
         return Results.success(list);
     }
 
-    @ApiOperation(value = "明细")
+    @ApiOperation(value = "Detail")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping("/{countHeaderId}/detail")
     @ProcessCacheValue
@@ -61,7 +61,7 @@ public class InvCountHeaderController extends BaseController {
         return Results.success(invCountHeader);
     }
 
-    @ApiOperation(value = "创建或更新")
+    @ApiOperation(value = "Save")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping
     public ResponseEntity<?> save(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeaders) {
@@ -91,12 +91,23 @@ public class InvCountHeaderController extends BaseController {
         }
     }
 
-    @ApiOperation(value = "删除")
+    @ApiOperation(value = "Remove")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @DeleteMapping
     public ResponseEntity<?> remove(@RequestBody List<InvCountHeader> invCountHeaders) {
         SecurityTokenHelper.validToken(invCountHeaders);
         invCountHeaderRepository.batchDeleteByPrimaryKey(invCountHeaders);
+        return Results.success();
+    }
+
+    @ApiOperation(value = "Execution")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @PostMapping("/execution")
+    public ResponseEntity<?> execution(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeaders) {
+        validObject(invCountHeaders);
+        SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
+        invCountHeaders.forEach(item -> item.setTenantId(organizationId));
+        invCountHeaderService.execute(invCountHeaders);
         return Results.success();
     }
 

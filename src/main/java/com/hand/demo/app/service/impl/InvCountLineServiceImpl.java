@@ -4,6 +4,7 @@ import com.hand.demo.api.dto.InvCountHeaderDTO;
 import com.hand.demo.api.dto.InvCountLineDTO;
 import com.hand.demo.domain.entity.InvCountHeader;
 import com.hand.demo.domain.repository.InvCountHeaderRepository;
+import com.hand.demo.infra.constant.Constants;
 import io.choerodon.core.domain.Page;
 import io.choerodon.core.oauth.DetailsHelper;
 import io.choerodon.mybatis.pagehelper.PageHelper;
@@ -59,11 +60,11 @@ public class InvCountLineServiceImpl implements InvCountLineService {
                 InvCountHeader countHeader = invCountHeaderRepository.selectByPrimaryKey(line.getCountHeaderId());
                 if (countHeader != null) {
 
-                    if ("INCOUNTING".equals(countHeader.getCountStatus())) {
+                    if (Constants.COUNT_INCOUNTING_STATUS.equals(countHeader.getCountStatus())) {
                         line.setUnitQty(line.getUnitQty());
                         line.setRemark(line.getRemark());
                         line.setUnitDiffQty(line.getUnitDiffQty());
-                        if (DetailsHelper.getUserDetails().getUsername().equals(line.getCreatedBy().toString())){
+                        if (DetailsHelper.getUserDetails().getUserId().equals(line.getCreatedBy())){
                             line.setCounterIds(countHeader.getCounterIds());
                         }
                     }
