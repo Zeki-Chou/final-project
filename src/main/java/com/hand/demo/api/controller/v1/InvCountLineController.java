@@ -37,7 +37,7 @@ public class InvCountLineController extends BaseController {
     @Autowired
     private InvCountLineService invCountLineService;
 
-    @ApiOperation(value = "列表")
+    @ApiOperation(value = "List")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping
     public ResponseEntity<Page<InvCountLine>> list(InvCountLine invCountLine, @PathVariable Long organizationId,
@@ -47,7 +47,7 @@ public class InvCountLineController extends BaseController {
         return Results.success(list);
     }
 
-    @ApiOperation(value = "明细")
+    @ApiOperation(value = "Detail")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping("/{countLineId}/detail")
     public ResponseEntity<InvCountLine> detail(@PathVariable Long countLineId) {
@@ -55,7 +55,7 @@ public class InvCountLineController extends BaseController {
         return Results.success(invCountLine);
     }
 
-    @ApiOperation(value = "创建或更新")
+    @ApiOperation(value = "Save")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping
     public ResponseEntity<List<InvCountLine>> save(@PathVariable Long organizationId, @RequestBody List<InvCountLine> invCountLines) {
@@ -66,7 +66,7 @@ public class InvCountLineController extends BaseController {
         return Results.success(invCountLines);
     }
 
-    @ApiOperation(value = "删除")
+    @ApiOperation(value = "Remove")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @DeleteMapping
     public ResponseEntity<?> remove(@RequestBody List<InvCountLine> invCountLines) {

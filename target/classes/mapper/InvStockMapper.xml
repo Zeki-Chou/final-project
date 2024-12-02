@@ -151,7 +151,7 @@
     </select>
 
     <select id="executeBySKU" resultType="com.hand.demo.api.controller.v1.DTO.InvStockDTO">
-        select fis.warehouse_id, fis.material_id, fim.material_code, max(fis.batch_id) as batch_id,
+        select fis.warehouse_id, fis.material_id, fim.material_code, max(fis.batch_id) as batch_id, fis.unit_code,
         SUM(fis.unit_quantity) as snapshotUnitQty from fexam_inv_stock fis
         inner join fexam_inv_material fim on fis.material_id = fim.material_id
         <where>
@@ -168,7 +168,7 @@
                 #{item}
             </foreach>
         </where>
-        group by fis.material_id
+        group by fis.material_id, fis.unit_code
     </select>
 
     <select id="executeByLOT" resultType="com.hand.demo.api.controller.v1.DTO.InvStockDTO">
@@ -177,7 +177,8 @@
         fis.material_id,
         fim.material_code,
         fis.batch_id,
-        SUM(fis.unit_quantity) as snapshotUnitQty
+        SUM(fis.unit_quantity) as snapshotUnitQty,
+        fis.unit_code
         from fexam_inv_stock fis
         inner join fexam_inv_material fim on fis.material_id = fim.material_id
         <where>

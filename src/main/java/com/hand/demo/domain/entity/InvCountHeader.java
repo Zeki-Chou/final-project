@@ -20,6 +20,7 @@ import java.util.List;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.hzero.boot.platform.lov.annotation.LovValue;
 
 /**
  * (InvCountHeader)实体类
@@ -137,10 +138,12 @@ public class InvCountHeader extends AuditDomain {
 
     @ApiModelProperty(value = "", required = true)
     @NotBlank
+    @LovValue(lovCode = "INV.COUNTING.COUNT_DIMENSION")
     private String countDimension;
 
     @ApiModelProperty(value = "", required = true)
     @NotBlank
+    @LovValue(lovCode = "INV.COUNTING.COUNT_MODE")
     private String countMode;
 
     @ApiModelProperty(value = "", required = true)
@@ -149,6 +152,7 @@ public class InvCountHeader extends AuditDomain {
 
     @ApiModelProperty(value = "", required = true)
     @NotBlank
+    @LovValue(lovCode = "INV.COUNTING.COUNT_STATUS")
     private String countStatus;
 
     @ApiModelProperty(value = "", required = true)
@@ -156,6 +160,7 @@ public class InvCountHeader extends AuditDomain {
 
     @ApiModelProperty(value = "", required = true)
     @NotBlank
+    @LovValue(lovCode = "INV.COUNTING.COUNT_TYPE")
     private String countType;
 
     @ApiModelProperty(value = "", required = true)

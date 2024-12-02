@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hzero.common.HZeroCacheKey;
+import org.hzero.core.cache.CacheValue;
 import org.hzero.core.cache.Cacheable;
 
 import java.util.List;
@@ -19,6 +21,36 @@ import java.util.Map;
 public class InvCountHeaderDTO extends InvCountHeader implements Cacheable {
     private String supervisorId;
 
+    private String tenantName;
+
+    private Integer isWMSwarehouse;
+
+    private String status;
+
+    private String authorization;
+
+    private String employeeNumber;
+
+    private String countTypeMeaning;
+
+    private String countDimensionMeaning;
+
+    private String countStatusMeaning;
+
+    private String countModeMeaning;
+
+    private String departmentName;
+
+    private Long creatorId;
+
+    @CacheValue(
+            key = HZeroCacheKey.USER,
+            primaryKey = "creatorId",
+            searchKey = "realName",
+            structure = CacheValue.DataStructure.MAP_OBJECT
+    )
+    private String createdName;
+
     private List<UserCacheDTO> supervisorList;
 
     private List<UserCacheDTO> counterList;
@@ -27,8 +59,6 @@ public class InvCountHeaderDTO extends InvCountHeader implements Cacheable {
 
     private List<Map<String, Object>> snapshotBatchList;
 
-    private Integer isWMSwarehouse;
-
     private List<InvCountLineDTO> countOrderLineList;
 
     private List<Long> materialList;
@@ -36,10 +66,4 @@ public class InvCountHeaderDTO extends InvCountHeader implements Cacheable {
     private List<Long> batchIdList;
 
     private List<String> errorMsg;
-
-    private String status;
-
-    private String authorization;
-
-    private String employeeNumber;
 }

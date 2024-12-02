@@ -130,7 +130,5 @@ public class InvCountLine extends AuditDomain {
     private Object unitQty;
 
     private Long warehouseId;
-
-
 }
 

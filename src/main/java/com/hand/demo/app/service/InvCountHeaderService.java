@@ -2,6 +2,7 @@ package com.hand.demo.app.service;
 
 import com.hand.demo.api.controller.v1.DTO.InvCountHeaderDTO;
 import com.hand.demo.api.controller.v1.DTO.InvCountInfoDTO;
+import com.hand.demo.api.controller.v1.DTO.WorkFlowEventDTO;
 import io.choerodon.core.domain.Page;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 import com.hand.demo.domain.entity.InvCountHeader;
@@ -23,19 +24,23 @@ public interface InvCountHeaderService {
     //     * @param invCountHeaders 查询条件
      * @return 返回值
      */
-    public Page<List<InvCountHeaderDTO>> countingOrderQueryList(PageRequest pageRequest, InvCountHeaderDTO invCountHeaderDTO);
+    public Page<List<InvCountHeaderDTO>> list(PageRequest pageRequest, InvCountHeaderDTO invCountHeaderDTO);
 
     /**
      * 保存数据
      *
      //     * @param invCountHeaders 数据
      */
-    InvCountHeaderDTO countingOrderQueryDetail(Long countHeaderId);
-    List<InvCountHeaderDTO> countingOrderSave(List<InvCountHeaderDTO> invCountHeadersDTO);
-    InvCountInfoDTO countingOrderRemove(List<InvCountHeaderDTO> invCountHeaders);
-    List<InvCountHeaderDTO> countingOrderExecute(List<InvCountHeaderDTO> invCountHeaderDTOList);
-    InvCountInfoDTO countingOrderSynchronizeWMS(List<InvCountHeaderDTO> invCountHeaderDTOList);
-    InvCountHeaderDTO countingResultSynchronous(InvCountHeaderDTO invCountHeaderDTO);
-    InvCountInfoDTO countingOrderSaveVerification (List<InvCountHeaderDTO> invCountHeadersDTO);
-    InvCountInfoDTO countingOrderExecuteVerification(List<InvCountHeaderDTO> invCountHeaderDTOList);
+    InvCountHeaderDTO detail(Long countHeaderId);
+    InvCountInfoDTO checkAndRemove(List<InvCountHeaderDTO> invCountHeaders);
+    InvCountInfoDTO manualSaveCheck (List<InvCountHeaderDTO> invCountHeadersDTO);
+    List<InvCountHeaderDTO> manualSave(List<InvCountHeaderDTO> invCountHeadersDTO);
+    InvCountInfoDTO executeCheck(List<InvCountHeaderDTO> invCountHeaderDTOList);
+    List<InvCountHeaderDTO> execute(List<InvCountHeaderDTO> invCountHeaderDTOList);
+    InvCountInfoDTO countSyncWms(List<InvCountHeaderDTO> invCountHeaderDTOList);
+    InvCountHeaderDTO countResultSync(InvCountHeaderDTO invCountHeaderDTO);
+    InvCountInfoDTO submitCheck(List<InvCountHeaderDTO> invCountHeaderDTOList);
+    List<InvCountHeaderDTO> submit(List<InvCountHeaderDTO> invCountHeaderDTOList);
+    List<InvCountHeaderDTO> countingOrderReportDs(InvCountHeaderDTO invCountHeaderDTO);
+    InvCountHeaderDTO countingOrderCallBack(WorkFlowEventDTO workFlowEventRequestDTO);
 }
