@@ -63,7 +63,7 @@
                 and fich.count_mode = #{countMode,jdbcType = VARCHAR}
             </if>
             <if test="countNumber !=null">
-                and fich.count_number like concat('%', #{countNumber}, '%'
+                AND fich.count_number LIKE CONCAT('%', #{countNumber}, '%')
             </if>
             <if test="countStatus !=null">
                 and fich.count_status = #{countStatus,jdbcType = VARCHAR}

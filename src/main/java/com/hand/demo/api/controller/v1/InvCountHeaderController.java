@@ -108,7 +108,7 @@ public class InvCountHeaderController extends BaseController {
             @PathVariable Long organizationId,
             @RequestBody List<InvCountHeaderDTO> headerDTOList
     ) {
-//        validObject(invCountHeader, ValidateResultSync.class);
+        headerDTOList.forEach(invCountHeader -> validObject(invCountHeader, ValidateResultSync.class));
 //        SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
         headerDTOList.forEach(invCountHeader -> invCountHeader.setTenantId(organizationId));
 
@@ -117,31 +117,39 @@ public class InvCountHeaderController extends BaseController {
 
     @ApiOperation(value = "Counting Order Report")
     @Permission(level = ResourceLevel.ORGANIZATION)
-    @PostMapping("/report")
+    @GetMapping("/report")
     public ResponseEntity<List<InvCountHeaderDTO>> report (
             @PathVariable Long organizationId,
-            @RequestBody List<InvCountHeaderDTO> headerDTOList
+            InvCountHeaderDTO headerDTO
     ) {
 //        validObject(invCountHeader, ValidateResultSync.class);
 //        SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
-        headerDTOList.forEach(invCountHeader -> invCountHeader.setTenantId(organizationId));
+        headerDTO.setTenantId(organizationId);
 
-        return Results.success(invCountHeaderService.countingOrderReportDs(headerDTOList));
+        return Results.success(invCountHeaderService.countingOrderReportDs(headerDTO));
     }
 
-    @ApiOperation(value = "Remove")
+    @ApiOperation(value = "Submit Workflow")
     @Permission(level = ResourceLevel.ORGANIZATION)
-    @DeleteMapping
-    public ResponseEntity<?> remove(
+    @PostMapping("/submit-workflow")
+    public ResponseEntity<List<InvCountHeaderDTO>> submit(
             @PathVariable Long organizationId,
-            @RequestBody List<InvCountHeaderDTO> invCountHeaders
+            @RequestBody List<InvCountHeaderDTO> headerDTOList
     ) {
 //        SecurityTokenHelper.validToken(invCountHeaders);
-        invCountHeaderService.checkAndRemove(invCountHeaders);
-        return Results.success();
+        return Results.success(invCountHeaderService.submit(headerDTOList));
     }
 
-
+    @ApiOperation(value = "Approval Callback")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @PostMapping("/approval-callback")
+    public ResponseEntity<InvCountHeaderDTO> approvalCallback(
+            @PathVariable Long organizationId,
+            @RequestBody WorkFlowEventDTO eventDTO
+    ) {
+//        SecurityTokenHelper.validToken(invCountHeaders);
+        return Results.success(invCountHeaderService.approvalCallback(eventDTO));
+    }
 
 }
 

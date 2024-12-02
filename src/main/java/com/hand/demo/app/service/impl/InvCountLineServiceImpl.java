@@ -71,7 +71,7 @@ public class InvCountLineServiceImpl implements InvCountLineService {
                 InvCountHeader header = headerById.get(countLine.getCountHeaderId());
                 if (header != null) {
                     String countStatus = header.getCountStatus();
-                    if (countStatus.equals(InvCountHeaderConstants.COUNT_STATUS_INCOUNTING)) {
+                    if (countStatus.equals(InvCountHeaderConstants.CountStatus.INCOUNTING)) {
                         invCountLineRepository.updateOptional(countLine, Utils.getNonNullFields(countLine, InvCountLineDTO.FIELD_UNIT_QTY, InvCountLineDTO.FIELD_REMARK));
                         if (isCreator(header.getCreatedBy())) {
                             invCountLineRepository.updateOptional(countLine, Utils.getNonNullFields(InvCountLineDTO.FIELD_COUNTER_IDS));

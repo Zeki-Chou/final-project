@@ -20,6 +20,7 @@ import javax.validation.constraints.NotNull;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
 /**
  * (InvCountHeader)实体类
@@ -34,6 +35,7 @@ import lombok.Setter;
 @VersionAudit
 @ModifyAudit
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
+@Accessors(chain = true)
 @Table(name = "fexam_inv_count_header")
 public class InvCountHeader extends AuditDomain {
     private static final long serialVersionUID = -33867401055306919L;
