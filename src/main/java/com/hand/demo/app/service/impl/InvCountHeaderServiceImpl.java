@@ -3,9 +3,9 @@ package com.hand.demo.app.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.hand.demo.api.dto.*;
-import com.hand.demo.domain.entity.InvCountExtra;
-import com.hand.demo.domain.entity.InvWarehouse;
+import com.hand.demo.domain.entity.*;
 import com.hand.demo.domain.repository.*;
+import com.hand.demo.infra.constant.Constants;
 import com.hand.demo.infra.constant.InvCountExtraConstants;
 import com.hand.demo.infra.constant.InvCountHeaderConstants;
 import com.hand.demo.infra.constant.InvCountLineConstants;
@@ -16,6 +16,7 @@ import io.choerodon.core.oauth.DetailsHelper;
 import io.choerodon.mybatis.pagehelper.PageHelper;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 import io.netty.handler.codec.HeadersUtils;
+import org.hzero.boot.apaas.common.userinfo.infra.feign.IamRemoteService;
 import org.hzero.boot.interfaces.sdk.dto.RequestPayloadDTO;
 import org.hzero.boot.interfaces.sdk.dto.ResponsePayloadDTO;
 import org.hzero.boot.interfaces.sdk.invoke.InterfaceInvokeSdk;
@@ -70,7 +71,9 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     @Autowired
     private ProfileClient profileClient;
     @Autowired
-    WorkflowClient workflowClient;
+    private WorkflowClient workflowClient;
+    @Autowired
+    private IamRemoteService iamRemoteService;
 
     @Override
     public InvCountInfoDTO manualSaveCheck(List<InvCountHeaderDTO> invCountHeaderDTOS) {
@@ -305,7 +308,6 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
                     ResponsePayloadDTO responsePayloadDTO = interfaceInvokeSdk.invoke(InvCountHeaderConstants.InterfaceSDK.WMSCounting.NAMESPACE,InvCountHeaderConstants.InterfaceSDK.WMSCounting.SERVER_CODE,InvCountHeaderConstants.InterfaceSDK.WMSCounting.INTERFACE_CODE,requestPayloadDTO);
                     JSONObject responsePayloadJSON = JSON.parseObject(responsePayloadDTO.getPayload());
-
                     if(responsePayloadJSON.getString(InvCountHeaderConstants.InterfaceSDK.WMSCounting.ResponseHeader.KEY_STATUS).equals(InvCountHeaderConstants.InterfaceSDK.WMSCounting.ResponseHeader.VALUE_STATUS_SUCCESS)){
                         syncStatusExtra.setProgramvalue(InvCountExtraConstants.Value.ProgramValue.SUCCESS);
                         syncMsgExtra.setProgramvalue("");
@@ -391,6 +393,15 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
     @Override
     public Page<InvCountHeaderDTO> selectList(PageRequest pageRequest, InvCountHeaderDTO invCountHeaderDTO) {
+        String userJson = iamRemoteService.selectSelf().getBody();
+        JSONObject jsonObject= JSON.parseObject(userJson);
+        Boolean isTenantAdmin = (Boolean) jsonObject.getOrDefault(InvCountHeaderConstants.IamRemoteService.TENANT_ADMIN_FLAG,null);
+        if(isTenantAdmin == null){
+            isTenantAdmin = (Boolean) jsonObject.getOrDefault(InvCountHeaderConstants.IamRemoteService.TENANT_SUPER_ADMIN_FLAG,null);
+        }
+        invCountHeaderDTO.setIsTenantAdmin(isTenantAdmin);
+        invCountHeaderDTO.setTenantId(DetailsHelper.getUserDetails().getTenantId());
+
         return PageHelper.doPageAndSort(pageRequest, () -> invCountHeaderRepository.selectList(invCountHeaderDTO));
     }
 
@@ -450,23 +461,27 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         }
 
         // Check data consistency
-        Map<String,InvCountLineDTO> oldInvCountLineDTOMap = convertInvCountLineDTOSToMap(invCountHeaderDTO.getInvCountLineDTOList());
+        Map<String,InvCountLineDTO> oldInvCountLineDTOMap = convertInvCountLineDTOSToMap(oldInvCountHeaderDTO.getInvCountLineDTOList());
         for(InvCountLineDTO invCountLineDTO:invCountHeaderDTO.getInvCountLineDTOList()){
             InvCountLineDTO oldInvCountLineDTO = oldInvCountLineDTOMap.getOrDefault(invCountLineDTO.getCountLineId().toString(),null);
             if(oldInvCountLineDTO == null){
                 throw new CommonException("The counting order line data is inconsistent with the INV system, please check the data");
             }
             Utils.populateNullFields(oldInvCountLineDTO,invCountLineDTO);
+            invCountLineDTO.setObjectVersionNumber(oldInvCountLineDTO.getObjectVersionNumber());
             invCountLineDTO.setUnitDiffQty(invCountLineDTO.getUnitQty().subtract(oldInvCountLineDTO.getSnapshotUnitQty()));
         }
         // Update the line data
         invCountLineRepository.batchUpdateOptional(invCountHeaderDTO.getInvCountLineDTOList(),InvCountLineConstants.UpdateOptional.Sync.RESULT);
+        invCountHeaderDTO.setStatus(InvCountHeaderConstants.InterfaceSDK.WMSCounting.SUCCESS_STATUS);
         return invCountHeaderDTO;
     }
 
     @Override
     public List<InvCountHeaderDTO> submit(List<InvCountHeaderDTO> invCountHeaderDTOS){
-        List<InvCountHeaderDTO> oldInvCountHeaderDTOS = invCountHeaderRepository.selectByIds(invCountHeaderDTOS.stream().map(headerDTO->headerDTO.getCountHeaderId().toString()).collect(Collectors.joining(",")));
+        InvCountHeaderDTO listParam = new InvCountHeaderDTO();
+        listParam.setIds(invCountHeaderDTOS.stream().map(headerDTO->headerDTO.getCountHeaderId().toString()).collect(Collectors.joining(",")));
+        List<InvCountHeaderDTO> oldInvCountHeaderDTOS = invCountHeaderRepository.selectList(listParam);
         Map<String,InvCountHeaderDTO> oldInvCountHeaderDTOMap = convertInvCountHeaderDTOSToMap(oldInvCountHeaderDTOS);
         // Get configuration file value
         String workflowFlag = profileClient.getProfileValueByOptions(DetailsHelper.getUserDetails().getTenantId(), null, null,InvCountHeaderConstants.Profile.CountingWorkflow.NAME);
@@ -475,9 +490,11 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             // start workflow
             for(InvCountHeaderDTO invCountHeaderDTO:invCountHeaderDTOS){
                 InvCountHeaderDTO oldInvCountHeaderDTO = oldInvCountHeaderDTOMap.get(invCountHeaderDTO.getCountHeaderId().toString());
+                Utils.populateNullFields(oldInvCountHeaderDTO,invCountHeaderDTO);
                 Map<String,Object> workflowVariableMap = new HashMap<>();
                 workflowVariableMap.put(InvCountHeaderConstants.Workflow.Submit.VAR_DEPARTMENT_CODE,oldInvCountHeaderDTO.getDepartmentCode());
-                workflowClient.startInstanceByFlowKey(invCountHeaderDTO.getTenantId(), InvCountHeaderConstants.Workflow.Submit.FLOW_KEY,invCountHeaderDTO.getCountNumber(), InvCountHeaderConstants.Workflow.Submit.DIMENSION, InvCountHeaderConstants.Workflow.Submit.STARTER, workflowVariableMap);
+
+                workflowClient.startInstanceByFlowKey(invCountHeaderDTO.getTenantId(), InvCountHeaderConstants.Workflow.Submit.FLOW_KEY, invCountHeaderDTO.getCountNumber(), InvCountHeaderConstants.Workflow.Submit.DIMENSION, InvCountHeaderConstants.Workflow.Submit.STARTER, workflowVariableMap);
             }
         } else {
             // update document status to confirmed
@@ -507,8 +524,15 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     public List<InvCountHeaderDTO> countingOrderReportDs(InvCountHeaderDTO invCountHeaderDTO){
         List<InvCountHeaderDTO> oldInvCountHeaderDTOS = invCountHeaderRepository.selectList(invCountHeaderDTO);
         for(InvCountHeaderDTO oldInvCountHeaderDTO: oldInvCountHeaderDTOS){
-//            List<RunTaskHistory> runTaskHistory = workflowClient.approveHistory(invCountHeaderDTO.getTenantId(),invCountHeaderDTO.getWorkflowId());
-//            oldInvCountHeaderDTO.setApprovalHistoryList(runTaskHistory);
+            List<RunTaskHistory> runTaskHistory = workflowClient.approveHistory(oldInvCountHeaderDTO.getTenantId(),oldInvCountHeaderDTO.getWorkflowId());
+            oldInvCountHeaderDTO.setApprovalHistoryList(runTaskHistory);
+            oldInvCountHeaderDTO.setCounterNamesString(oldInvCountHeaderDTO.getCounterList().stream().map(User::getRealName).collect(Collectors.joining(", ")));
+            oldInvCountHeaderDTO.setSupervisorNamesString(oldInvCountHeaderDTO.getSupervisorList().stream().map(User::getRealName).collect(Collectors.joining(", ")));
+            oldInvCountHeaderDTO.setMaterialCodesString(oldInvCountHeaderDTO.getSnapshotMaterialList().stream().map(InvMaterial::getMaterialCode).collect(Collectors.joining(", ")));
+            oldInvCountHeaderDTO.setBatchCodesString(oldInvCountHeaderDTO.getSnapshotBatchList().stream().map(InvBatch::getBatchCode).collect(Collectors.joining(", ")));
+            for(InvCountLineDTO oldInvCountLineDTO:oldInvCountHeaderDTO.getInvCountLineDTOList()){
+                oldInvCountLineDTO.setCounterNamesString(oldInvCountLineDTO.getCounterList().stream().map(User::getRealName).collect(Collectors.joining(", ")));
+            }
         }
         return oldInvCountHeaderDTOS;
     }
@@ -612,7 +636,6 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         invCountExtra.setEnabledflag(InvCountExtraConstants.Value.EnabledFlag.DEFAULT);
         invCountExtra.setProgramkey(programKey);
         return invCountExtra;
-
     }
 }
 

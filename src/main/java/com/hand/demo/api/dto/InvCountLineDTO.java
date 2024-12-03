@@ -23,8 +23,12 @@ public class InvCountLineDTO extends InvCountLine {
     @Transient
     private String materialName;
     @Transient
+    private String materialCode;
+    @Transient
     private String batchCode;
     @Transient
     private List<UserDTO> counterList;
+    @Transient
+    private String counterNamesString;
 
 }

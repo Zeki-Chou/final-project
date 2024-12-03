@@ -24,7 +24,8 @@ public class InvCountLineConstants {
 
         public static class Sync {
             public final static String[] RESULT = {
-                    InvCountHeaderDTO.FIELD_RELATED_WMS_ORDER_CODE,
+                    InvCountLineDTO.FIELD_UNIT_QTY,
+                    InvCountLineDTO.FIELD_UNIT_DIFF_QTY,
             };
         }
     }

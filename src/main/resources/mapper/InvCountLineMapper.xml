@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.hand.demo.infra.mapper.InvCountLineMapper">
-
-
     <sql id = "BaseSql">
         l.count_line_id,
         l.batch_id,
@@ -17,13 +15,12 @@
         l.unit_diff_qty,
         l.unit_qty,
         l.warehouse_id,
-        l.creation_date, 
-        l.created_by, 
-        l.last_updated_by, 
-        l.last_update_date, 
+        l.creation_date,
+        l.created_by,
+        l.last_updated_by,
+        l.last_update_date,
         l.object_version_number
     </sql>
-
     <select id = "selectList" resultType = "com.hand.demo.api.dto.InvCountLineDTO">
         select
         <include refid = "BaseSql"/>
@@ -74,6 +71,5 @@
         SELECT MAX(l.line_number) AS maxLineNumber
         FROM fexam_inv_count_line l
     </select>
-
 </mapper>
 

@@ -1,7 +1,9 @@
 package com.hand.demo.api.dto;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.hand.demo.domain.entity.InvBatch;
 import com.hand.demo.domain.entity.InvCountHeader;
 import com.hand.demo.domain.entity.InvCountLine;
@@ -24,7 +26,7 @@ import java.util.List;
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 @Table(name = "fexam_inv_count_header")
 public class InvCountHeaderDTO extends InvCountHeader {
-
+    // detail
     @Transient
     private List<InvMaterial> snapshotMaterialList;
     @Transient
@@ -36,6 +38,7 @@ public class InvCountHeaderDTO extends InvCountHeader {
     @Transient
     private List<UserDTO> supervisorList;
     @Transient
+    @JsonAlias("countOrderLineList")
     private List<InvCountLineDTO> invCountLineDTOList;
     @Transient
     private List<RunTaskHistory> approvalHistoryList;
@@ -43,7 +46,8 @@ public class InvCountHeaderDTO extends InvCountHeader {
     private String employeeNumber;
     @Transient
     private String ids;
-
+    @Transient
+    private Boolean isTenantAdmin;
     // Report
     @Transient
     private String tenantNum;
@@ -58,7 +62,21 @@ public class InvCountHeaderDTO extends InvCountHeader {
     @Transient
     private String countModeMeaning;
     @Transient
-    private String countNumberMeaning;
+    private String countTypeMeaning;
     @Transient
     private String countStatusMeaning;
+    @Transient
+    private String counterNamesString;
+    @Transient
+    private String supervisorNamesString;
+    @Transient
+    private String materialCodesString;
+    @Transient
+    private String batchCodesString;
+
+    // interface
+    @Transient
+    private String status;
+    @Transient
+    private String errorMsg ;
 }

@@ -7,6 +7,11 @@ import com.hand.demo.domain.entity.InvCountHeader;
 public class InvCountHeaderConstants {
     private InvCountHeaderConstants() {
     }
+    public static class IamRemoteService{
+        public final static String TENANT_ADMIN_FLAG = "tenantAdminFlag";
+        public final static String TENANT_SUPER_ADMIN_FLAG = "superTenantAdminFlag";
+
+    }
     public static class Workflow {
         public static class Submit {
             public final static String FLOW_KEY = "INV_COUNT60_RESULT_SUBMIT";
@@ -19,7 +24,7 @@ public class InvCountHeaderConstants {
 
     public static class Profile{
         public static class CountingWorkflow{
-            public final static String  NAME =  "FEXAM60.INV.COUNTING.ISWORKFLOW";
+            public final static String  NAME =  "FEXAM60.INV.COUNTING.ISWORKFLO";
             public final static String ENABLED ="1";
         }
     }
@@ -28,6 +33,7 @@ public class InvCountHeaderConstants {
             public final static String  NAMESPACE ="HZERO";
             public final static String  SERVER_CODE ="FEXAM_WMS";
             public final static String INTERFACE_CODE="fexam-wms-api.thirdAddCounting";
+            public final static String SUCCESS_STATUS="S";
 
 
             public static class RequestHeader {
@@ -35,7 +41,7 @@ public class InvCountHeaderConstants {
                 public final static String KEY_AUTHORIZATION = "Authorization";
                 public final static String KEY_CONTENT_TYPE = "Content-Type";
                 public final static String VALUE_CONTENT_TYPE = "application/json";
-                public final static String VALUE_AUTHORIZATION = "485c7281-af58-46da-9a5e-939507bdb016";
+                public final static String VALUE_AUTHORIZATION = "20f6a82f-bb24-4899-9631-25aa8f7f3d91";
 
 
 
