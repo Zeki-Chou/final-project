@@ -23,5 +23,9 @@ public class InvoiceCountHeaderConstant {
         public static final String PROGRAM_KEY_ERROR_MSG = "wms_sync_error_message";
     }
 
+    public static class Workflow {
+        public static final String FLOW_KEY = "FLOW1863520005904252930";
+    }
+
     public InvoiceCountHeaderConstant(){}
 }

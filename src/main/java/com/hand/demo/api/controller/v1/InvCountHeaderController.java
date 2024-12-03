@@ -1,6 +1,8 @@
 package com.hand.demo.api.controller.v1;
 
 import com.hand.demo.api.dto.InvCountHeaderDTO;
+import com.hand.demo.api.dto.InvCountInfoDTO;
+import com.hand.demo.api.dto.WorkFlowEventDTO;
 import io.choerodon.core.domain.Page;
 import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.mybatis.pagehelper.annotation.SortDefault;
@@ -8,6 +10,8 @@ import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 import io.choerodon.mybatis.pagehelper.domain.Sort;
 import io.choerodon.swagger.annotation.Permission;
 import io.swagger.annotations.ApiOperation;
+import org.hzero.boot.platform.lov.annotation.ProcessLovValue;
+import org.hzero.core.base.BaseConstants;
 import org.hzero.core.base.BaseController;
 import org.hzero.core.cache.ProcessCacheValue;
 import org.hzero.core.util.Results;
@@ -42,6 +46,7 @@ public class InvCountHeaderController extends BaseController {
     @ApiOperation(value = "list")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping
+    @ProcessLovValue(targetField = BaseConstants.FIELD_BODY)
     public ResponseEntity<Page<InvCountHeaderDTO>> list(InvCountHeaderDTO invCountHeader, @PathVariable Long organizationId,
                                                      @ApiIgnore @SortDefault(value = InvCountHeader.FIELD_COUNT_HEADER_ID,
                                                              direction = Sort.Direction.DESC) PageRequest pageRequest) {
@@ -53,6 +58,7 @@ public class InvCountHeaderController extends BaseController {
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping("/{countHeaderId}/detail")
     @ProcessCacheValue
+    @ProcessLovValue(targetField = BaseConstants.FIELD_BODY)
     public ResponseEntity<InvCountHeaderDTO> detail(@PathVariable Long countHeaderId) {
         InvCountHeaderDTO invCountHeader = invCountHeaderService.detail(countHeaderId);
         return Results.success(invCountHeader);
@@ -84,7 +90,45 @@ public class InvCountHeaderController extends BaseController {
         validObject(invCountHeaders);
         SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
         invCountHeaders.forEach(item -> item.setTenantId(organizationId));
-        return Results.success(invCountHeaderService.execute(invCountHeaders));
+        List<InvCountHeaderDTO> returnedHeaderDTO = invCountHeaderService.execute(invCountHeaders);
+        InvCountInfoDTO infoDTO = invCountHeaderService.countSyncWms(invCountHeaders);
+        return Results.success(returnedHeaderDTO);
+    }
+
+    @ApiOperation(value = "countResultSync")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @PostMapping("/countResultSync")
+    public ResponseEntity<?> countResultSync(@PathVariable Long organizationId, @RequestBody InvCountHeaderDTO invCountHeaderDTO) {
+        validObject(invCountHeaderDTO);
+        SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaderDTO);
+        invCountHeaderDTO.setTenantId(organizationId);
+        return Results.success(invCountHeaderService.countResultSync(invCountHeaderDTO));
+    }
+
+    @ApiOperation(value = "orderSubmit")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @PostMapping("/orderSubmit")
+    public ResponseEntity<?> orderSubmit(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeaderDTOS) {
+        validObject(invCountHeaderDTOS);
+        SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaderDTOS);
+        invCountHeaderDTOS.forEach(dto -> dto.setTenantId(organizationId));
+        return Results.success(invCountHeaderService.submit(invCountHeaderDTOS));
+    }
+
+    @ApiOperation(value = "approvalCallback")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @PostMapping("/approvalCallback")
+    public ResponseEntity<InvCountHeader> approvalCallback(@PathVariable Long organizationId,
+                                                           @RequestBody WorkFlowEventDTO workFlowEventDTO){
+        return Results.success(invCountHeaderService.approvalCallback(organizationId, workFlowEventDTO));
+    }
+
+    @ApiOperation(value = "countingOrderReportDs")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @GetMapping("/countingOrderReportDs")
+    @ProcessLovValue(targetField = BaseConstants.FIELD_BODY)
+    public ResponseEntity<?> countingOrderReportDs(InvCountHeaderDTO invCountHeaderDTO, @PathVariable Long organizationId) {
+        return Results.success(invCountHeaderService.countingOrderReportDs(invCountHeaderDTO));
     }
 
 }
