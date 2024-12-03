@@ -7,6 +7,7 @@ import com.hand.demo.domain.entity.InvMaterial;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.hzero.boot.workflow.dto.RunTaskHistory;
 import org.hzero.core.cache.Cacheable;
 
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.List;
 public class InvCountHeaderDTO extends InvCountHeader implements Cacheable {
     private String errMsg;
     private List<InvCountLine> countOrderLineList;
+    private List<InvCountLineDTO> countOrderLineListDTO;
     private String countDimensionMeaning;
     private String countModeMeaning;
     private String countStatusMeaning;
@@ -33,4 +35,8 @@ public class InvCountHeaderDTO extends InvCountHeader implements Cacheable {
     private String interfaceCode;
     private String employeeNumber;
     private String status;
+    private String departmentName;
+    private String warehouseName;
+    private List<RunTaskHistory> approvalHistory;
+    private String creatorName;
 }

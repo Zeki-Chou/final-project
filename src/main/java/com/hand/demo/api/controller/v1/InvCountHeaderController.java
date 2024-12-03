@@ -12,6 +12,8 @@ import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 import io.choerodon.mybatis.pagehelper.domain.Sort;
 import io.choerodon.swagger.annotation.Permission;
 import io.swagger.annotations.ApiOperation;
+import org.hzero.boot.platform.lov.annotation.ProcessLovValue;
+import org.hzero.core.base.BaseConstants;
 import org.hzero.core.base.BaseController;
 import org.hzero.core.cache.ProcessCacheValue;
 import org.hzero.core.util.Results;
@@ -53,6 +55,16 @@ public class InvCountHeaderController extends BaseController {
                                                              value = InvCountHeader.FIELD_COUNT_HEADER_ID,
                                                              direction = Sort.Direction.DESC) PageRequest pageRequest) {
         Page<InvCountHeaderDTO> list = invCountHeaderService.selectList(pageRequest, invCountHeader);
+        return Results.success(list);
+    }
+
+    @ApiOperation(value = "Get Report")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @GetMapping("/report")
+    @ProcessLovValue(targetField = BaseConstants.FIELD_BODY)
+    @ProcessCacheValue
+    public ResponseEntity<List<InvCountHeaderDTO>> report(InvCountHeaderDTO invCountHeader, @PathVariable Long organizationId) {
+        List<InvCountHeaderDTO> list = invCountHeaderService.getReport(invCountHeader);
         return Results.success(list);
     }
 

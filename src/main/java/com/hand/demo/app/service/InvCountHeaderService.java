@@ -6,6 +6,7 @@ import com.hand.demo.api.dto.WorkFlowEventDTO;
 import io.choerodon.core.domain.Page;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 import com.hand.demo.domain.entity.InvCountHeader;
+import org.hzero.boot.workflow.dto.RunTaskHistory;
 
 import java.util.List;
 
@@ -54,5 +55,9 @@ public interface InvCountHeaderService {
     List<InvCountHeaderDTO> submit(List<InvCountHeaderDTO> invCountHeaderDTOS);
 
     InvCountInfoDTO submitCheck(List<InvCountHeaderDTO> invCountHeaderDTOS);
+
+    List<RunTaskHistory> approvalHistory(Long organizationId, Long workflowId);
+
+    List<InvCountHeaderDTO> getReport(InvCountHeaderDTO invCountHeader);
 }
 

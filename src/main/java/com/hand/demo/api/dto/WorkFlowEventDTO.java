@@ -13,8 +13,8 @@ public class WorkFlowEventDTO {
     private Long workflowId;
     private  String docStatus;
     private Date approvedTime;
-    private String dimension;
-    private String starter;
-    private String workflowKey;
-    private Map<String, Object> variabelMap;
+//    private String dimension;
+//    private String starter;
+//    private String workflowKey;
+//    private Map<String, Object> variabelMap;
 }
