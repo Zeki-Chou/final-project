@@ -59,35 +59,13 @@ public class InvCountHeaderController extends BaseController {
     public ResponseEntity<List<InvCountHeaderDTO>> execute(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeadersDTO) {
         for(InvCountHeaderDTO invCountHeader : invCountHeadersDTO) {
             validObject(invCountHeader, ValidateExecuteCheck.class);
-            List<InvCountLineDTO> invCountLines = invCountHeader.getCountOrderLineList();
-            for(InvCountLineDTO invCountLineDTO : invCountLines) {
-                validObject(invCountLineDTO, ValidateSave.class);
-            }
         }
 
         SecurityTokenHelper.validTokenIgnoreInsert(invCountHeadersDTO);
         invCountHeadersDTO.forEach(item -> item.setTenantId(organizationId));
 
-//      countingOrderSaveVerification
-        InvCountInfoDTO invCountInfoDTO = invCountHeaderService.manualSaveCheck(invCountHeadersDTO);
-        if(invCountInfoDTO.getErrorMessage() != null && invCountInfoDTO.getErrorMessage().size() > 0) {
-            throw new CommonException(JSON.toJSONString(invCountInfoDTO));
-        }
-
-//      Counting order save
-        invCountHeaderService.manualSave(invCountHeadersDTO);
-
-//      Counting order execute verification
-        InvCountInfoDTO invCountInfoDTOExecute = invCountHeaderService.executeCheck(invCountHeadersDTO);
-        if(invCountInfoDTOExecute.getErrorMessage() != null && invCountInfoDTOExecute.getErrorMessage().size() > 0) {
-            throw new CommonException(JSON.toJSONString(invCountInfoDTOExecute));
-        }
-
 //      Counting order execute
-        invCountHeaderService.execute(invCountHeadersDTO);
-
-//      Counting order synchronization
-        invCountHeaderService.countSyncWms(invCountHeadersDTO);
+        List<InvCountHeaderDTO> invCountHeaderDTOList = invCountHeaderService.execute(invCountHeadersDTO);
         return Results.success(invCountHeadersDTO);
     }
 
@@ -102,17 +80,9 @@ public class InvCountHeaderController extends BaseController {
         SecurityTokenHelper.validTokenIgnoreInsert(invCountHeadersDTO);
         invCountHeadersDTO.forEach(item -> item.setTenantId(organizationId));
 
-//      countingOrderSaveVerification
-        InvCountInfoDTO invCountInfoDTO = invCountHeaderService.manualSaveCheck(invCountHeadersDTO);
-        if(invCountInfoDTO.getErrorMessage() != null && invCountInfoDTO.getErrorMessage().size() > 0) {
-            throw new CommonException(JSON.toJSONString(invCountInfoDTO));
-        }
-
-//      set error message into null, if there is no error message
-        invCountInfoDTO.setErrorMessage(null);
-
 //      countingOrderSave
         List<InvCountHeaderDTO> invCountHeaderDTOList = invCountHeaderService.manualSave(invCountHeadersDTO);
+        InvCountInfoDTO invCountInfoDTO = new InvCountInfoDTO();
         invCountInfoDTO.setInvCountHeaderDTOList(invCountHeaderDTOList);
         return Results.success(invCountInfoDTO);
     }
@@ -167,21 +137,6 @@ public class InvCountHeaderController extends BaseController {
     @PutMapping("/orderSubmit")
     public ResponseEntity<List<InvCountHeaderDTO>> countOrderSubmit(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeadersDTO) {
         SecurityTokenHelper.validToken(invCountHeadersDTO);
-
-        //  countingOrderSaveVerification
-        InvCountInfoDTO invCountInfoDTO = invCountHeaderService.manualSaveCheck(invCountHeadersDTO);
-        if(invCountInfoDTO.getErrorMessage() != null && invCountInfoDTO.getErrorMessage().size() > 0) {
-            throw new CommonException(JSON.toJSONString(invCountInfoDTO));
-        }
-
-        //  Counting order save
-        invCountHeaderService.manualSave(invCountHeadersDTO);
-
-        //  countingOrderSubmitVerification
-        InvCountInfoDTO invCountInfoDTOSubmit = invCountHeaderService.submitCheck(invCountHeadersDTO);
-        if(invCountInfoDTOSubmit.getErrorMessage() != null && invCountInfoDTOSubmit.getErrorMessage().size() > 0) {
-            throw new CommonException(JSON.toJSONString(invCountInfoDTOSubmit));
-        }
 
         //  Counting order submit
         return Results.success(invCountHeaderService.submit(invCountHeadersDTO));

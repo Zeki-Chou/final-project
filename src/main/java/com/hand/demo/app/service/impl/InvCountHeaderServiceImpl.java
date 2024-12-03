@@ -680,6 +680,21 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     }
 
     public List<InvCountHeaderDTO> submit(List<InvCountHeaderDTO> invCountHeaderDTOList) {
+        //  countingOrderSaveVerification
+        InvCountInfoDTO invCountInfoDTO = manualSaveCheck(invCountHeaderDTOList);
+        if(invCountInfoDTO.getErrorMessage() != null && invCountInfoDTO.getErrorMessage().size() > 0) {
+            throw new CommonException(JSON.toJSONString(invCountInfoDTO));
+        }
+
+        //  Counting order save
+        manualSave(invCountHeaderDTOList);
+
+        //  countingOrderSubmitVerification
+        InvCountInfoDTO invCountInfoDTOSubmit = submitCheck(invCountHeaderDTOList);
+        if(invCountInfoDTOSubmit.getErrorMessage() != null && invCountInfoDTOSubmit.getErrorMessage().size() > 0) {
+            throw new CommonException(JSON.toJSONString(invCountInfoDTOSubmit));
+        }
+
         Map<Long, InvCountHeader> mapCountHeaderDb = mapCountHeaderDb(invCountHeaderDTOList);
         Map<Long, IamDepartment> mapCountDepartmentDb = mapCountDepartmentDb(invCountHeaderDTOList);
 
@@ -854,6 +869,23 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     }
 
     public List<InvCountHeaderDTO> execute(List<InvCountHeaderDTO> invCountHeaders) {
+        //      countingOrderSaveVerification
+        InvCountInfoDTO invCountInfoDTO = manualSaveCheck(invCountHeaders);
+        if(invCountInfoDTO.getErrorMessage() != null && invCountInfoDTO.getErrorMessage().size() > 0) {
+            throw new CommonException(JSON.toJSONString(invCountInfoDTO));
+        }
+
+        //      Counting order save
+        manualSave(invCountHeaders);
+
+        //      Counting order execute verification
+        InvCountInfoDTO invCountInfoDTOExecute = executeCheck(invCountHeaders);
+        if(invCountInfoDTOExecute.getErrorMessage() != null && invCountInfoDTOExecute.getErrorMessage().size() > 0) {
+            throw new CommonException(JSON.toJSONString(invCountInfoDTOExecute));
+        }
+
+        //      Execute
+
         // create invCountHeader map db by id
         List<Long> headerIds = invCountHeaders.stream().map(InvCountHeaderDTO::getCountHeaderId).collect(Collectors.toList());
         String joinHeaderId = String.join(",", headerIds.stream()
@@ -870,7 +902,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             invCountHeaderDb.setCountStatus("INCOUNTING");
             invCountHeaderUpdateList.add(invCountHeaderDb);
 
-//          change string materialIds into list
+            //          change string materialIds into list
             String materialIds = invCountHeaderDb.getSnapshotMaterialIds();
             List<Long> materialList = Arrays.stream(materialIds.split(","))
                     .map(String::trim)
@@ -878,7 +910,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                     .collect(Collectors.toList());
             invCountHeader.setMaterialList(materialList);
 
-//          change batchIds into list
+            //          change batchIds into list
             String batchIds = invCountHeaderDb.getSnapshotBatchIds();
             List<Long> batchIdList = Arrays.stream(batchIds.split(","))
                     .map(String::trim)
@@ -886,7 +918,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                     .collect(Collectors.toList());
             invCountHeader.setBatchIdList(batchIdList);
 
-//          set departmentId from db
+            //          set departmentId from db
             invCountHeader.setDepartmentId(invCountHeaderDb.getDepartmentId());
 
             List<InvStockDTO> invStockList = new ArrayList<>();
@@ -900,25 +932,28 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
             int i = 1;
             for(InvStockDTO invStock : invStockList) {
-                InvCountLine invCountLine = new InvCountLine();
-                invCountLine.setCountHeaderId(invCountHeader.getCountHeaderId());
-                invCountLine.setTenantId(invCountHeader.getTenantId());
-                invCountLine.setLineNumber(i);
-                invCountLine.setWarehouseId(invStock.getWarehouseId());
-                invCountLine.setMaterialId(invStock.getMaterialId());
-                invCountLine.setBatchId(invStock.getBatchId());
-                invCountLine.setUnitCode(invStock.getUnitCode());
-                invCountLine.setSnapshotUnitQty(invStock.getSnapshotUnitQty());
-                invCountLine.setCounterIds(invCountHeader.getCounterIds());
-                invCountLine.setUnitCode(invStock.getUnitCode());
+                InvCountLineDTO invCountLineDTO = new InvCountLineDTO();
+                invCountLineDTO.setCountHeaderId(invCountHeader.getCountHeaderId());
+                invCountLineDTO.setTenantId(invCountHeader.getTenantId());
+                invCountLineDTO.setLineNumber(i);
+                invCountLineDTO.setWarehouseId(invStock.getWarehouseId());
+                invCountLineDTO.setMaterialId(invStock.getMaterialId());
+                invCountLineDTO.setBatchId(invStock.getBatchId());
+                invCountLineDTO.setUnitCode(invStock.getUnitCode());
+                invCountLineDTO.setSnapshotUnitQty(invStock.getSnapshotUnitQty());
+                invCountLineDTO.setCounterIds(invCountHeader.getCounterIds());
+                invCountLineDTO.setUnitCode(invStock.getUnitCode());
 
-                invCountLineInsertList.add(invCountLine);
+                invCountLineInsertList.add(invCountLineDTO);
                 i++;
             }
         }
+
         invCountHeaderRepository.batchUpdateByPrimaryKeySelective(invCountHeaderUpdateList);
         invCountLineRepository.batchInsertSelective(invCountLineInsertList);
 
+        //      Counting order synchronization
+        countSyncWms(invCountHeaders);
         return invCountHeaders;
     }
 
@@ -1025,7 +1060,16 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
     @Override
     public List<InvCountHeaderDTO> manualSave(List<InvCountHeaderDTO> invCountHeadersDTO) {
-//      update
+        //      countingOrderSaveVerification
+        InvCountInfoDTO invCountInfoDTO = manualSaveCheck(invCountHeadersDTO);
+        if(invCountInfoDTO.getErrorMessage() != null && invCountInfoDTO.getErrorMessage().size() > 0) {
+            throw new CommonException(JSON.toJSONString(invCountInfoDTO));
+        }
+
+        //      set error message into null, if there is no error message
+        invCountInfoDTO.setErrorMessage(null);
+
+        //      update
         List<InvCountHeaderDTO> updateList = invCountHeadersDTO.stream().filter(line -> line.getCountHeaderId() != null).collect(Collectors.toList());
         if(updateList.size() > 0) {
             List<Long> headerIds = updateList.stream().map(InvCountHeader::getCountHeaderId).collect(Collectors.toList());
