@@ -19,10 +19,10 @@ public interface InvCountLineService {
      * 查询数据
      *
      * @param pageRequest   分页参数
-     * @param invCountLines 查询条件
+     * @param invCountLine 查询条件
      * @return 返回值
      */
-    Page<InvCountLine> selectList(PageRequest pageRequest, InvCountLine invCountLines);
+    Page<InvCountLine> selectList(PageRequest pageRequest, InvCountLineDTO invCountLine);
 
     /**
      * 保存数据

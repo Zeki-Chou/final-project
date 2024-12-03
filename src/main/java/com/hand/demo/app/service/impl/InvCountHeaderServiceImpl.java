@@ -70,15 +70,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
     @Override
     public Page<InvCountHeaderDTO> selectList(PageRequest pageRequest, InvCountHeaderDTO invCountHeader) {
-
-        Page<InvCountHeaderDTO> countHeaderDTOS = PageHelper.doPageAndSort(pageRequest, () -> invCountHeaderRepository.selectList(invCountHeader));
-        Map<Long, List<InvCountLineDTO>> lineMap = findCountLines(countHeaderDTOS.getContent());
-        countHeaderDTOS.forEach(header -> {
-            List<InvCountLineDTO> lineDTOList = lineMap.getOrDefault(header.getCountHeaderId(), new ArrayList<>());
-            header.setCountOrderLineList(lineDTOList);
-        });
-
-        return countHeaderDTOS;
+        return PageHelper.doPageAndSort(pageRequest, () -> invCountHeaderRepository.selectList(invCountHeader));
     }
 
     @Override
@@ -187,8 +179,9 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         List<MaterialInfoDTO> materialInfoDTOList = invMaterialService.convertMaterialIdsToList(header.getSnapshotMaterialIds());
         List<BatchInfoDTO> batchInfoDTOList = invBatchService.convertBatchIdsToList(header.getSnapshotBatchIds());
 
-        InvCountLine lineRecord = new InvCountLine();
+        InvCountLineDTO lineRecord = new InvCountLineDTO();
         lineRecord.setCountHeaderId(countHeaderId);
+        lineRecord.setSupervisorIds(header.getSupervisorIds());
         List<InvCountLineDTO> invCountLineList = invCountLineRepository.selectList(lineRecord);
 
         header.setCounterList(counterList);
@@ -467,7 +460,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     public InvCountHeaderDTO countResultSync(InvCountHeaderDTO invCountHeaderDTO) {
 
         //Check data consistency
-        InvCountLine lineRecord = new InvCountLine();
+        InvCountLineDTO lineRecord = new InvCountLineDTO();
         lineRecord.setCountHeaderId(invCountHeaderDTO.getCountHeaderId());
         List<InvCountLineDTO> countLinesDB = invCountLineRepository.selectList(lineRecord);
 
@@ -643,6 +636,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     @Override
     @ProcessCacheValue
     public List<InvCountHeaderDTO> countingOrderReportDs(InvCountHeaderDTO countHeader) {
+
         List<InvCountHeaderDTO> countHeaderDTOS = invCountHeaderRepository.selectHeaderReport(countHeader);
         List<Long> headerIds = countHeaderDTOS.stream().map(InvCountHeader::getCountHeaderId).collect(Collectors.toList());
         Map<Long, List<InvCountLineDTO>> countLineMap = invCountLineRepository.selectLineReport(headerIds)

@@ -65,5 +65,7 @@ public class InvCountHeaderDTO extends InvCountHeader implements Cacheable {
     @ApiModelProperty(hidden = true)
     private List<RunTaskHistory> approvalHistory;
 
+    private String tenantName;
+
     private String token; // temp
 }

@@ -23,13 +23,13 @@ public class InvCountLineRepositoryImpl extends BaseRepositoryImpl<InvCountLine>
     private InvCountLineMapper invCountLineMapper;
 
     @Override
-    public List<InvCountLineDTO> selectList(InvCountLine invCountLine) {
+    public List<InvCountLineDTO> selectList(InvCountLineDTO invCountLine) {
         return invCountLineMapper.selectList(invCountLine);
     }
 
     @Override
     public InvCountLineDTO selectByPrimary(Long countLineId) {
-        InvCountLine invCountLine = new InvCountLine();
+        InvCountLineDTO invCountLine = new InvCountLineDTO();
         invCountLine.setCountLineId(countLineId);
         List<InvCountLineDTO> invCountLines = invCountLineMapper.selectList(invCountLine);
         if (invCountLines.isEmpty()) {

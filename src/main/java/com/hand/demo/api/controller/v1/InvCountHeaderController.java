@@ -178,7 +178,6 @@ public class InvCountHeaderController extends BaseController {
 
     @ExceptionHandler(CommonException.class)
     public InvCountInfoDTO getCountInfo(HttpServletRequest req, CommonException ex) {
-        // in jsonString
         return JSON.parseObject(ex.getMessage(),InvCountInfoDTO.class);
     }
 

@@ -16,5 +16,7 @@ public class InvCountLineDTO extends InvCountLine {
     @ApiModelProperty(hidden = true)
     private String batchCode;
 
+    @ApiModelProperty(hidden = true)
+    private String supervisorIds;
 
 }

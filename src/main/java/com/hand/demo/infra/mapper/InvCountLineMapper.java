@@ -19,7 +19,7 @@ public interface InvCountLineMapper extends BaseMapper<InvCountLine> {
      * @param invCountLine 查询条件
      * @return 返回值
      */
-    List<InvCountLineDTO> selectList(InvCountLine invCountLine);
+    List<InvCountLineDTO> selectList(InvCountLineDTO invCountLine);
 
     /**
      * @param headerIds

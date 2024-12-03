@@ -19,7 +19,7 @@ public interface InvCountLineRepository extends BaseRepository<InvCountLine> {
      * @param invCountLine 查询条件
      * @return 返回值
      */
-    List<InvCountLineDTO> selectList(InvCountLine invCountLine);
+    List<InvCountLineDTO> selectList(InvCountLineDTO invCountLine);
 
     /**
      * 根据主键查询（可关联表）

@@ -41,7 +41,7 @@ public class InvCountLineController extends BaseController {
     @ApiOperation(value = "列表")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping
-    public ResponseEntity<Page<InvCountLine>> list(InvCountLine invCountLine, @PathVariable Long organizationId,
+    public ResponseEntity<Page<InvCountLine>> list(InvCountLineDTO invCountLine, @PathVariable Long organizationId,
                                                    @ApiIgnore @SortDefault(value = InvCountLine.FIELD_COUNT_LINE_ID,
                                                            direction = Sort.Direction.DESC) PageRequest pageRequest) {
         Page<InvCountLine> list = invCountLineService.selectList(pageRequest, invCountLine);
