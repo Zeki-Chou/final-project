@@ -17,6 +17,9 @@ import java.util.List;
  */
 public interface InvCountHeaderService {
 
+    List<InvCountHeaderDTO> orderExecution(List<InvCountHeaderDTO> headerDTOList);
+
+    List<InvCountHeaderDTO> orderSubmit(List<InvCountHeaderDTO> headerDTOList);
     /**
      * 查询数据
      *
@@ -31,7 +34,8 @@ public interface InvCountHeaderService {
      *
      * @param invCountHeaders 数据
      */
-    void saveData(List<InvCountHeaderDTO> invCountHeaders);
+    List<InvCountHeaderDTO> saveData(List<InvCountHeaderDTO> invCountHeaders);
+
 
     InvCountHeaderDTO detail(Long countHeaderId);
 

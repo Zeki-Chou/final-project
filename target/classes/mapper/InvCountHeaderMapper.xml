@@ -53,8 +53,14 @@
 
     <select id = "selectList" resultType = "com.hand.demo.api.dto.InvCountHeaderDTO">
         select
-        <include refid = "BaseSql"/>
+        <include refid = "BaseSql"/>,
+        fid.department_name as departmentName,
+        fiw.warehouse_code as warehouseCode,
+        ht.tenant_num as tenantCode
         from fexam_inv_count_header fich
+        left join fexam_iam_department fid on fich.department_id = fid.department_id
+        left join fexam_inv_warehouse fiw on fich.warehouse_id = fiw.warehouse_id
+        left join hzero_platform.hpfm_tenant ht on ht.tenant_id = fich.tenant_id
         <where>
             <if test="countDimension !=null">
                 and fich.count_dimension = #{countDimension,jdbcType = VARCHAR}

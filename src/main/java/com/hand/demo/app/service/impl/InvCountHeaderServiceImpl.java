@@ -20,11 +20,13 @@ import org.hzero.boot.interfaces.sdk.dto.ResponsePayloadDTO;
 import org.hzero.boot.interfaces.sdk.invoke.InterfaceInvokeSdk;
 import org.hzero.boot.platform.code.builder.CodeRuleBuilder;
 import org.hzero.boot.platform.lov.adapter.LovAdapter;
+import org.hzero.boot.platform.lov.annotation.ProcessLovValue;
 import org.hzero.boot.platform.lov.dto.LovValueDTO;
 import org.hzero.boot.platform.profile.ProfileClient;
 import org.hzero.boot.workflow.WorkflowClient;
 import org.hzero.boot.workflow.dto.RunTaskHistory;
 import org.hzero.core.base.BaseConstants;
+import org.hzero.core.cache.ProcessCacheValue;
 import org.hzero.mybatis.domian.Condition;
 import org.springframework.beans.BeanUtils;
 import com.hand.demo.app.service.InvCountHeaderService;
@@ -78,12 +80,30 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     private final InterfaceInvokeSdk interfaceInvokeSdk;
 
     @Override
+    public List<InvCountHeaderDTO> orderExecution(List<InvCountHeaderDTO> headerDTOList) {
+        manualSaveCheck(headerDTOList);
+        List<InvCountHeaderDTO> save = saveData(headerDTOList);
+        executeCheck(save);
+        List<InvCountHeaderDTO> execute = execute(save);
+        countSyncWms(execute);
+        return execute;
+    }
+
+    @Override
+    public List<InvCountHeaderDTO> orderSubmit(List<InvCountHeaderDTO> headerDTOList) {
+        manualSaveCheck(headerDTOList);
+        List<InvCountHeaderDTO> save = saveData(headerDTOList);
+        submitCheck(save);
+        return submit(save);
+    }
+
+    @Override
     public Page<InvCountHeaderDTO> selectList(PageRequest pageRequest, InvCountHeaderDTO invCountHeader) {
         return PageHelper.doPageAndSort(pageRequest, () -> invCountHeaderRepository.selectList(invCountHeader));
     }
 
     @Override
-    public void saveData(List<InvCountHeaderDTO> invCountHeaders) {
+    public List<InvCountHeaderDTO> saveData(List<InvCountHeaderDTO> invCountHeaders) {
         manualSaveCheck(invCountHeaders);
         List<InvCountHeaderDTO> insertList = invCountHeaders.stream()
                 .filter(line -> line.getCountHeaderId() == null)
@@ -140,7 +160,13 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             }
         }
 
-        invCountHeaderRepository.batchInsertSelective(new ArrayList<>(insertList));
+        List<InvCountHeader> savedHeaders = invCountHeaderRepository.batchInsertSelective(new ArrayList<>(insertList));
+
+        return savedHeaders.stream().map(header -> {
+            InvCountHeaderDTO dto = new InvCountHeaderDTO();
+            BeanUtils.copyProperties(header, dto);
+            return dto;
+        }).collect(Collectors.toList());
     }
 
     @Override
@@ -612,6 +638,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         return countHeaderDTO;
     }
 
+    @ProcessCacheValue
     @Override
     public List<InvCountHeaderDTO> countingOrderReportDs(InvCountHeaderDTO headerDTO) {
         List<InvCountHeaderDTO> headerDTOsFromDB = invCountHeaderRepository.selectList(headerDTO);
@@ -651,10 +678,8 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         // Group lines by header ID's: {headerId: [InvCountLineDTO1, InvCountLineDTO2, ...]
         Map<Long, List<InvCountLineDTO>> linesByHeaderId = lineDTOList.stream().collect(Collectors.groupingBy(InvCountLineDTO::getCountHeaderId));
 
-        // Process each header
         return headerDTOsFromDB.stream()
                 .map(header -> {
-                    // Filter snapshot materials and batches for this header
                     List<SnapshotMaterialDTO> headerMaterials = allSnapshotMaterials.stream()
                             .filter(material -> header.getSnapshotMaterialIds().toString().contains(material.getId().toString()))
                             .collect(Collectors.toList());
@@ -665,15 +690,14 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
                     Integer isWMSWarehouse = invWarehouseById.get(header.getWarehouseId()).getIsWmsWarehouse();
 
-                    // Set all properties
                     return header
                             .setSnapshotMaterialList(headerMaterials)
                             .setSnapshotBatchList(headerBatches)
                             .setIsWMSwarehouse(isWMSWarehouse)
                             .setCountOrderLineList(linesByHeaderId.getOrDefault(header.getCountHeaderId(), new ArrayList<>()))
                             .setCounterList(getCounters(header.getCounterIds().toString()))
-                            .setSupervisorList(getSupervisors(header.getSupervisorIds().toString()));
-//                            .setApprovalHistory(getApproveHistory(header.getTenantId(), header.getCountNumber()));
+                            .setSupervisorList(getSupervisors(header.getSupervisorIds().toString()))
+                            .setApprovalHistory(getApproveHistory(header.getTenantId(), header.getWorkflowId()));
                 })
                 .collect(Collectors.toList());
     }
@@ -899,8 +923,10 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
     }
 
-    private List<RunTaskHistory> getApproveHistory(Long tenantId, String businessKey) {
-        return workflowClient.approveHistoryByFlowKey(tenantId, InvCountHeaderConstants.FLOW_KEY, businessKey);
+    private List<RunTaskHistory> getApproveHistory(Long tenantId, Long workflowId) {
+        List<RunTaskHistory> histories = workflowClient.approveHistory(tenantId, workflowId);
+        histories.sort((h1, h2) -> h2.getEndDate().compareTo(h1.getEndDate()));
+        return histories;
     }
 }
 

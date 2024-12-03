@@ -17,4 +17,5 @@ public class InvCountLineDTO extends InvCountLine {
     private String baseUnitCode;
     private String batchCode;
     private String counters;
+    private String supervisorIds;
 }

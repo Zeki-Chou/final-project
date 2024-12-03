@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.hand.demo.api.dto.ValidateHeaderSave;
 import com.hand.demo.api.dto.ValidateOrderExecute;
 import com.hand.demo.api.dto.ValidateResultSync;
+import com.hand.demo.infra.constant.InvCountHeaderConstants;
 import io.choerodon.mybatis.annotation.ModifyAudit;
 import io.choerodon.mybatis.annotation.VersionAudit;
 import io.choerodon.mybatis.domain.AuditDomain;
@@ -21,6 +22,7 @@ import javax.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.hzero.boot.platform.lov.annotation.LovValue;
 
 /**
  * (InvCountHeader)实体类
@@ -143,10 +145,12 @@ public class InvCountHeader extends AuditDomain {
     private Long companyId;
 
     @ApiModelProperty(value = "", required = true)
+    @LovValue(value = InvCountHeaderConstants.INV_COUNT_HEADER_COUNT_DIMENSION, meaningField = "countDimensionMeaning")
     @NotBlank(groups = {ValidateOrderExecute.class})
     private String countDimension;
 
     @ApiModelProperty(value = "", required = true)
+    @LovValue(value = InvCountHeaderConstants.INV_COUNT_HEADER_COUNT_MODE, meaningField = "countModeMeaning")
     @NotBlank(groups = {ValidateOrderExecute.class})
     private String countMode;
 
@@ -155,6 +159,7 @@ public class InvCountHeader extends AuditDomain {
     private String countNumber;
 
     @ApiModelProperty(value = "", required = true)
+    @LovValue(value = InvCountHeaderConstants.INV_COUNT_HEADER_COUNT_STATUS, meaningField = "countStatusMeaning")
     @NotBlank(groups = {ValidateHeaderSave.class, ValidateOrderExecute.class})
     private String countStatus;
 
@@ -162,6 +167,7 @@ public class InvCountHeader extends AuditDomain {
     private String countTimeStr;
 
     @ApiModelProperty(value = "", required = true)
+    @LovValue(value = InvCountHeaderConstants.INV_COUNT_HEADER_COUNT_TYPE, meaningField = "countTypeMeaning")
     @NotBlank(groups = {ValidateOrderExecute.class})
     private String countType;
 

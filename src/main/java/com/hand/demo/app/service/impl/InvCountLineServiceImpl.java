@@ -39,7 +39,8 @@ public class InvCountLineServiceImpl implements InvCountLineService {
 
     @Override
     public Page<InvCountLineDTO> selectList(PageRequest pageRequest, InvCountLineDTO invCountLine) {
-        return PageHelper.doPageAndSort(pageRequest, () -> invCountLineRepository.selectList(invCountLine));
+        List<InvCountLineDTO> lines = invCountLineRepository.selectList(invCountLine);
+        return PageHelper.doPageAndSort(pageRequest, () -> lines);
     }
 
     @Override

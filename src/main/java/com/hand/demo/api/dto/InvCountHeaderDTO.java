@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.hzero.boot.workflow.dto.RunTaskHistory;
+import org.hzero.common.HZeroCacheKey;
+import org.hzero.core.cache.CacheValue;
 import org.hzero.core.cache.Cacheable;
 
 import javax.persistence.Transient;
@@ -51,6 +53,14 @@ public class InvCountHeaderDTO extends InvCountHeader implements Cacheable {
 
     @ApiModelProperty(hidden = true)
     @Transient
+    private String warehouseCode;
+
+    @ApiModelProperty(hidden = true)
+    @Transient
+    private String departmentName;
+
+    @ApiModelProperty(hidden = true)
+    @Transient
     private List<InvCountLineDTO> countOrderLineList;
 
     @ApiModelProperty(hidden = true)
@@ -68,4 +78,26 @@ public class InvCountHeaderDTO extends InvCountHeader implements Cacheable {
     @ApiModelProperty(hidden = true)
     @Transient
     private List<RunTaskHistory> approvalHistory;
+
+    private String counters;
+
+    private String supervisors;
+
+    private String materials;
+
+    private String batches;
+
+    private String countTypeMeaning;
+
+    private String countStatusMeaning;
+
+    private String countModeMeaning;
+
+    private String countDimensionMeaning;
+
+    private String tenantCode;
+
+    @CacheValue(key = HZeroCacheKey.USER, primaryKey = "createdBy", searchKey = "realName",
+            structure = CacheValue.DataStructure.MAP_OBJECT)
+    private String creator;
 }

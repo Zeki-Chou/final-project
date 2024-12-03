@@ -9,6 +9,8 @@ import io.choerodon.mybatis.pagehelper.domain.Sort;
 import io.choerodon.swagger.annotation.Permission;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.Parameter;
+import org.hzero.boot.platform.lov.annotation.ProcessLovValue;
+import org.hzero.core.base.BaseConstants;
 import org.hzero.core.base.BaseController;
 import org.hzero.core.cache.ProcessCacheValue;
 import org.hzero.core.util.Results;
@@ -20,6 +22,7 @@ import com.hand.demo.domain.repository.InvCountHeaderRepository;
 import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * (InvCountHeader)表控制层
@@ -37,6 +40,25 @@ public class InvCountHeaderController extends BaseController {
 
     @Autowired
     private InvCountHeaderService invCountHeaderService;
+
+    @ApiOperation(value = "orderSave")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @PostMapping("/order-save")
+    public ResponseEntity<List<InvCountHeaderDTO>> orderSave(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeaders) {
+        invCountHeaders.forEach(invCountHeader -> validObject(invCountHeader, ValidateHeaderSave.class));
+//        SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
+        invCountHeaders.forEach(item -> item.setTenantId(organizationId));
+
+        return Results.success(invCountHeaderService.saveData(invCountHeaders));
+    }
+
+    @ApiOperation(value = "orderRemove")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @DeleteMapping("/order-remove")
+    public InvCountInfoDTO orderRemove(@PathVariable Long organizationId, List<InvCountHeaderDTO> headerDTOList) {
+//        headerDTOList.forEach(item -> item.setTenantId(organizationId));
+        return invCountHeaderService.checkAndRemove(headerDTOList);
+    }
 
     @ApiOperation(value = "List")
     @Permission(level = ResourceLevel.ORGANIZATION)
@@ -65,16 +87,77 @@ public class InvCountHeaderController extends BaseController {
         return Results.success(invCountHeader);
     }
 
-    @ApiOperation(value = "Save")
+    @ApiOperation(value = "orderExecution")
     @Permission(level = ResourceLevel.ORGANIZATION)
-    @PostMapping
-    public ResponseEntity<List<InvCountHeaderDTO>> save(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeaders) {
+    @PostMapping("/order-execution")
+    public ResponseEntity<List<InvCountHeaderDTO>> orderExecution(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeaders) {
         invCountHeaders.forEach(invCountHeader -> validObject(invCountHeader, ValidateHeaderSave.class));
 //        SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
         invCountHeaders.forEach(item -> item.setTenantId(organizationId));
-        invCountHeaderService.saveData(invCountHeaders);
-        return Results.success(invCountHeaders);
+
+        return Results.success(invCountHeaderService.orderExecution(invCountHeaders));
     }
+
+    @ApiOperation(value = "orderSubmit")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @PostMapping("/order-submit")
+    public ResponseEntity<List<InvCountHeaderDTO>> orderSubmit(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeaders) {
+        invCountHeaders.forEach(invCountHeader -> validObject(invCountHeader, ValidateHeaderSave.class));
+//        SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
+        invCountHeaders.forEach(item -> item.setTenantId(organizationId));
+
+        return Results.success(invCountHeaderService.orderSubmit(invCountHeaders));
+    }
+
+    @ApiOperation(value = "countResultSync")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @PostMapping("/result-sync")
+    public ResponseEntity<InvCountHeaderDTO> countResultSync(
+            @PathVariable Long organizationId,
+            @RequestBody InvCountHeaderDTO invCountHeader
+    ) {
+        validObject(invCountHeader, ValidateResultSync.class);
+//        SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
+        invCountHeader.setTenantId(organizationId);
+        invCountHeaderService.countResultSync(invCountHeader);
+        return Results.success(invCountHeader);
+    }
+
+    @ApiOperation(value = "countingOrderReportDs")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @ProcessLovValue(targetField = BaseConstants.FIELD_BODY)
+    @GetMapping("/report")
+    public ResponseEntity<List<InvCountHeaderDTO>> countingOrderReportDs (
+            @PathVariable Long organizationId,
+            InvCountHeaderDTO headerDTO
+    ) {
+//        validObject(invCountHeader, ValidateResultSync.class);
+//        SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
+        headerDTO.setTenantId(organizationId);
+
+        List<InvCountHeaderDTO> res = invCountHeaderService.countingOrderReportDs(headerDTO);
+        res.forEach(header -> {
+            String counters = header.getCounterList().stream().map(CounterDTO::getRealName).collect(Collectors.joining(", "));
+            String supervisors = header.getSupervisorList().stream().map(SupervisorDTO::getRealName).collect(Collectors.joining(", "));
+            String materials = header.getSnapshotMaterialList().stream().map(SnapshotMaterialDTO::getCode).collect(Collectors.joining(", "));
+            String batches = header.getSnapshotBatchList().stream().map(SnapshotBatchDTO::getBatchCode).collect(Collectors.joining(", "));
+            header
+                    .setCounters(counters)
+                    .setSupervisors(supervisors)
+                    .setMaterials(materials)
+                    .setBatches(batches);
+
+        });
+        return Results.success(res);
+    }
+
+
+
+// ======================================================== //
+
+
+
+
 
     @ApiOperation(value = "Execute")
     @Permission(level = ResourceLevel.ORGANIZATION)
@@ -85,20 +168,6 @@ public class InvCountHeaderController extends BaseController {
         invCountHeaders.forEach(item -> item.setTenantId(organizationId));
         invCountHeaderService.execute(invCountHeaders);
         return Results.success(invCountHeaders);
-    }
-
-    @ApiOperation(value = "Result sync")
-    @Permission(level = ResourceLevel.ORGANIZATION)
-    @PostMapping("/result-sync")
-    public ResponseEntity<InvCountHeaderDTO> sync (
-            @PathVariable Long organizationId,
-            @RequestBody InvCountHeaderDTO invCountHeader
-    ) {
-        validObject(invCountHeader, ValidateResultSync.class);
-//        SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
-        invCountHeader.setTenantId(organizationId);
-        invCountHeaderService.countResultSync(invCountHeader);
-        return Results.success(invCountHeader);
     }
 
     @ApiOperation(value = "Count sync wms")
@@ -113,20 +182,6 @@ public class InvCountHeaderController extends BaseController {
         headerDTOList.forEach(invCountHeader -> invCountHeader.setTenantId(organizationId));
 
         return Results.success(invCountHeaderService.countSyncWms(headerDTOList));
-    }
-
-    @ApiOperation(value = "Counting Order Report")
-    @Permission(level = ResourceLevel.ORGANIZATION)
-    @GetMapping("/report")
-    public ResponseEntity<List<InvCountHeaderDTO>> report (
-            @PathVariable Long organizationId,
-            InvCountHeaderDTO headerDTO
-    ) {
-//        validObject(invCountHeader, ValidateResultSync.class);
-//        SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
-        headerDTO.setTenantId(organizationId);
-
-        return Results.success(invCountHeaderService.countingOrderReportDs(headerDTO));
     }
 
     @ApiOperation(value = "Submit Workflow")
