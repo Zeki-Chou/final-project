@@ -4,6 +4,7 @@ import com.hand.demo.api.controller.v1.InvCountHeaderController;
 import org.hzero.boot.platform.profile.ProfileClient;
 import org.hzero.boot.workflow.WorkflowClient;
 import org.hzero.boot.workflow.dto.RunInstance;
+import org.hzero.boot.workflow.dto.RunTaskHistory;
 import org.json.JSONObject;
 import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,6 +37,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.swing.text.html.Option;
 import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -160,22 +162,23 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
 //  method map line by header Id
     public Map<Long, List<InvCountLine>> mapLineByHeaderIdList(List<InvCountHeaderDTO> invCountHeaderDTOList) {
-        List<Long> lineIds = invCountHeaderDTOList.stream()
-                .flatMap(invCountHeaderDTO -> invCountHeaderDTO.getCountOrderLineList().stream())
-                .map(InvCountLineDTO::getCountLineId)
+        List<Long> headerIds = invCountHeaderDTOList.stream()
+                .map(InvCountHeaderDTO::getCountHeaderId)
                 .collect(Collectors.toList());
 
-        String joinLineId = String.join(",", lineIds.stream()
-                .map(String::valueOf)
-                .collect(Collectors.toList()));
-
-        List<InvCountLine> invCountLineList = invCountLineRepository.selectByIds(joinLineId);
-        Map<Long, List<InvCountLine>> invCountLineMapByHeaderId = invCountLineList.stream()
-                .collect(Collectors.groupingBy(InvCountLine::getCountHeaderId));
-        return invCountLineMapByHeaderId;
+        return headerIds.stream()
+                .collect(Collectors.toMap(
+                        id -> id,
+                        id -> {
+                            InvCountLine query = new InvCountLine();
+                            query.setCountHeaderId(id);
+                            return invCountLineRepository.select(query);
+                        }
+                ));
     }
 
-//  method map count line db
+
+    //  method map count line db
     public Map<Long, InvCountLine> mapCountLineDb(List<InvCountLineDTO> invCountLineDTOList) {
         List<Long> lineIds = invCountLineDTOList.stream().map(InvCountLineDTO::getCountLineId).collect(Collectors.toList());
         String joinLineIds = String.join(",", lineIds.stream()
@@ -315,78 +318,82 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         invCountHeaderDTO.setSnapshotMaterialList(invMaterialMap);
         invCountHeaderDTO.setSnapshotBatchList(invBatchMap);
         invCountHeaderDTO.setIsWMSwarehouse(invWarehouse.getIsWmsWarehouse());
+        invCountHeaderDTO.setWarehouseCode(invWarehouse.getWarehouseCode());
 
         InvCountLine invCountLineNew = new InvCountLine();
         invCountLineNew.setCountHeaderId(countHeaderId);
         List<InvCountLine> invCountLineList = invCountLineRepository.select(invCountLineNew);
 
-        // Map material and batch
-        Set<Long> materialIds = invCountLineList.stream()
-                .map(InvCountLine::getMaterialId)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
+        if(invCountLineList.size() > 0 && invCountLineList != null) {
+            // Map material and batch
+            Set<Long> materialIds = invCountLineList.stream()
+                    .map(InvCountLine::getMaterialId)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
 
-        Set<Long> batchIds = invCountLineList.stream()
-                .map(InvCountLine::getBatchId)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
+            Set<Long> batchIds = invCountLineList.stream()
+                    .map(InvCountLine::getBatchId)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
 
-//      change to string
-        String materialIdsString = invCountLineList.stream()
-                .map(InvCountLine::getMaterialId)
-                .filter(Objects::nonNull)
-                .map(String::valueOf)
-                .collect(Collectors.joining(","));
+            // change to string
+            String materialIdsString = invCountLineList.stream()
+                    .map(InvCountLine::getMaterialId)
+                    .filter(Objects::nonNull)
+                    .map(String::valueOf)
+                    .collect(Collectors.joining(","));
 
-        String batchIdsString = invCountLineList.stream()
-                .map(InvCountLine::getBatchId)
-                .filter(Objects::nonNull)
-                .map(String::valueOf)
-                .collect(Collectors.joining(","));
+            String batchIdsString = invCountLineList.stream()
+                    .map(InvCountLine::getBatchId)
+                    .filter(Objects::nonNull)
+                    .map(String::valueOf)
+                    .collect(Collectors.joining(","));
 
-        // Fetch data material and batch
-        Map<Long, InvMaterial> invCountMaterial = invMaterialRepository.selectByIds(materialIdsString).stream()
-                .collect(Collectors.toMap(
-                        material -> material.getMaterialId(),
-                        material -> material
-                ));
+            // Fetch data material and batch
+            Map<Long, InvMaterial> invCountMaterial = invMaterialRepository.selectByIds(materialIdsString).stream()
+                    .collect(Collectors.toMap(
+                            material -> material.getMaterialId(),
+                            material -> material
+                    ));
 
-        Map<Long, InvBatch> invCountBatch = invBatchRepository.selectByIds(batchIdsString).stream()
-                .collect(Collectors.toMap(
-                        batch -> batch.getBatchId(),
-                        batch -> batch
-                ));
+            Map<Long, InvBatch> invCountBatch = invBatchRepository.selectByIds(batchIdsString).stream()
+                    .collect(Collectors.toMap(
+                            batch -> batch.getBatchId(),
+                            batch -> batch
+                    ));
 
-        // InvCountLine into DTO
-        List<InvCountLineDTO> invCountLineDTOList = invCountLineList.stream()
-                .map(line -> {
-                    InvCountLineDTO dto = new InvCountLineDTO();
-                    BeanUtils.copyProperties(line, dto);
+            // InvCountLine into DTO
+            List<InvCountLineDTO> invCountLineDTOList = invCountLineList.stream()
+                    .map(line -> {
+                        InvCountLineDTO dto = new InvCountLineDTO();
+                        BeanUtils.copyProperties(line, dto);
 
-                    // Set the material name and batch code
-                    dto.setMaterialName(Optional.ofNullable(invCountMaterial.get(line.getMaterialId()))
-                            .map(InvMaterial::getMaterialName)
-                            .orElse(null));
-                    dto.setBatchCode(Optional.ofNullable(invCountBatch.get(line.getBatchId()))
-                            .map(InvBatch::getBatchCode)
-                            .orElse(null));
+                        // Set the material code, name and batch code
+                        dto.setMaterialCode(Optional.ofNullable(invCountMaterial.get(line.getMaterialId()))
+                                .map(InvMaterial::getMaterialCode)
+                                .orElse(null));
+                        dto.setMaterialName(Optional.ofNullable(invCountMaterial.get(line.getMaterialId()))
+                                .map(InvMaterial::getMaterialName)
+                                .orElse(null));
+                        dto.setBatchCode(Optional.ofNullable(invCountBatch.get(line.getBatchId()))
+                                .map(InvBatch::getBatchCode)
+                                .orElse(null));
 
-                    // Format snapshotUnitQty, unitQty, and unitDiffQty to 2 decimal places
-                    if (line.getSnapshotUnitQty() != null) {
-                        dto.setSnapshotUnitQty(new BigDecimal(line.getSnapshotUnitQty().toString()).setScale(2, BigDecimal.ROUND_HALF_UP));
-                    }
-                    if (line.getUnitQty() != null) {
-                        dto.setUnitQty(new BigDecimal(line.getUnitQty().toString()).setScale(2, BigDecimal.ROUND_HALF_UP));
-                    }
-                    if (line.getUnitDiffQty() != null) {
-                        dto.setUnitDiffQty(new BigDecimal(line.getUnitDiffQty().toString()).setScale(2, BigDecimal.ROUND_HALF_UP));
-                    }
+                        // Format snapshotUnitQty, unitQty, and unitDiffQty to 2 decimal places
+                        if (line.getSnapshotUnitQty() != null) {
+                            dto.setSnapshotUnitQty(new BigDecimal(line.getSnapshotUnitQty().toString()).setScale(2, BigDecimal.ROUND_HALF_UP));
+                        }
+                        if (line.getUnitQty() != null) {
+                            dto.setUnitQty(new BigDecimal(line.getUnitQty().toString()).setScale(2, BigDecimal.ROUND_HALF_UP));
+                        }
+                        if (line.getUnitDiffQty() != null) {
+                            dto.setUnitDiffQty(new BigDecimal(line.getUnitDiffQty().toString()).setScale(2, BigDecimal.ROUND_HALF_UP));
+                        }
 
-                    return dto;
-                })
-                .collect(Collectors.toList());
+                        return dto;
+                    })
+                    .collect(Collectors.toList());
 
-        if(invCountLineList.size() > 0) {
             invCountHeaderDTO.setCountOrderLineList(invCountLineDTOList);
         }
 
@@ -684,7 +691,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
             String workflowFlag = profileClient.getProfileValueByOptions(invCountHeaderDTO.getTenantId(), null, null, "FEXAM56.INV.COUNTING.ISWORKFLO");
             Long organizationId = invCountHeaderDb.getTenantId();
-            String flowKey = "FLOW1862830690127691777";
+            String flowKey = InvCountHeaderConstant.FLOW_KEY;
             String businessKey = invCountHeaderDb.getCountNumber();
             String dimension = "EMPLOYEE";
             String starter = "47356";
@@ -721,8 +728,10 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         invCountHeaderDTOAdd.setDepartmentName(iamDepartment.getDepartmentName());
 
         invCountHeaderDTOAdd.setCreatorId(invCountHeaderDTOAdd.getCreatedBy());
-        invCountHeaderDTOListResult.add(invCountHeaderDTOAdd);
 
+        List<RunTaskHistory> runTaskHistoryList = workflowClient.approveHistoryByFlowKey(invCountHeaderDTOAdd.getTenantId(), InvCountHeaderConstant.FLOW_KEY, invCountHeaderDTOAdd.getCountNumber());
+        invCountHeaderDTOAdd.setRunHistoryList(runTaskHistoryList);
+        invCountHeaderDTOListResult.add(invCountHeaderDTOAdd);
         return invCountHeaderDTOListResult;
     }
 
@@ -972,7 +981,9 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                         invWarehouse.setIsWmsWarehouse(0);
                     }
 
-                    if (!update.getSupervisorIds().equals(userId.toString()) && invWarehouse.getIsWmsWarehouse() != 0) {
+                    if (Arrays.stream(update.getSupervisorIds().split(","))
+                            .noneMatch(id -> id.trim().equals(userId.toString()))
+                            && invWarehouse.getIsWmsWarehouse() != 0) {
                         errorMessage.add("error3");
                     }
                 }

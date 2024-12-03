@@ -1,10 +1,7 @@
 package com.hand.demo.api.controller.v1;
 
 import com.alibaba.fastjson.JSON;
-import com.hand.demo.api.controller.v1.DTO.InvCountHeaderDTO;
-import com.hand.demo.api.controller.v1.DTO.InvCountInfoDTO;
-import com.hand.demo.api.controller.v1.DTO.InvCountLineDTO;
-import com.hand.demo.api.controller.v1.DTO.WorkFlowEventDTO;
+import com.hand.demo.api.controller.v1.DTO.*;
 import com.hand.demo.domain.entity.InvCountLine;
 import io.choerodon.core.domain.Page;
 import io.choerodon.core.exception.CommonException;
@@ -60,7 +57,14 @@ public class InvCountHeaderController extends BaseController {
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping("/execute")
     public ResponseEntity<List<InvCountHeaderDTO>> execute(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeadersDTO) {
-        validObject(invCountHeadersDTO);
+        for(InvCountHeaderDTO invCountHeader : invCountHeadersDTO) {
+            validObject(invCountHeader, ValidateExecuteCheck.class);
+            List<InvCountLineDTO> invCountLines = invCountHeader.getCountOrderLineList();
+            for(InvCountLineDTO invCountLineDTO : invCountLines) {
+                validObject(invCountLineDTO, ValidateSave.class);
+            }
+        }
+
         SecurityTokenHelper.validTokenIgnoreInsert(invCountHeadersDTO);
         invCountHeadersDTO.forEach(item -> item.setTenantId(organizationId));
 
@@ -75,8 +79,8 @@ public class InvCountHeaderController extends BaseController {
 
 //      Counting order execute verification
         InvCountInfoDTO invCountInfoDTOExecute = invCountHeaderService.executeCheck(invCountHeadersDTO);
-        if(invCountInfoDTO.getErrorMessage() != null && invCountInfoDTO.getErrorMessage().size() > 0) {
-            throw new CommonException(JSON.toJSONString(invCountInfoDTO));
+        if(invCountInfoDTOExecute.getErrorMessage() != null && invCountInfoDTOExecute.getErrorMessage().size() > 0) {
+            throw new CommonException(JSON.toJSONString(invCountInfoDTOExecute));
         }
 
 //      Counting order execute
@@ -91,7 +95,10 @@ public class InvCountHeaderController extends BaseController {
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping("/orderSave")
     public ResponseEntity<InvCountInfoDTO> save(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeadersDTO) {
-        validObject(invCountHeadersDTO);
+        for(InvCountHeaderDTO invCountHeader : invCountHeadersDTO) {
+            validObject(invCountHeader, ValidateSave.class);
+        }
+
         SecurityTokenHelper.validTokenIgnoreInsert(invCountHeadersDTO);
         invCountHeadersDTO.forEach(item -> item.setTenantId(organizationId));
 
@@ -137,6 +144,13 @@ public class InvCountHeaderController extends BaseController {
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PutMapping("/resultSync")
     public ResponseEntity<InvCountHeaderDTO> resultSync(@PathVariable Long organizationId, @RequestBody InvCountHeaderDTO invCountHeaderDTO) {
+        validObject(invCountHeaderDTO, ValidateResultSync.class);
+
+        List<InvCountLineDTO> invCountLineList = invCountHeaderDTO.getCountOrderLineList();
+        for(InvCountLineDTO invCountLineDTO : invCountLineList) {
+            validObject(invCountLineDTO, ValidateResultSync.class);
+        }
+
         SecurityTokenHelper.validToken(invCountHeaderDTO);
         return Results.success(invCountHeaderService.countResultSync(invCountHeaderDTO));
     }

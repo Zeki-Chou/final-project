@@ -6,10 +6,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hzero.boot.workflow.dto.RunTaskHistory;
 import org.hzero.common.HZeroCacheKey;
 import org.hzero.core.cache.CacheValue;
 import org.hzero.core.cache.Cacheable;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 
@@ -19,9 +21,12 @@ import java.util.Map;
 @Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class InvCountHeaderDTO extends InvCountHeader implements Cacheable {
+    @NotNull(groups = {ValidateExecuteCheck.class})
     private String supervisorId;
 
     private String tenantName;
+
+    private String warehouseCode;
 
     private Integer isWMSwarehouse;
 
@@ -66,4 +71,6 @@ public class InvCountHeaderDTO extends InvCountHeader implements Cacheable {
     private List<Long> batchIdList;
 
     private List<String> errorMsg;
+
+    private List<RunTaskHistory> runHistoryList;
 }

@@ -3,6 +3,9 @@ package com.hand.demo.domain.entity;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.hand.demo.api.controller.v1.DTO.ValidateExecuteCheck;
+import com.hand.demo.api.controller.v1.DTO.ValidateResultSync;
+import com.hand.demo.api.controller.v1.DTO.ValidateSave;
 import io.choerodon.mybatis.annotation.ModifyAudit;
 import io.choerodon.mybatis.annotation.VersionAudit;
 import io.choerodon.mybatis.domain.AuditDomain;
@@ -134,36 +137,39 @@ public class InvCountHeader extends AuditDomain {
     @ApiModelProperty(hidden = true)
     private String attributeCategory;
 
+    @NotNull(groups = {ValidateSave.class, ValidateExecuteCheck.class})
     private Long companyId;
 
     @ApiModelProperty(value = "", required = true)
-    @NotBlank
+    @NotBlank(groups = {ValidateExecuteCheck.class})
     @LovValue(lovCode = "INV.COUNTING.COUNT_DIMENSION")
     private String countDimension;
 
     @ApiModelProperty(value = "", required = true)
-    @NotBlank
+    @NotBlank(groups = {ValidateExecuteCheck.class})
     @LovValue(lovCode = "INV.COUNTING.COUNT_MODE")
     private String countMode;
 
     @ApiModelProperty(value = "", required = true)
-    @NotBlank
+    @NotBlank(groups = {ValidateResultSync.class})
     private String countNumber;
 
     @ApiModelProperty(value = "", required = true)
-    @NotBlank
+    @NotBlank(groups = {ValidateSave.class, ValidateExecuteCheck.class})
     @LovValue(lovCode = "INV.COUNTING.COUNT_STATUS")
     private String countStatus;
 
     @ApiModelProperty(value = "", required = true)
+    @NotBlank(groups = {ValidateExecuteCheck.class})
     private String countTimeStr;
 
     @ApiModelProperty(value = "", required = true)
-    @NotBlank
+    @NotBlank(groups = {ValidateExecuteCheck.class})
     @LovValue(lovCode = "INV.COUNTING.COUNT_TYPE")
     private String countType;
 
     @ApiModelProperty(value = "", required = true)
+    @NotBlank(groups = {ValidateSave.class, ValidateExecuteCheck.class})
     private String counterIds;
 
     private Integer delFlag;
@@ -186,12 +192,14 @@ public class InvCountHeader extends AuditDomain {
 
     private String sourceSystem;
 
+    @NotBlank(groups = {ValidateSave.class})
     private String supervisorIds;
 
     @ApiModelProperty(value = "", required = true)
-    @NotNull
+    @NotNull(groups = {ValidateSave.class, ValidateExecuteCheck.class, ValidateResultSync.class})
     private Long tenantId;
 
+    @NotNull(groups = {ValidateSave.class, ValidateExecuteCheck.class})
     private Long warehouseId;
 
     private Long workflowId;

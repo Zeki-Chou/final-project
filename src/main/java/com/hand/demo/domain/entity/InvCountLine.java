@@ -1,6 +1,8 @@
 package com.hand.demo.domain.entity;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.hand.demo.api.controller.v1.DTO.ValidateResultSync;
+import com.hand.demo.api.controller.v1.DTO.ValidateSave;
 import io.choerodon.mybatis.annotation.ModifyAudit;
 import io.choerodon.mybatis.annotation.VersionAudit;
 import io.choerodon.mybatis.domain.AuditDomain;
@@ -67,6 +69,7 @@ public class InvCountLine extends AuditDomain {
 
     @Id
     @GeneratedValue
+    @NotNull(groups = {ValidateResultSync.class, ValidateSave.class})
     private Long countLineId;
 
     private String attribute1;
@@ -104,29 +107,31 @@ public class InvCountLine extends AuditDomain {
     private Long batchId;
 
     @ApiModelProperty(value = "", required = true)
-    @NotNull
+    @NotNull(groups = {ValidateSave.class})
     private Long countHeaderId;
 
     private String counterIds;
 
     @ApiModelProperty(value = "", required = true)
-    @NotNull
+    @NotNull(groups = {ValidateSave.class})
     private Integer lineNumber;
 
     private Long materialId;
 
     private String remark;
 
+    @NotBlank(groups = {ValidateSave.class})
     private Object snapshotUnitQty;
 
     @ApiModelProperty(value = "", required = true)
-    @NotNull
+    @NotNull(groups = {ValidateResultSync.class, ValidateSave.class})
     private Long tenantId;
 
     private String unitCode;
 
     private Object unitDiffQty;
 
+    @NotNull(groups = {ValidateResultSync.class})
     private Object unitQty;
 
     private Long warehouseId;

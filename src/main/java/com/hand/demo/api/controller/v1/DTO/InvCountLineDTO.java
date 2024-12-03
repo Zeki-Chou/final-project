@@ -16,6 +16,7 @@ import org.hzero.core.cache.Cacheable;
 public class InvCountLineDTO extends InvCountLine implements Cacheable {
     private String batchCode;
 
+    private String materialCode;
     private String materialName;
 
     @CacheValue(
@@ -25,4 +26,12 @@ public class InvCountLineDTO extends InvCountLine implements Cacheable {
             structure = CacheValue.DataStructure.MAP_OBJECT
     )
     private String creatorName;
+
+    @CacheValue(
+            key = HZeroCacheKey.USER,
+            primaryKey = "counterIds",
+            searchKey = "realName",
+            structure = CacheValue.DataStructure.MAP_OBJECT
+    )
+    private String counterName;
 }
