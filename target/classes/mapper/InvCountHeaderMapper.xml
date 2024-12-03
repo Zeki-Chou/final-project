@@ -183,7 +183,7 @@
     <select id="selectHeaderReport" resultType = "com.hand.demo.api.dto.InvCountHeaderDTO">
         select
         <include refid = "BaseSql"/>
-        ,fid.department_code
+        ,fid.department_name
         ,fiw.warehouse_code
         from fexam_inv_count_header fich
         join fexam_iam_department fid on fid.department_id = fich.department_id

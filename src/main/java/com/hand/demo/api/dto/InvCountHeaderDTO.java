@@ -47,6 +47,9 @@ public class InvCountHeaderDTO extends InvCountHeader implements Cacheable {
     private String countDimensionMeaning;
 
     @ApiModelProperty(hidden = true)
+    private String countModeMeaning;
+
+    @ApiModelProperty(hidden = true)
     private String countTypeMeaning;
 
     @ApiModelProperty(hidden = true)
@@ -60,12 +63,26 @@ public class InvCountHeaderDTO extends InvCountHeader implements Cacheable {
     private String warehouseCode;
 
     @ApiModelProperty(hidden = true)
-    private String departmentCode;
+    private String departmentName;
 
     @ApiModelProperty(hidden = true)
     private List<RunTaskHistory> approvalHistory;
 
-    private String tenantName;
+    @ApiModelProperty(hidden = true)
+    private String employeeNumber;
 
-    private String token; // temp
+    @ApiModelProperty(hidden = true)
+    private String counters;
+
+    @ApiModelProperty(hidden = true)
+    private String supervisors;
+
+    @ApiModelProperty(hidden = true)
+    private String materials;
+
+    @ApiModelProperty(hidden = true)
+    private String batches;
+
+    @ApiModelProperty(hidden = true)
+    private String tenantName;
 }

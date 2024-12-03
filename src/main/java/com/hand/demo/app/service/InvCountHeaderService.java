@@ -1,11 +1,8 @@
 package com.hand.demo.app.service;
 
-import com.hand.demo.api.dto.InvCountHeaderDTO;
-import com.hand.demo.api.dto.InvCountInfoDTO;
-import com.hand.demo.api.dto.WorkFlowEventDTO;
+import com.hand.demo.api.dto.*;
 import io.choerodon.core.domain.Page;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
-import com.hand.demo.domain.entity.InvCountHeader;
 
 import java.util.List;
 
@@ -96,5 +93,13 @@ public interface InvCountHeaderService {
     void withdrawWorkflow(Long organizationId, WorkFlowEventDTO dto);
 
     List<InvCountHeaderDTO> countingOrderReportDs(InvCountHeaderDTO countHeader);
+
+    String transformUserIdsToRealNames(List<UserInfoDTO> userInfos);
+
+    String transformMaterialIdsToMaterialCode(List<MaterialInfoDTO> materialInfos);
+
+    String transformBatchIdsToBatchCode(List<BatchInfoDTO> batchInfos);
+
+    void addRealNamesToLines(List<InvCountHeaderDTO> countHeaders);
 }
 

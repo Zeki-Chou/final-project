@@ -86,6 +86,7 @@ public class InvCountLineServiceImpl implements InvCountLineService {
                 } else { // calculation of difference between the snapshot qty and unit qty
                     BigDecimal unitDiffQty = line.getSnapshotUnitQty().subtract(line.getUnitQty());
                     line.setUnitDiffQty(unitDiffQty);
+                    line.setCounterIds(String.valueOf(userId));
                 }
 
                 if (!validCounterIdsUpdate && userId.equals(header.getCreatedBy())) { // document creator can only modify counter id within the line counter ids

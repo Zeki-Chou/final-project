@@ -15,6 +15,7 @@ import io.choerodon.core.oauth.CustomUserDetails;
 import io.choerodon.core.oauth.DetailsHelper;
 import io.choerodon.mybatis.pagehelper.PageHelper;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
+import io.netty.util.Constant;
 import lombok.RequiredArgsConstructor;
 import org.hzero.boot.apaas.common.userinfo.infra.feign.IamRemoteService;
 import org.hzero.boot.interfaces.sdk.dto.RequestPayloadDTO;
@@ -29,14 +30,17 @@ import org.hzero.boot.workflow.dto.RunInstance;
 import org.hzero.boot.workflow.dto.RunTaskHistory;
 import org.hzero.core.base.BaseConstants;
 import org.hzero.core.cache.ProcessCacheValue;
+import org.hzero.core.util.TokenUtils;
 import org.json.JSONObject;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.xml.soap.Detail;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * (InvCountHeader)应用服务
@@ -363,6 +367,10 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     @Transactional(rollbackFor = Exception.class)
     public InvCountInfoDTO countSyncWms(List<InvCountHeaderDTO> invCountHeaderList) {
 
+        JSONObject iamJSONObject = Utils.getIamJSONObject(iamRemoteService);
+        Long userId = iamJSONObject.getLong(Constants.Iam.FIELD_ID);
+        invCountHeaderList.forEach(header -> header.setEmployeeNumber(String.valueOf(userId)));
+
         InvCountInfoDTO countInfoDTO = new InvCountInfoDTO();
         List<InvCountHeaderDTO> validDTO = new ArrayList<>();
         List<InvCountHeaderDTO> invalidDTO = new ArrayList<>();
@@ -402,6 +410,8 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             if (!wareHouse.isPresent()) {
                 invCountHeader.setErrorMessage("warehouse not found");
             } else if (BaseConstants.Flag.YES.equals(wareHouse.get().getIsWmsWarehouse())) {
+
+
                 List<InvCountLineDTO> invCountLineDTOListFiltered = countLineDTOList
                         .stream()
                         .filter(line -> line.getCountHeaderId().equals(invCountHeader.getCountHeaderId()))
@@ -418,7 +428,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                 JSONObject responseBody = new JSONObject(response.getPayload());
 
                 if(responseBody.getString(Constants.ExternalService.RESULT_STATUS_FIELD).equals(Constants.ExternalService.RESULT_STATUS_SUCCESS)) {
-                    syncStatusExtra.setProgramkey(WmsStatus.SUCCESS.name());
+                    syncStatusExtra.setProgramvalue(WmsStatus.SUCCESS.name());
                     syncMsgExtra.setProgramvalue("");
                     invCountHeader.setRelatedWmsOrderCode(responseBody.getString(Constants.ExternalService.CODE_FIELD));
                     invCountHeaders.add(invCountHeader);
@@ -493,8 +503,8 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                                                                     .collect(Collectors.toMap(InvCountLine::getCountLineId, InvCountLine::getUnitQty));
 
             this.addUnitDiffQty(countLinesDB, lineInputMap);
-            List<InvCountLine> updateList = new ArrayList<>(countLinesDB);
-            invCountLineRepository.batchUpdateByPrimaryKeySelective(updateList);
+            List<InvCountLineDTO> updateList = new ArrayList<>(countLinesDB);
+            invCountLineService.saveData(updateList);
             invCountHeaderDTO.setStatus(Constants.ExternalService.RESULT_STATUS_SUCCESS);
         }
 
@@ -636,20 +646,63 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     @Override
     @ProcessCacheValue
     public List<InvCountHeaderDTO> countingOrderReportDs(InvCountHeaderDTO countHeader) {
-
         List<InvCountHeaderDTO> countHeaderDTOS = invCountHeaderRepository.selectHeaderReport(countHeader);
         List<Long> headerIds = countHeaderDTOS.stream().map(InvCountHeader::getCountHeaderId).collect(Collectors.toList());
+
         Map<Long, List<InvCountLineDTO>> countLineMap = invCountLineRepository.selectLineReport(headerIds)
                 .stream()
                 .collect(Collectors.groupingBy(InvCountLine::getCountHeaderId));
+
         countHeaderDTOS.forEach(header -> {
-            header.setCountOrderLineList(countLineMap.get(header.getCountHeaderId()));
+            List<InvCountLineDTO> lineList = countLineMap.get(header.getCountHeaderId());
+            header.setCountOrderLineList(lineList);
+            List<UserInfoDTO> counterList = convertUserIdToList(header.getCounterIds());
+            List<UserInfoDTO> supervisorList = convertUserIdToList(header.getSupervisorIds());
+            List<MaterialInfoDTO> materialInfoDTOList = invMaterialService.convertMaterialIdsToList(header.getSnapshotMaterialIds());
+            List<BatchInfoDTO> batchInfoDTOList = invBatchService.convertBatchIdsToList(header.getSnapshotBatchIds());
             List<RunTaskHistory> approvalHistory = workflowClient.approveHistoryByFlowKey(BaseConstants.DEFAULT_TENANT_ID, Constants.Workflow.FLOW_KEY, header.getCountNumber());
             header.setApprovalHistory(approvalHistory);
+            header.setSnapshotMaterialList(materialInfoDTOList);
+            header.setSnapshotBatchList(batchInfoDTOList);
+            header.setCounterList(counterList);
+            header.setSupervisorList(supervisorList);
         });
 
         return countHeaderDTOS;
     }
+
+    @Override
+    public String transformUserIdsToRealNames(List<UserInfoDTO> userInfos) {
+        return userInfos.stream().map(UserInfoDTO::getRealName).collect(Collectors.joining(","));
+    }
+
+    @Override
+    public String transformMaterialIdsToMaterialCode(List<MaterialInfoDTO> materialInfos) {
+        return materialInfos.stream().map(MaterialInfoDTO::getCode).collect(Collectors.joining(","));
+    }
+
+    @Override
+    public String transformBatchIdsToBatchCode(List<BatchInfoDTO> batchInfos) {
+        return batchInfos.stream().map(BatchInfoDTO::getBatchCode).collect(Collectors.joining(","));
+    }
+
+    @Override
+    public void addRealNamesToLines(List<InvCountHeaderDTO> countHeaders) {
+        countHeaders.forEach(header -> {
+            List<Long> countIds = Utils.convertStringIdstoList(header.getCounterIds());
+            List<String> counters = Stream.of(header.getCounters().split(",")).collect(Collectors.toList());
+
+            // countIds and counters have same size and order
+            Map<Long, String> countersMap = new HashMap<>();
+            for (int i = 0; i < countIds.size(); i++) {
+                countersMap.put(countIds.get(i), counters.get(i));
+            }
+
+            // at the end of the process, there will always be only 1 supervisor left
+            header.getCountOrderLineList().forEach(line -> line.setRealName(countersMap.get(Long.valueOf(line.getCounterIds()))));
+        });
+    }
+
 
     private Map<Long, List<InvCountLineDTO>> findCountLines(List<InvCountHeaderDTO> headers) {
         List<Long> headerIds = headers.stream().map(InvCountHeader::getCountHeaderId).collect(Collectors.toList());
@@ -662,8 +715,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         RequestPayloadDTO requestPayloadDTO = new RequestPayloadDTO();
 
         Map<String, String> headerParamsMap = new HashMap<>();
-        // TODO: change getToken to TokenUtils.getToken and implement it
-        headerParamsMap.put("Authorization", "Bearer " + invCountHeaderDTO.getToken());
+        headerParamsMap.put("Authorization", "Bearer " + TokenUtils.getToken());
 
         requestPayloadDTO.setPayload(JSON.toJSONString(invCountHeaderDTO));
         requestPayloadDTO.setHeaderParamMap(headerParamsMap);

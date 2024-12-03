@@ -3,6 +3,7 @@ package com.hand.demo.api.controller.v1;
 import com.alibaba.fastjson.JSON;
 import com.hand.demo.api.dto.InvCountHeaderDTO;
 import com.hand.demo.api.dto.InvCountInfoDTO;
+import com.hand.demo.api.dto.UserInfoDTO;
 import com.hand.demo.api.dto.WorkFlowEventDTO;
 import com.hand.demo.infra.state.ExecuteState;
 import com.hand.demo.infra.state.InitState;
@@ -107,9 +108,9 @@ public class InvCountHeaderController extends BaseController {
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping("/execute")
     public ResponseEntity<?> orderExecution(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeaders) {
+        invCountHeaders.forEach(item -> item.setTenantId(organizationId));
         invCountHeaders.forEach(header -> validObject(header, ExecuteState.class));
         SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
-        invCountHeaders.forEach(item -> item.setTenantId(organizationId));
 
         InvCountInfoDTO saveInvCountInfoDTO = invCountHeaderService.manualSaveCheck(invCountHeaders);
         if (saveInvCountInfoDTO.getErrSize() > 0) {
@@ -168,12 +169,28 @@ public class InvCountHeaderController extends BaseController {
         return Results.success(invCountHeaderService.countResultSync(invCountHeader));
     }
 
+    @ApiOperation(value = "Count sync WMS")
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @PutMapping("/count-sync-wms")
+    public ResponseEntity<InvCountInfoDTO> countSyncWMS(@RequestBody List<InvCountHeaderDTO> invCountHeaderList) {
+
+        return Results.success(invCountHeaderService.countSyncWms(invCountHeaderList));
+    }
+
     @ApiOperation(value = "Count order report")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @ProcessLovValue(targetField = BaseConstants.FIELD_BODY)
     @GetMapping("/report-data")
     public ResponseEntity<List<InvCountHeaderDTO>> countReportData(InvCountHeaderDTO invCountHeader) {
-        return Results.success(invCountHeaderService.countingOrderReportDs(invCountHeader));
+        List<InvCountHeaderDTO> countHeaderDTOS = invCountHeaderService.countingOrderReportDs(invCountHeader);
+        countHeaderDTOS.forEach(header -> {
+            header.setCounters(invCountHeaderService.transformUserIdsToRealNames(header.getCounterList()));
+            header.setSupervisors(invCountHeaderService.transformUserIdsToRealNames(header.getSupervisorList()));
+            header.setMaterials(invCountHeaderService.transformMaterialIdsToMaterialCode(header.getSnapshotMaterialList()));
+            header.setBatches(invCountHeaderService.transformBatchIdsToBatchCode(header.getSnapshotBatchList()));
+        });
+        invCountHeaderService.addRealNamesToLines(countHeaderDTOS);
+        return Results.success(countHeaderDTOS);
     }
 
     @ExceptionHandler(CommonException.class)
