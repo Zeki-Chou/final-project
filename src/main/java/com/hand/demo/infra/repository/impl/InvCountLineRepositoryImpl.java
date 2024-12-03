@@ -8,6 +8,7 @@ import com.hand.demo.domain.repository.InvCountLineRepository;
 import com.hand.demo.infra.mapper.InvCountLineMapper;
 
 import javax.annotation.Resource;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -46,6 +47,11 @@ public class InvCountLineRepositoryImpl extends BaseRepositoryImpl<InvCountLine>
     public Integer selectHighestLineNumber() {
         Integer highestLineNumber = invCountLineMapper.selectHighestLineNumber();
         return highestLineNumber == null ? 1 : highestLineNumber;
+    }
+
+    @Override
+    public List<InvCountLineDTO> selectLineReport(List<Long> headerIds) {
+        return invCountLineMapper.selectLineReport(headerIds);
     }
 
 }

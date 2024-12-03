@@ -35,5 +35,10 @@ public interface InvCountLineRepository extends BaseRepository<InvCountLine> {
      */
     List<InvCountLineDTO> selectByCountHeaderIds(List<Long> headerIds);
 
+    /**
+     * @return
+     */
     Integer selectHighestLineNumber();
+
+    List<InvCountLineDTO> selectLineReport(List<Long> headerIds);
 }

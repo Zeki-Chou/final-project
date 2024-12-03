@@ -3,6 +3,7 @@ package com.hand.demo.domain.entity;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.hand.demo.infra.constant.Constants;
 import com.hand.demo.infra.state.ExecuteState;
 import com.hand.demo.infra.state.InitState;
 import io.choerodon.mybatis.annotation.ModifyAudit;
@@ -21,6 +22,8 @@ import java.util.Date;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.hzero.boot.platform.lov.annotation.LovValue;
+import spire.random.Const;
 
 /**
  * (InvCountHeader)实体类
@@ -119,15 +122,17 @@ public class InvCountHeader extends AuditDomain {
     private String attributeCategory;
 
     @ApiModelProperty(value = "", required = true)
-    @NotBlank(groups = {InitState.class, ExecuteState.class})
+    @NotNull(groups = {InitState.class, ExecuteState.class})
     private Long companyId;
 
     @ApiModelProperty(value = "", required = true)
     @NotBlank(groups = {ExecuteState.class})
+    @LovValue(Constants.InvCountHeader.COUNT_DIMENSION_LOV_CODE)
     private String countDimension;
 
     @ApiModelProperty(value = "", required = true)
     @NotBlank(groups = {ExecuteState.class})
+    @LovValue(Constants.InvCountHeader.COUNT_MODE_LOV_CODE)
     private String countMode;
 
     @ApiModelProperty(value = "Support fuzzy search", required = true)
@@ -136,6 +141,7 @@ public class InvCountHeader extends AuditDomain {
 
     @ApiModelProperty(value = "", required = true)
     @NotBlank(groups = {InitState.class, ExecuteState.class})
+    @LovValue(Constants.InvCountHeader.STATUS_LOV_CODE)
     private String countStatus;
 
     @NotBlank(groups = {ExecuteState.class})
@@ -143,6 +149,7 @@ public class InvCountHeader extends AuditDomain {
 
     @ApiModelProperty(value = "", required = true)
     @NotBlank(groups = {ExecuteState.class})
+    @LovValue(Constants.InvCountHeader.COUNT_TYPE_LOV_CODE)
     private String countType;
 
     @ApiModelProperty(value = "", required = true)
@@ -174,11 +181,11 @@ public class InvCountHeader extends AuditDomain {
     private String supervisorIds;
 
     @ApiModelProperty(value = "", required = true)
-    @NotBlank(groups = {InitState.class, ExecuteState.class})
+    @NotNull(groups = {InitState.class, ExecuteState.class})
     private Long tenantId;
 
     @ApiModelProperty(value = "", required = true)
-    @NotBlank(groups = {InitState.class})
+    @NotNull(groups = {InitState.class})
     private Long warehouseId;
 
     private Long workflowId;

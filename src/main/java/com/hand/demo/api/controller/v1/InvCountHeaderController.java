@@ -1,5 +1,6 @@
 package com.hand.demo.api.controller.v1;
 
+import com.alibaba.fastjson.JSON;
 import com.hand.demo.api.dto.InvCountHeaderDTO;
 import com.hand.demo.api.dto.InvCountInfoDTO;
 import com.hand.demo.api.dto.WorkFlowEventDTO;
@@ -7,12 +8,16 @@ import com.hand.demo.infra.state.ExecuteState;
 import com.hand.demo.infra.state.InitState;
 import com.hand.demo.infra.state.SubmitState;
 import io.choerodon.core.domain.Page;
+import io.choerodon.core.exception.CommonException;
 import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.mybatis.pagehelper.annotation.SortDefault;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 import io.choerodon.mybatis.pagehelper.domain.Sort;
 import io.choerodon.swagger.annotation.Permission;
+import io.lettuce.core.dynamic.CommandCreationException;
 import io.swagger.annotations.ApiOperation;
+import org.hzero.boot.platform.lov.annotation.ProcessLovValue;
+import org.hzero.core.base.BaseConstants;
 import org.hzero.core.base.BaseController;
 import org.hzero.core.cache.ProcessCacheValue;
 import org.hzero.core.util.Results;
@@ -24,6 +29,7 @@ import com.hand.demo.domain.entity.InvCountHeader;
 import com.hand.demo.domain.repository.InvCountHeaderRepository;
 import springfox.documentation.annotations.ApiIgnore;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,14 +74,14 @@ public class InvCountHeaderController extends BaseController {
     @ApiOperation(value = "order save")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping
-    public ResponseEntity<?> orderSave(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeaders) {
+    public ResponseEntity<List<InvCountHeaderDTO>> orderSave(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeaders) {
+        invCountHeaders.forEach(item -> item.setTenantId(organizationId));
         invCountHeaders.forEach(header -> validObject(header, InitState.class));
         SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
-        invCountHeaders.forEach(item -> item.setTenantId(organizationId));
 
         InvCountInfoDTO invCountInfoDTO = invCountHeaderService.manualSaveCheck(invCountHeaders);
         if (invCountInfoDTO.getErrSize() > 0) {
-            return Results.error(invCountInfoDTO);
+            throw new CommonException(JSON.toJSONString(invCountInfoDTO));
         }
 
         List<InvCountHeaderDTO> invCountHeaderDTOS = invCountInfoDTO.getValidHeaderDTOS();
@@ -164,47 +170,17 @@ public class InvCountHeaderController extends BaseController {
 
     @ApiOperation(value = "Count order report")
     @Permission(level = ResourceLevel.ORGANIZATION)
-    @PutMapping("/report-data")
-    public ResponseEntity<InvCountHeaderDTO> countReportData(@RequestBody InvCountHeaderDTO invCountHeader) {
-        return Results.success(invCountHeaderService.countResultSync(invCountHeader));
+    @ProcessLovValue(targetField = BaseConstants.FIELD_BODY)
+    @GetMapping("/report-data")
+    public ResponseEntity<List<InvCountHeaderDTO>> countReportData(InvCountHeaderDTO invCountHeader) {
+        return Results.success(invCountHeaderService.countingOrderReportDs(invCountHeader));
     }
 
-    @ApiOperation(value = "Test WMS sync")
-    @Permission(level = ResourceLevel.ORGANIZATION)
-    @PostMapping("/wms-sync")
-    public ResponseEntity<InvCountInfoDTO> testWMSSync(@RequestBody List<InvCountHeaderDTO> invCountHeaders) {
-        return Results.success(invCountHeaderService.countSyncWms(invCountHeaders));
+    @ExceptionHandler(CommonException.class)
+    public InvCountInfoDTO getCountInfo(HttpServletRequest req, CommonException ex) {
+        // in jsonString
+        return JSON.parseObject(ex.getMessage(),InvCountInfoDTO.class);
     }
-
-    @ApiOperation(value = "Test Submit workflow")
-    @Permission(level = ResourceLevel.ORGANIZATION)
-    @PostMapping("/test-submit")
-    public ResponseEntity<List<InvCountHeaderDTO>> testSubmit(@RequestBody List<InvCountHeaderDTO> invCountHeaders) {
-        return Results.success(invCountHeaderService.submit(invCountHeaders));
-    }
-
-    @ApiOperation(value = "Test Execute")
-    @Permission(level = ResourceLevel.ORGANIZATION)
-    @PostMapping("/test-execute")
-    public ResponseEntity<List<InvCountHeaderDTO>> testOrderExecute(@RequestBody List<InvCountHeaderDTO> invCountHeaders) {
-        return Results.success(invCountHeaderService.execute(invCountHeaders));
-    }
-
-    @ApiOperation(value = "Test Execute Check")
-    @Permission(level = ResourceLevel.ORGANIZATION)
-    @GetMapping("/test-execute")
-    public ResponseEntity<InvCountInfoDTO> testExecuteCheck(@RequestBody List<InvCountHeaderDTO> invCountHeaders) {
-        invCountHeaders.forEach(header -> validObject(header, ExecuteState.class));
-        return Results.success(invCountHeaderService.executeCheck(invCountHeaders));
-    }
-
-    @ApiOperation(value = "Test submit check")
-    @Permission(level = ResourceLevel.ORGANIZATION)
-    @GetMapping("/test-submit-check")
-    public ResponseEntity<InvCountInfoDTO> testSubmitCheck(@RequestBody List<InvCountHeaderDTO> invCountHeaders) {
-        return Results.success(invCountHeaderService.submitCheck(invCountHeaders));
-    }
-
 
 }
 

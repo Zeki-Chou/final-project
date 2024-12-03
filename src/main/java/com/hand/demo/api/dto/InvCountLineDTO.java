@@ -8,13 +8,13 @@ import lombok.Data;
 public class InvCountLineDTO extends InvCountLine {
 
     @ApiModelProperty(hidden = true)
-    private String itemCode;
+    private String materialCode;
 
     @ApiModelProperty(hidden = true)
-    private String itemName;
+    private String materialName;
 
     @ApiModelProperty(hidden = true)
-    String batchCode;
+    private String batchCode;
 
 
 }

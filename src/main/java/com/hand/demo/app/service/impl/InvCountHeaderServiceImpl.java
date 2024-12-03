@@ -26,7 +26,9 @@ import org.hzero.boot.platform.lov.dto.LovValueDTO;
 import org.hzero.boot.platform.profile.ProfileClient;
 import org.hzero.boot.workflow.WorkflowClient;
 import org.hzero.boot.workflow.dto.RunInstance;
+import org.hzero.boot.workflow.dto.RunTaskHistory;
 import org.hzero.core.base.BaseConstants;
+import org.hzero.core.cache.ProcessCacheValue;
 import org.json.JSONObject;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -639,39 +641,20 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     }
 
     @Override
+    @ProcessCacheValue
     public List<InvCountHeaderDTO> countingOrderReportDs(InvCountHeaderDTO countHeader) {
-        List<InvCountHeaderDTO> countHeaderDTOS = invCountHeaderRepository.selectList(countHeader);
-        Map<Long, List<InvCountLineDTO>> lineMap = findCountLines(countHeaderDTOS);
+        List<InvCountHeaderDTO> countHeaderDTOS = invCountHeaderRepository.selectHeaderReport(countHeader);
+        List<Long> headerIds = countHeaderDTOS.stream().map(InvCountHeader::getCountHeaderId).collect(Collectors.toList());
+        Map<Long, List<InvCountLineDTO>> countLineMap = invCountLineRepository.selectLineReport(headerIds)
+                .stream()
+                .collect(Collectors.groupingBy(InvCountLine::getCountHeaderId));
         countHeaderDTOS.forEach(header -> {
-            List<InvCountLineDTO> lineDTOList = lineMap.getOrDefault(header.getCountHeaderId(), new ArrayList<>());
-            header.setCountOrderLineList(lineDTOList);
+            header.setCountOrderLineList(countLineMap.get(header.getCountHeaderId()));
+            List<RunTaskHistory> approvalHistory = workflowClient.approveHistoryByFlowKey(BaseConstants.DEFAULT_TENANT_ID, Constants.Workflow.FLOW_KEY, header.getCountNumber());
+            header.setApprovalHistory(approvalHistory);
         });
 
-        List<Long> materialIds = new ArrayList<>();
-        List<Long> departmentIds = new ArrayList<>();
-        List<Long> warehouseIds = new ArrayList<>();
-        List<Long> batchIds = new ArrayList<>();
-
-        countHeaderDTOS.forEach(header -> {
-            materialIds.addAll(Utils.convertStringIdstoList(header.getSnapshotMaterialIds()));
-            departmentIds.add(header.getDepartmentId());
-            warehouseIds.add(header.getWarehouseId());
-            batchIds.addAll(Utils.convertStringIdstoList(header.getSnapshotBatchIds()));
-        });
-
-        List<InvMaterial> materials = invMaterialService.findMaterialsByListIds(materialIds);
-        List<IamDepartment> departments = iamDepartmentService.findDepartmentsByListIds(departmentIds);
-        List<InvWarehouse> warehouses = invWarehouseService.findWarehousesByListIds(warehouseIds);
-        List<InvBatch> batches = invBatchService.findBatchesByListIds(batchIds);
-
-        // key: warehouse value: warehousecode
-        Map<Long, String> warehouseMap = warehouses.stream().collect(Collectors.toMap(InvWarehouse::getWarehouseId, InvWarehouse::getWarehouseCode));
-        Map<Long, String> departmentMap = departments.stream().collect(Collectors.toMap(IamDepartment::getDepartmentId, IamDepartment::getDepartmentCode));
-
-        // TODO probably best to make a mapper for select List
-
-        return null;
-
+        return countHeaderDTOS;
     }
 
     private Map<Long, List<InvCountLineDTO>> findCountLines(List<InvCountHeaderDTO> headers) {

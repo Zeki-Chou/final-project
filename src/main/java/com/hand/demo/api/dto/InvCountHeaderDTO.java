@@ -4,6 +4,9 @@ import com.hand.demo.domain.entity.InvCountHeader;
 import com.hand.demo.domain.entity.InvCountLine;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.hzero.boot.workflow.dto.RunTaskHistory;
+import org.hzero.common.HZeroCacheKey;
+import org.hzero.core.cache.CacheValue;
 import org.hzero.core.cache.Cacheable;
 
 import java.util.List;
@@ -50,13 +53,17 @@ public class InvCountHeaderDTO extends InvCountHeader implements Cacheable {
     private String countStatusMeaning;
 
     @ApiModelProperty(hidden = true)
-    private String creatorName;
+    @CacheValue(key = HZeroCacheKey.USER, primaryKey = "createdBy", searchKey = "realName", structure = CacheValue.DataStructure.MAP_OBJECT)
+    private String realName;
 
     @ApiModelProperty(hidden = true)
     private String warehouseCode;
 
     @ApiModelProperty(hidden = true)
     private String departmentCode;
+
+    @ApiModelProperty(hidden = true)
+    private List<RunTaskHistory> approvalHistory;
 
     private String token; // temp
 }

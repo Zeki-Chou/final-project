@@ -138,7 +138,6 @@
     <select id="selectByCountHeaderIds" resultType="com.hand.demo.api.dto.InvCountLineDTO">
         select
         <include refid = "BaseSql"/>
-        ,
         from fexam_inv_count_line ficl
         <where>
             <if test="headerIds != null and headerIds.size() > 0">
@@ -149,12 +148,22 @@
         </where>
     </select>
 
-    <select id="selectLineReport">
+    <select id="selectLineReport" resultType="com.hand.demo.api.dto.InvCountLineDTO">
         select
         <include refid = "BaseSql"/>
-        ,
+        ,fim.material_code
+        ,fim.material_name
+        ,fib.batch_code
         from fexam_inv_count_line ficl
-
+        join fexam_inv_material fim on ficl.material_id = fim.material_id
+        join fexam_inv_batch fib  on ficl.batch_id = fib.batch_id
+        <where>
+            <if test="headerIds != null and headerIds.size() > 0">
+                <foreach collection="headerIds" item="headerId" open="ficl.count_header_id in (" close=")" separator=",">
+                    #{headerId}
+                </foreach>
+            </if>
+        </where>
     </select>
 
     <select id="selectHighestLineNumber" resultType="java.lang.Integer">

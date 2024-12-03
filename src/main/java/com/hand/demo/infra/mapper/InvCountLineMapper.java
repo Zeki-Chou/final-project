@@ -31,5 +31,11 @@ public interface InvCountLineMapper extends BaseMapper<InvCountLine> {
      * @return
      */
     Integer selectHighestLineNumber();
+
+    /**
+     * @param headerIds
+     * @return
+     */
+    List<InvCountLineDTO> selectLineReport(List<Long> headerIds);
 }
 
