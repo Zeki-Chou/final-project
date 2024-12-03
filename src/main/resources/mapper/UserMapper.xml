@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hand.demo.infra.mapper.UserMapper">
+
+
+    <sql id = "BaseSql">
+        iu.id,
+        iu.attribute1,
+        iu.attribute10,
+        iu.attribute11,
+        iu.attribute12,
+        iu.attribute13,
+        iu.attribute14,
+        iu.attribute15,
+        iu.attribute2,
+        iu.attribute3,
+        iu.attribute4,
+        iu.attribute5,
+        iu.attribute6,
+        iu.attribute7,
+        iu.attribute8,
+        iu.attribute9,
+        iu.email,
+        iu.HASH_PASSWORD,
+        iu.image_url,
+        iu.INTERNATIONAL_TEL_CODE,
+        iu.is_admin,
+        iu.is_enabled,
+        iu.is_ldap,
+        iu.is_locked,
+        iu.language,
+        iu.last_login_at,
+        iu.last_password_updated_at,
+        iu.locked_until_at,
+        iu.login_name,
+        iu.organization_id,
+        iu.password_attempt,
+        iu.phone,
+        iu.profile_photo,
+        iu.quick_index,
+        iu.real_name,
+        iu.time_zone,
+        iu.user_type,
+        iu.creation_date, 
+        iu.created_by, 
+        iu.last_updated_by, 
+        iu.last_update_date, 
+        iu.object_version_number
+    </sql>
+
+    <select id = "selectList" resultType = "com.hand.demo.domain.entity.User">
+        select
+        <include refid = "BaseSql"/>
+        from iam_user iu
+        <where>
+            <if test="id !=null">
+                and iu.id = #{id,jdbcType = INTEGER}
+            </if>
+            <if test="attribute1 !=null">
+                and iu.attribute1 = #{attribute1,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute10 !=null">
+                and iu.attribute10 = #{attribute10,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute11 !=null">
+                and iu.attribute11 = #{attribute11,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute12 !=null">
+                and iu.attribute12 = #{attribute12,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute13 !=null">
+                and iu.attribute13 = #{attribute13,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute14 !=null">
+                and iu.attribute14 = #{attribute14,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute15 !=null">
+                and iu.attribute15 = #{attribute15,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute2 !=null">
+                and iu.attribute2 = #{attribute2,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute3 !=null">
+                and iu.attribute3 = #{attribute3,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute4 !=null">
+                and iu.attribute4 = #{attribute4,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute5 !=null">
+                and iu.attribute5 = #{attribute5,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute6 !=null">
+                and iu.attribute6 = #{attribute6,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute7 !=null">
+                and iu.attribute7 = #{attribute7,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute8 !=null">
+                and iu.attribute8 = #{attribute8,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute9 !=null">
+                and iu.attribute9 = #{attribute9,jdbcType = VARCHAR}
+            </if>
+            <if test="email !=null">
+                and iu.email = #{email,jdbcType = VARCHAR}
+            </if>
+            <if test="hashPassword !=null">
+                and iu.HASH_PASSWORD = #{hashPassword,jdbcType = VARCHAR}
+            </if>
+            <if test="imageUrl !=null">
+                and iu.image_url = #{imageUrl,jdbcType = VARCHAR}
+            </if>
+            <if test="internationalTelCode !=null">
+                and iu.INTERNATIONAL_TEL_CODE = #{internationalTelCode,jdbcType = VARCHAR}
+            </if>
+            <if test="isAdmin !=null">
+                and iu.is_admin = #{isAdmin,jdbcType = INTEGER}
+            </if>
+            <if test="isEnabled !=null">
+                and iu.is_enabled = #{isEnabled,jdbcType = INTEGER}
+            </if>
+            <if test="isLdap !=null">
+                and iu.is_ldap = #{isLdap,jdbcType = INTEGER}
+            </if>
+            <if test="isLocked !=null">
+                and iu.is_locked = #{isLocked,jdbcType = INTEGER}
+            </if>
+            <if test="language !=null">
+                and iu.language = #{language,jdbcType = VARCHAR}
+            </if>
+            <if test="lastLoginAt !=null">
+                and iu.last_login_at = #{lastLoginAt,jdbcType = TIMESTAMP}
+            </if>
+            <if test="lastPasswordUpdatedAt !=null">
+                and iu.last_password_updated_at = #{lastPasswordUpdatedAt,jdbcType = TIMESTAMP}
+            </if>
+            <if test="lockedUntilAt !=null">
+                and iu.locked_until_at = #{lockedUntilAt,jdbcType = TIMESTAMP}
+            </if>
+            <if test="loginName !=null">
+                and iu.login_name = #{loginName,jdbcType = VARCHAR}
+            </if>
+            <if test="organizationId !=null">
+                and iu.organization_id = #{organizationId,jdbcType = INTEGER}
+            </if>
+            <if test="passwordAttempt !=null">
+                and iu.password_attempt = #{passwordAttempt,jdbcType = INTEGER}
+            </if>
+            <if test="phone !=null">
+                and iu.phone = #{phone,jdbcType = VARCHAR}
+            </if>
+            <if test="profilePhoto !=null">
+                and iu.profile_photo = #{profilePhoto,jdbcType = OTHER}
+            </if>
+            <if test="quickIndex !=null">
+                and iu.quick_index = #{quickIndex,jdbcType = VARCHAR}
+            </if>
+            <if test="realName !=null">
+                and iu.real_name = #{realName,jdbcType = VARCHAR}
+            </if>
+            <if test="timeZone !=null">
+                and iu.time_zone = #{timeZone,jdbcType = VARCHAR}
+            </if>
+            <if test="userType !=null">
+                and iu.user_type = #{userType,jdbcType = VARCHAR}
+            </if>
+        </where>
+    </select>
+</mapper>
+

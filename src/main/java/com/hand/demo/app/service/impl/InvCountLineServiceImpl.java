@@ -81,7 +81,6 @@ public class InvCountLineServiceImpl implements InvCountLineService {
         invCountLineRepository.batchInsertSelective(insertList);
         invCountLineRepository.batchUpdateOptional(updateList,
                 InvCountLine.FIELD_UNIT_QTY,
-                InvCountLine.FIELD_SNAPSHOT_UNIT_QTY,
                 InvCountLine.FIELD_UNIT_DIFF_QTY,
                 InvCountLine.FIELD_COUNTER_IDS,
                 InvCountLine.FIELD_REMARK

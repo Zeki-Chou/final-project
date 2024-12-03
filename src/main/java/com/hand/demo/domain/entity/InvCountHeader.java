@@ -82,6 +82,7 @@ public class InvCountHeader extends AuditDomain {
 
     @Id
     @GeneratedValue
+    @NotBlank (groups = {InvCountHeader.save.class})
     private Long countHeaderId;
 
     private Date approvedTime;

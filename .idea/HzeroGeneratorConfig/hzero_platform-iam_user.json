@@ -1,0 +1,395 @@
+{
+  "name" : "IamUser",
+  "preName" : "iam_",
+  "modifyPreName" : "",
+  "comment" : "",
+  "templateGroupName" : "Default",
+  "fullColumn" : [ {
+    "name" : "id",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : false,
+    "length" : 0,
+    "ext" : { }
+  }, {
+    "name" : "attribute1",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 150,
+    "ext" : { }
+  }, {
+    "name" : "attribute10",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 150,
+    "ext" : { }
+  }, {
+    "name" : "attribute11",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 150,
+    "ext" : { }
+  }, {
+    "name" : "attribute12",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 150,
+    "ext" : { }
+  }, {
+    "name" : "attribute13",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 150,
+    "ext" : { }
+  }, {
+    "name" : "attribute14",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 150,
+    "ext" : { }
+  }, {
+    "name" : "attribute15",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 150,
+    "ext" : { }
+  }, {
+    "name" : "attribute2",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 150,
+    "ext" : { }
+  }, {
+    "name" : "attribute3",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 150,
+    "ext" : { }
+  }, {
+    "name" : "attribute4",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 150,
+    "ext" : { }
+  }, {
+    "name" : "attribute5",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 150,
+    "ext" : { }
+  }, {
+    "name" : "attribute6",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 150,
+    "ext" : { }
+  }, {
+    "name" : "attribute7",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 150,
+    "ext" : { }
+  }, {
+    "name" : "attribute8",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 150,
+    "ext" : { }
+  }, {
+    "name" : "attribute9",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 150,
+    "ext" : { }
+  }, {
+    "name" : "createdBy",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 0,
+    "ext" : { }
+  }, {
+    "name" : "creationDate",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 0,
+    "ext" : { }
+  }, {
+    "name" : "email",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 240,
+    "ext" : { }
+  }, {
+    "name" : "hashPassword",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 128,
+    "ext" : { }
+  }, {
+    "name" : "imageUrl",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 480,
+    "ext" : { }
+  }, {
+    "name" : "internationalTelCode",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 16,
+    "ext" : { }
+  }, {
+    "name" : "isAdmin",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 0,
+    "ext" : { }
+  }, {
+    "name" : "isEnabled",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : false,
+    "length" : 0,
+    "ext" : { }
+  }, {
+    "name" : "isLdap",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 0,
+    "ext" : { }
+  }, {
+    "name" : "isLocked",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : false,
+    "length" : 0,
+    "ext" : { }
+  }, {
+    "name" : "language",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 16,
+    "ext" : { }
+  }, {
+    "name" : "lastLoginAt",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 0,
+    "ext" : { }
+  }, {
+    "name" : "lastPasswordUpdatedAt",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : false,
+    "length" : 0,
+    "ext" : { }
+  }, {
+    "name" : "lastUpdateDate",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 0,
+    "ext" : { }
+  }, {
+    "name" : "lastUpdatedBy",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 0,
+    "ext" : { }
+  }, {
+    "name" : "lockedUntilAt",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 0,
+    "ext" : { }
+  }, {
+    "name" : "loginName",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : false,
+    "length" : 128,
+    "ext" : { }
+  }, {
+    "name" : "objectVersionNumber",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 0,
+    "ext" : { }
+  }, {
+    "name" : "organizationId",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : false,
+    "length" : 0,
+    "ext" : { }
+  }, {
+    "name" : "passwordAttempt",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 0,
+    "ext" : { }
+  }, {
+    "name" : "phone",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 60,
+    "ext" : { }
+  }, {
+    "name" : "profilePhoto",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 16777215,
+    "ext" : { }
+  }, {
+    "name" : "quickIndex",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 240,
+    "ext" : { }
+  }, {
+    "name" : "realName",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 128,
+    "ext" : { }
+  }, {
+    "name" : "timeZone",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : false,
+    "length" : 16,
+    "ext" : { }
+  }, {
+    "name" : "userType",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : false,
+    "length" : 30,
+    "ext" : { }
+  } ],
+  "pkColumn" : null,
+  "otherColumn" : null,
+  "savePackageName" : "com.hand.demo",
+  "savePath" : "./src/main/java/com/hand/demo",
+  "saveModelName" : "fexam-47361",
+  "author" : "",
+  "level" : "tenant",
+  "fullColumnQuery" : true,
+  "useLombok" : true
+}

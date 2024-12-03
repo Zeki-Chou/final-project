@@ -40,7 +40,6 @@ public class InvCountHeaderDTO extends InvCountHeader implements Cacheable {
     private String materials;
     private String batches;
     private List<RunTaskHistory> approvalHistory;
-
-
+    private List<InvCountLineDTO> countOrderLineListDTO;
 
 }

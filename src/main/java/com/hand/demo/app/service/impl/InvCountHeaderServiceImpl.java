@@ -36,7 +36,9 @@ import java.time.Year;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * (InvCountHeader)应用服务
@@ -80,6 +82,8 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     private WorkflowClient workflowClient;
     @Autowired
     private IamRemoteService iamRemoteService;
+    @Autowired
+    private UserRepository userRepository;
 
     @Override
     public Page<InvCountHeaderDTO> selectList(PageRequest pageRequest, InvCountHeaderDTO invCountHeader) {
@@ -415,7 +419,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         String headerSuccessIds = existingCountHeaders.stream()
                 .map(header -> String.valueOf(header.getCountHeaderId()))
                 .collect(Collectors.joining(","));
-        String succesMsg = "Succes Verification ids : " + headerSuccessIds;
+        String succesMsg = "Success Verification ids : " + headerSuccessIds;
         InvCountInfoDTO infoDTO = new InvCountInfoDTO();
         infoDTO.setSuccessMsg(succesMsg);
         return infoDTO;
@@ -448,7 +452,8 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             if (headerDTO.getCountType().equals("MONTH")) {
                 String yearMonth = YearMonth.now().format(DateTimeFormatter.ofPattern("yyyy-mm"));
                 headerDTO.setCountTimeStr(yearMonth);
-            } else if (headerDTO.getCountType().equals("YEAR")) {
+            }
+            if (headerDTO.getCountType().equals("YEAR")) {
                 String year = Year.now().format(DateTimeFormatter.ofPattern("yyyy"));
                 headerDTO.setCountTimeStr(year);
             }
@@ -471,7 +476,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                     String unitCode = "";
                     Long batchId = null;
                     for (InvStock stock : relatedStocks) {
-                        if (materialId == stock.getMaterialId()) {
+                        if (materialId.equals(stock.getMaterialId()) && listBatchId.contains(stock.getBatchId())) {
                             snapUnitQty = snapUnitQty.add(stock.getUnitQuantity());
                             unitCode = stock.getUnitCode();
                             batchId = stock.getBatchId();
@@ -615,6 +620,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         String wmsError = "The current warehouse is not a WMS warehouse, operations are not allowed";
         String lineConsistError = "The counting order line data is inconsistent with the INV system, please check the data";
         String status = "E";
+        String currentUser = DetailsHelper.getUserDetails().getUserId().toString();
 
         Integer isWmsWareHouse = warehouseRepository.selectByPrimary(invCountHeaderDTO.getWarehouseId()).getIsWmsWarehouse();
         if (isWmsWareHouse != 1) {
@@ -654,6 +660,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             lineUpdate.setUnitQty(requestLine.getUnitQty());
             lineUpdate.setUnitDiffQty(lineUpdate.getUnitQty().subtract(lineUpdate.getSnapshotUnitQty()));
             lineUpdate.setRemark(requestLine.getRemark());
+            lineUpdate.setCounterIds(currentUser);
             updateList.add(lineUpdate);
         }
 
@@ -662,6 +669,8 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                 InvCountLine.FIELD_UNIT_DIFF_QTY,
                 InvCountLine.FIELD_REMARK);
         invCountHeaderDTO.setCountOrderLineList(updateList);
+
+        invCountHeaderDTO.setStatus("S");
 
         return invCountHeaderDTO;
     }
@@ -834,7 +843,6 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         Map<Long, String> mapDepartmentName = departmentRepository.selectByIds(departmentIds).stream()
                 .collect(Collectors.toMap(IamDepartment::getDepartmentId, IamDepartment::getDepartmentName));
 
-
         String warehouseIds = headerDTOS.stream()
                 .map(InvCountHeaderDTO::getWarehouseId)
                 .map(String::valueOf)
@@ -842,12 +850,33 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         Map<Long, String> mapWarehouseCode = warehouseRepository.selectByIds(warehouseIds).stream()
                 .collect(Collectors.toMap(InvWarehouse::getWarehouseId, InvWarehouse::getWarehouseCode));
 
-        Map<Long, String> mapMaterialCode = materialRepository.selectList(new InvMaterial()).stream()
-                .collect(Collectors.toMap(InvMaterial::getMaterialId, InvMaterial::getMaterialCode));
+        Set<String> materialIdSet = headerDTOS.stream()
+                .flatMap(header -> Arrays.stream(header.getSnapshotMaterialIds().split(",")))
+                .map(String::trim)
+                .collect(Collectors.toSet());
+        String materialIds = String.join(",", materialIdSet);
+        Map<Long, InvMaterial> mapMaterial = materialRepository.selectByIds(materialIds).stream()
+                .collect(Collectors.toMap(InvMaterial::getMaterialId, Function.identity()));
 
-        Map<Long, String> mapBatchCode = batchRepository.selectList(new InvBatch()).stream()
-                .collect(Collectors.toMap(InvBatch::getBatchId, InvBatch::getBatchCode));
+        Set<String> batchIdSet = headerDTOS.stream()
+                .flatMap(header -> Arrays.stream(header.getSnapshotBatchIds().split(",")))
+                .map(String::trim)
+                .collect(Collectors.toSet());
+        String batchIds = String.join(",", batchIdSet);
+        Map<Long, InvBatch> mapBatch = batchRepository.selectByIds(batchIds).stream()
+                .collect(Collectors.toMap(InvBatch::getBatchId, Function.identity()));
 
+        Set<Long> existingUserIdSet = headerDTOS.stream()
+                .flatMap(headerDTO -> Stream.of(headerDTO.getCounterIds(), headerDTO.getSupervisorIds()))
+                .filter(Objects::nonNull)
+                .flatMap(ids -> Arrays.stream(ids.split(",")))
+                .map(String::trim)
+                .map(Long::parseLong)
+                .collect(Collectors.toSet());
+        String existUserIds = convertLongToIdsString(existingUserIdSet);
+
+        Map<Long, String> mapRealName = userRepository.selectByIds(existUserIds).stream()
+                .collect(Collectors.toMap(User::getId, User::getRealName));
 
         for (InvCountHeaderDTO headerDTO : headerDTOS) {
             String iamUserString = iamRemoteService.selectSelf().getBody();
@@ -857,21 +886,34 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             String warehouseCode = mapWarehouseCode.get(headerDTO.getWarehouseId());
             String creator = DetailsHelper.getUserDetails().getRealName();
 
-            String counters = createListUser(headerDTO.getCounterIds())
-                    .stream()
-                    .map(IamUserDTO::getRealName)
-                    .collect(Collectors.joining(","));
-            String supervisors = createListUser(headerDTO.getSupervisorIds())
-                    .stream()
-                    .map(IamUserDTO::getRealName)
-                    .collect(Collectors.joining(","));
+            String counters = "";
+            if (headerDTO.getCounterIds() != null){
+                List<Long> listCounterId = convertIdsToListLong(headerDTO.getCounterIds());
+                List<String> listRealName = new ArrayList<>();
+                for (Long counterId : listCounterId){
+                    String realName = mapRealName.get(counterId);
+                    listRealName.add(realName);
+                }
+                counters = String.join(", ", listRealName);
+            }
+
+            String supervisors = "";
+            if (headerDTO.getSupervisorIds() != null){
+                List<Long> listSupervisorId = convertIdsToListLong(headerDTO.getSupervisorIds());
+                List<String> listRealName = new ArrayList<>();
+                for (Long supervisorId : listSupervisorId){
+                    String realName = mapRealName.get(supervisorId);
+                    listRealName.add(realName);
+                }
+                supervisors = String.join(", ", listRealName);
+            }
 
             String materials = "";
             if (headerDTO.getSnapshotMaterialIds() != null){
                 List<Long> listMaterialId = convertIdsToListLong(headerDTO.getSnapshotMaterialIds());
                 List<String> listMaterialName = new ArrayList<>();
                 for (Long materialId : listMaterialId){
-                    String materialName = mapMaterialCode.get(materialId);
+                    String materialName = mapMaterial.get(materialId).getMaterialName();
                     listMaterialName.add(materialName);
                 }
                 materials = String.join(", ", listMaterialName);
@@ -883,10 +925,24 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                 List<Long> listBatchId = convertIdsToListLong(headerDTO.getSnapshotBatchIds());
                 List<String> listBatchCode = new ArrayList<>();
                 for (Long batchId : listBatchId){
-                    String batchCode = mapBatchCode.get(batchId);
+                    String batchCode = mapBatch.get(batchId).getBatchCode();
                     listBatchCode.add(batchCode);
                 }
                 batches = String.join(", ", listBatchCode);
+            }
+
+            //Lines
+            List<InvCountLine> lineList = mapLineHeaders.get(headerDTO.getCountHeaderId());
+            List<InvCountLineDTO> lineDTOList = new ArrayList<>();
+            for (InvCountLine line : lineList){
+                InvCountLineDTO lineDTO = new InvCountLineDTO();
+                BeanUtils.copyProperties(line, lineDTO);
+                lineDTO.setMaterialCode(mapMaterial.get(lineDTO.getMaterialId()).getMaterialCode());
+                lineDTO.setMaterialName(mapMaterial.get(lineDTO.getMaterialId()).getMaterialName());
+                lineDTO.setBatchCode(mapBatch.get(lineDTO.getBatchId()).getBatchCode());
+                List<Long> counterIdList = convertIdsToListLong(lineDTO.getCounterIds());
+                lineDTO.setCounter(mapRealName.get(counterIdList.get(0)));
+                lineDTOList.add(lineDTO);
             }
 
             //Set to DTO
@@ -898,14 +954,11 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             headerDTO.setSupervisors(supervisors);
             headerDTO.setMaterials(materials);
             headerDTO.setBatches(batches);
-            headerDTO.setCountOrderLineList(mapLineHeaders.get(headerDTO.getCountHeaderId()));
+            headerDTO.setCountOrderLineListDTO(lineDTOList);
             if (headerDTO.getWorkflowId() != null){
                 headerDTO.setApprovalHistory(workflowClient.approveHistory(headerDTO.getTenantId(), headerDTO.getWorkflowId()));
             }
-            headerDTO.setCounterList(createListUser(headerDTO.getCounterIds()));
-            headerDTO.setSupervisorList(createListUser(headerDTO.getSupervisorIds()));
         }
-
         return headerDTOS;
     }
 
