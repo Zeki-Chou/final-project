@@ -94,21 +94,21 @@
         m.material_code         AS material_code,
         b.batch_id              AS batch_id,
         b.batch_code            AS batch_code,
-<!--        l.count_line_id         AS line_id,-->
-<!--        l.count_header_id       AS line_header_id,-->
-<!--        l.line_number           AS line_line_number,-->
-<!--        lm.material_name        AS line_material_name,-->
-<!--        lm.material_code        AS line_material_code,-->
-<!--        l.unit_code             AS line_unit_code,-->
-<!--        lb.batch_code           AS line_batch_code,-->
-<!--        l.snapshot_unit_qty     AS line_snapshot_unit_qty,-->
-<!--        l.unit_qty              AS line_unit_qty,-->
-<!--        l.unit_diff_qty         AS line_unit_diff_qty,-->
-<!--        l.tenant_id             AS line_tenant_id,-->
-<!--        l.object_version_number AS line_object_version_number,-->
-<!--        lu.id                   AS line_counter_id,-->
-<!--        lu.real_name            AS line_counter_name,-->
-<!--        l.remark                AS line_remark,-->
+        l.count_line_id         AS line_id,
+        l.count_header_id       AS line_header_id,
+        l.line_number           AS line_line_number,
+        lm.material_name        AS line_material_name,
+        lm.material_code        AS line_material_code,
+        l.unit_code             AS line_unit_code,
+        lb.batch_code           AS line_batch_code,
+        l.snapshot_unit_qty     AS line_snapshot_unit_qty,
+        l.unit_qty              AS line_unit_qty,
+        l.unit_diff_qty         AS line_unit_diff_qty,
+        l.tenant_id             AS line_tenant_id,
+        l.object_version_number AS line_object_version_number,
+        lu.id                   AS line_counter_id,
+        lu.real_name            AS line_counter_name,
+        l.remark                AS line_remark,
         w.warehouse_code        AS warehouse_warehouse_code,
         w.is_wms_warehouse      AS warehouse_is_wms_warehouse,
         d.department_code       AS department_department_code,
