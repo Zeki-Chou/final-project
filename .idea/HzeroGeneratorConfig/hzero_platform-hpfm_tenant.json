@@ -1,0 +1,143 @@
+{
+  "name" : "HpfmTenant",
+  "preName" : "hpfm_",
+  "modifyPreName" : "",
+  "comment" : "租户信息",
+  "templateGroupName" : "Default",
+  "fullColumn" : [ {
+    "name" : "tenantId",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : false,
+    "length" : 0,
+    "ext" : { }
+  }, {
+    "name" : "createdBy",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : false,
+    "length" : 0,
+    "ext" : { }
+  }, {
+    "name" : "creationDate",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : false,
+    "length" : 0,
+    "ext" : { }
+  }, {
+    "name" : "enabledFlag",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : false,
+    "length" : 0,
+    "ext" : { }
+  }, {
+    "name" : "extInfo",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : -1,
+    "ext" : { }
+  }, {
+    "name" : "lastUpdateDate",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : false,
+    "length" : 0,
+    "ext" : { }
+  }, {
+    "name" : "lastUpdatedBy",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : false,
+    "length" : 0,
+    "ext" : { }
+  }, {
+    "name" : "limitLanguage",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 240,
+    "ext" : { }
+  }, {
+    "name" : "limitUserQty",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 0,
+    "ext" : { }
+  }, {
+    "name" : "objectVersionNumber",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : false,
+    "length" : 0,
+    "ext" : { }
+  }, {
+    "name" : "tableSplitFlag",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 0,
+    "ext" : { }
+  }, {
+    "name" : "tableSplitSeq",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : true,
+    "length" : 0,
+    "ext" : { }
+  }, {
+    "name" : "tenantName",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : false,
+    "length" : 120,
+    "ext" : { }
+  }, {
+    "name" : "tenantNum",
+    "comment" : null,
+    "type" : null,
+    "shortType" : null,
+    "custom" : false,
+    "nullAble" : false,
+    "length" : 30,
+    "ext" : { }
+  } ],
+  "pkColumn" : null,
+  "otherColumn" : null,
+  "savePackageName" : "com.hand.demo",
+  "savePath" : "./src/main/java/com/hand/demo",
+  "saveModelName" : "fexam-xxxxx",
+  "author" : "",
+  "level" : "tenant",
+  "fullColumnQuery" : true,
+  "useLombok" : true
+}

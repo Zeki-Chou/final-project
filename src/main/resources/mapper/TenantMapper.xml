@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hand.demo.infra.mapper.TenantMapper">
+
+
+    <sql id = "BaseSql">
+        ht.tenant_id,
+        ht.enabled_flag,
+        ht.ext_info,
+        ht.limit_language,
+        ht.limit_user_qty,
+        ht.table_split_flag,
+        ht.table_split_seq,
+        ht.tenant_name,
+        ht.tenant_num,
+        ht.creation_date, 
+        ht.created_by, 
+        ht.last_updated_by, 
+        ht.last_update_date, 
+        ht.object_version_number
+    </sql>
+
+    <select id = "selectList" resultType = "com.hand.demo.domain.entity.Tenant">
+        select
+        <include refid = "BaseSql"/>
+        from hpfm_tenant ht
+        <where>
+            <if test="tenantId !=null">
+                and ht.tenant_id = #{tenantId,jdbcType = INTEGER}
+            </if>
+            <if test="enabledFlag !=null">
+                and ht.enabled_flag = #{enabledFlag,jdbcType = INTEGER}
+            </if>
+            <if test="extInfo !=null">
+                and ht.ext_info = #{extInfo,jdbcType = VARCHAR}
+            </if>
+            <if test="limitLanguage !=null">
+                and ht.limit_language = #{limitLanguage,jdbcType = VARCHAR}
+            </if>
+            <if test="limitUserQty !=null">
+                and ht.limit_user_qty = #{limitUserQty,jdbcType = INTEGER}
+            </if>
+            <if test="tableSplitFlag !=null">
+                and ht.table_split_flag = #{tableSplitFlag,jdbcType = INTEGER}
+            </if>
+            <if test="tableSplitSeq !=null">
+                and ht.table_split_seq = #{tableSplitSeq,jdbcType = INTEGER}
+            </if>
+            <if test="tenantName !=null">
+                and ht.tenant_name = #{tenantName,jdbcType = VARCHAR}
+            </if>
+            <if test="tenantNum !=null">
+                and ht.tenant_num = #{tenantNum,jdbcType = VARCHAR}
+            </if>
+        </where>
+    </select>
+</mapper>
+

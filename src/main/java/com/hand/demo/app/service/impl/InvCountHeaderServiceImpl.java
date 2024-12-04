@@ -98,6 +98,9 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     @Autowired
     WorkflowClient workflowClient;
 
+    @Autowired
+    private TenantRepository tenantRepository;
+
     private static final Logger log = LoggerFactory.getLogger(InvCountHeaderServiceImpl.class);
 
 //  method for validate missing line, from request and database
@@ -176,7 +179,6 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                         }
                 ));
     }
-
 
     //  method map count line db
     public Map<Long, InvCountLine> mapCountLineDb(List<InvCountLineDTO> invCountLineDTOList) {
@@ -743,8 +745,8 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         List<InvCountHeaderDTO> invCountHeaderDTOListResult = new ArrayList<>();
         InvCountHeaderDTO invCountHeaderDTOAdd = detail(invCountHeaderDTO.getCountHeaderId());
 
-        JSONObject jsonObject = new JSONObject(iamRemoteService.selectSelf().getBody());
-        invCountHeaderDTOAdd.setTenantName(jsonObject.getString("tenantName"));
+        Tenant tenant = tenantRepository.selectByPrimary(invCountHeaderDTO.getTenantId());
+        invCountHeaderDTOAdd.setTenantName(tenant.getTenantName());
 
         IamDepartment iamDepartment = iamDepartmentRepository.selectByPrimary(invCountHeaderDTOAdd.getDepartmentId());
         invCountHeaderDTOAdd.setDepartmentName(iamDepartment.getDepartmentName());
