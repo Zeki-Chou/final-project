@@ -271,7 +271,6 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         String counterIds = invCountHeader.getCounterIds();
         List<String> counterList = Arrays.asList(counterIds.split(","));
         List<UserCacheDTO> counterListMap = new ArrayList<>();
-
         for(String counterListItem : counterList) {
             UserCacheDTO userCacheDTO = new UserCacheDTO();
             userCacheDTO.setId(Long.parseLong(counterListItem));
@@ -281,7 +280,6 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         String supervisorIds = invCountHeader.getSupervisorIds();
         List<String> supervisorList = Arrays.asList(supervisorIds.split(","));
         List<UserCacheDTO> supervisorListMap = new ArrayList<>();
-
         for(String supervisorItem : supervisorList) {
             UserCacheDTO userCacheDTO = new UserCacheDTO();
             userCacheDTO.setId(Long.parseLong(supervisorItem));
@@ -308,6 +306,14 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                 })
                 .collect(Collectors.toList());
 
+        String materialCodes = invMaterialMap.stream()
+                .map(map -> map.get("code").toString())
+                .collect(Collectors.joining(","));
+
+        String batchCodes = invBatchMap.stream()
+                .map(map -> map.get("code").toString())
+                .collect(Collectors.joining(","));
+
         Long warehouseId = invCountHeader.getWarehouseId();
         InvWarehouse invWarehouse = invWarehouseRepository.selectByPrimary(warehouseId);
 
@@ -319,6 +325,8 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         invCountHeaderDTO.setSnapshotBatchList(invBatchMap);
         invCountHeaderDTO.setIsWMSwarehouse(invWarehouse.getIsWmsWarehouse());
         invCountHeaderDTO.setWarehouseCode(invWarehouse.getWarehouseCode());
+        invCountHeaderDTO.setMaterialCodes(materialCodes);
+        invCountHeaderDTO.setBatchCodes(batchCodes);
 
         InvCountLine invCountLineNew = new InvCountLine();
         invCountLineNew.setCountHeaderId(countHeaderId);
@@ -396,7 +404,6 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
             invCountHeaderDTO.setCountOrderLineList(invCountLineDTOList);
         }
-
         return invCountHeaderDTO;
     }
 

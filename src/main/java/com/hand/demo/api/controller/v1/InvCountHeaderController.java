@@ -26,6 +26,7 @@ import com.hand.demo.domain.repository.InvCountHeaderRepository;
 import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * (InvCountHeader)表控制层
@@ -99,7 +100,8 @@ public class InvCountHeaderController extends BaseController {
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping("/detail")
     public ResponseEntity<InvCountHeaderDTO> detail(@PathVariable Long organizationId, Long countHeaderId) {
-        return Results.success(invCountHeaderService.detail(countHeaderId));
+        InvCountHeaderDTO invCountHeaderDTO = invCountHeaderService.detail(countHeaderId);
+        return Results.success(invCountHeaderDTO);
     }
 
     @ApiOperation(value = "countingOrderReportDs")
@@ -107,7 +109,24 @@ public class InvCountHeaderController extends BaseController {
     @GetMapping("/invCountHeaderDTO")
     @ProcessLovValue(targetField = BaseConstants.FIELD_BODY)
     public ResponseEntity<List<InvCountHeaderDTO>> countingOrderReport(@PathVariable Long organizationId, InvCountHeaderDTO invCountHeaderDTO) {
-        return Results.success(invCountHeaderService.countingOrderReportDs(invCountHeaderDTO));
+        List<InvCountHeaderDTO> invCountHeaderDTOList = invCountHeaderService.countingOrderReportDs(invCountHeaderDTO);
+
+        for(InvCountHeaderDTO invCountHeader : invCountHeaderDTOList) {
+            List<UserCacheDTO> counterListMap = invCountHeader.getCounterList();
+            String counterNames = counterListMap.stream()
+                    .map(dto -> String.valueOf(dto.getRealName()))
+                    .collect(Collectors.joining(","));
+
+            List<UserCacheDTO> supervisorListMap = invCountHeader.getSupervisorList();
+            String supervisorNames = supervisorListMap.stream()
+                    .map(dto -> String.valueOf(dto.getRealName()))
+                    .collect(Collectors.joining(","));
+
+            invCountHeader.setCounterNames(counterNames);
+            invCountHeader.setSupervisorNames(supervisorNames);
+        }
+
+        return Results.success(invCountHeaderDTOList);
     }
 
     @ApiOperation(value = "countResultSync")
