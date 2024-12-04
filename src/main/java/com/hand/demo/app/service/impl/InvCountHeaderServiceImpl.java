@@ -203,10 +203,38 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             return invCountHeaderRepository.selectList(invCountHeader);
         });
 
+        List<Long> headerIds = pageResult.getContent().stream()
+                .map(InvCountHeader::getCountHeaderId)
+                .collect(Collectors.toList());
+
+        Map<Long, List<InvCountLineDTO>> headerIdLineMap = headerIds.stream()
+                .collect(Collectors.toMap(
+                        id -> id,
+                        id -> {
+                            InvCountLine query = new InvCountLine();
+                            query.setCountHeaderId(id);
+                            List<InvCountLine> invCountLines = invCountLineRepository.select(query);
+
+                            return invCountLines.stream()
+                                    .map(line -> {
+                                        InvCountLineDTO dto = new InvCountLineDTO();
+                                        BeanUtils.copyProperties(line, dto);
+                                        return dto;
+                                    })
+                                    .collect(Collectors.toList());
+                        }
+                ));
+
         List<InvCountHeaderDTO> invCountHeaderDTOList = new ArrayList<>();
         for (InvCountHeader entity : pageResult) {
             InvCountHeaderDTO dto = new InvCountHeaderDTO();
             BeanUtils.copyProperties(entity, dto);
+
+            List<InvCountLineDTO> listLine = headerIdLineMap.get(dto.getCountHeaderId());
+            if(listLine.size() > 0) {
+                dto.setCountOrderLineList(listLine);
+            }
+
             invCountHeaderDTOList.add(dto);
         }
 
@@ -575,19 +603,19 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
         List<InvCountLine> invCountLineUpdateList = new ArrayList<>();
         for(InvCountLine invCountLines : invCountLineList) {
+            InvCountLine invCountLineNew = new InvCountLine();
+            invCountLineNew.setCountLineId(invCountLines.getCountLineId());
+            invCountLineNew.setRemark(invCountLines.getRemark());
+            invCountLineNew.setObjectVersionNumber(invCountLines.getObjectVersionNumber());
+
             InvCountLine invCountLineData = invCountLineMap.get(invCountLines.getCountLineId());
             BigDecimal unitQtyDecimal = BigDecimal.valueOf(((Number) invCountLines.getUnitQty()).doubleValue());
             BigDecimal snapshotUnitQtyDecimal = BigDecimal.valueOf(((Number) invCountLineData.getSnapshotUnitQty()).doubleValue());
             BigDecimal unitDiffQty = unitQtyDecimal.subtract(snapshotUnitQtyDecimal).setScale(2, BigDecimal.ROUND_HALF_UP);
-            invCountLines.setCountHeaderId(invCountLineData.getCountHeaderId());
-            invCountLines.setUnitDiffQty(unitDiffQty);
+            invCountLineNew.setCountHeaderId(invCountLineData.getCountHeaderId());
+            invCountLineNew.setUnitDiffQty(unitDiffQty);
 
-            String counterIds = invCountLineData.getCounterIds();
-            List<String> counterIdList = Arrays.asList(counterIds.split(","));
-            if(counterIdList.contains(String.valueOf(userId))) {
-                invCountLines.setCounterIds(String.valueOf(userId));
-                invCountLineUpdateList.add(invCountLines);
-            }
+            invCountLineUpdateList.add(invCountLineNew);
         }
 
         invCountLineRepository.batchUpdateByPrimaryKeySelective(invCountLineUpdateList);
@@ -894,7 +922,6 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         }
 
         //      Execute
-
         // create invCountHeader map db by id
         List<Long> headerIds = invCountHeaders.stream().map(InvCountHeaderDTO::getCountHeaderId).collect(Collectors.toList());
         String joinHeaderId = String.join(",", headerIds.stream()
@@ -1079,6 +1106,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         invCountInfoDTO.setErrorMessage(null);
 
         //      update
+        List<InvCountLine> invCountLineDTOUpdateList = new ArrayList<>();
         List<InvCountHeaderDTO> updateList = invCountHeadersDTO.stream().filter(line -> line.getCountHeaderId() != null).collect(Collectors.toList());
         if(updateList.size() > 0) {
             List<Long> headerIds = updateList.stream().map(InvCountHeader::getCountHeaderId).collect(Collectors.toList());
@@ -1095,13 +1123,23 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             JSONObject jsonObject = new JSONObject(iamRemoteService.selectSelf().getBody());
             Long userId = jsonObject.getLong("id");
 
+            String countLineIds = invCountHeadersDTO.stream()
+                    .flatMap(headerDTO -> headerDTO.getCountOrderLineList().stream())
+                    .map(InvCountLineDTO::getCountLineId)
+                    .map(String::valueOf)
+                    .collect(Collectors.joining(","));
+
+            List<InvCountLine> invCountLineList = invCountLineRepository.selectByIds(countLineIds);
+            Map<Long, InvCountLine> mapLineDb = invCountLineList.stream()
+                    .collect(Collectors.toMap(InvCountLine::getCountLineId, line -> line));
+
             for(InvCountHeaderDTO update : updateList) {
+//              update header
                 InvCountHeader invCountHeaderNew = new InvCountHeader();
                 invCountHeaderNew.setCountHeaderId(update.getCountHeaderId());
                 invCountHeaderNew.setObjectVersionNumber(update.getObjectVersionNumber());
 
                 InvCountHeader countHeaderDb = invCountHeaderMap.get(update.getCountHeaderId());
-
                 if(!"DRAFT".equals(countHeaderDb.getCountStatus()) && !"INCOUNTING".equals(countHeaderDb.getCountStatus())) {
                     update.setRemark(countHeaderDb.getRemark());
                 }
@@ -1118,12 +1156,29 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                     invCountHeaderNew.setReason(update.getReason());
                     updateSpecialCondition.add(invCountHeaderNew);
                 }
+
+                if(countHeaderDb.getCountStatus().equals("INCOUNTING")) {
+                    List<InvCountLineDTO> invCountLineDTOList = update.getCountOrderLineList();
+                    for(InvCountLine invCountLineDTO : invCountLineDTOList) {
+                        InvCountLine invCountLineDb = mapLineDb.get(invCountLineDTO.getCountLineId());
+
+                        String counterIds = invCountLineDb.getCounterIds();
+                        if (counterIds.contains(String.valueOf(userId))) {
+                            invCountLineDTO.setCounterIds(userId.toString());
+                            invCountLineDTOUpdateList.add(invCountLineDTO);
+                        }
+                    }
+                }
             }
 
             if(updateSpecialCondition.size() > 0) {
                 invCountHeaderRepository.batchUpdateByPrimaryKeySelective(updateSpecialCondition);
             } else {
                 invCountHeaderRepository.batchUpdateOptional(allowedUpdate, "companyId", "departmentId", "warehouseId", "countDimension", "countType", "countMode", "countTimeStr", "counterIds", "supervisorIds", "snapshotMaterialIds", "snapshotBatchIds", "remark", "reason", "delFlag");
+            }
+
+            if(invCountLineDTOUpdateList.size() > 0) {
+                invCountLineRepository.batchUpdateByPrimaryKeySelective(invCountLineDTOUpdateList);
             }
         }
 
