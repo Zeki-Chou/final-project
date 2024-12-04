@@ -78,5 +78,5 @@ public class InvCountHeaderDTO extends InvCountHeader {
     @Transient
     private String status;
     @Transient
-    private String errorMsg ;
+    private String errorMsg;
 }
