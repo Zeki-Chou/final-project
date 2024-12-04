@@ -5,6 +5,7 @@
         <!-- Header fields -->
         <id column="id" property="countHeaderId"/>
         <result column="tenant_id" property="tenantId"/>
+        <result column="supervisor_ids" property="supervisorIds"/>
         <result column="workflow_id" property="workflowId"/>
         <result column="number" property="countNumber"/>
         <result column="type" property="countType"/>
@@ -72,6 +73,7 @@
     <sql id = "BaseSql">
         h.count_header_id       AS id,
         h.tenant_id             AS tenant_id,
+        h.supervisor_ids        AS supervisor_ids,
         h.workflow_id           AS workflow_id,
         h.creation_date         AS creation_date,
         h.count_number          AS number,
@@ -94,21 +96,6 @@
         m.material_code         AS material_code,
         b.batch_id              AS batch_id,
         b.batch_code            AS batch_code,
-        l.count_line_id         AS line_id,
-        l.count_header_id       AS line_header_id,
-        l.line_number           AS line_line_number,
-        lm.material_name        AS line_material_name,
-        lm.material_code        AS line_material_code,
-        l.unit_code             AS line_unit_code,
-        lb.batch_code           AS line_batch_code,
-        l.snapshot_unit_qty     AS line_snapshot_unit_qty,
-        l.unit_qty              AS line_unit_qty,
-        l.unit_diff_qty         AS line_unit_diff_qty,
-        l.tenant_id             AS line_tenant_id,
-        l.object_version_number AS line_object_version_number,
-        lu.id                   AS line_counter_id,
-        lu.real_name            AS line_counter_name,
-        l.remark                AS line_remark,
         w.warehouse_code        AS warehouse_warehouse_code,
         w.is_wms_warehouse      AS warehouse_is_wms_warehouse,
         d.department_code       AS department_department_code,
@@ -129,11 +116,6 @@
         LEFT JOIN fexam_inv_warehouse w         ON w.warehouse_id = h.warehouse_id
         LEFT JOIN fexam_iam_department d        ON d.department_id = h.department_id
         LEFT JOIN fexam_inv_count_line l        ON l.count_header_id = h.count_header_id
-        LEFT JOIN fexam_inv_material lm         ON lm.material_id = l.material_id
-        LEFT JOIN fexam_inv_batch lb            ON lb.batch_id = l.batch_id
-        LEFT JOIN hzero_platform.iam_user lu    ON FIND_IN_SET(lu.id, l.counter_ids) > 0
-
-
         <where>
             <if test="countHeaderId !=null">
                 and h.count_header_id = #{countHeaderId,jdbcType = INTEGER}
@@ -157,7 +139,7 @@
                 and FIND_IN_SET(#{supervisorIds, jdbcType=INTEGER}, h.supervisor_ids) > 0
             </if>
             <if test="ids != null">
-                and FIND_IN_SET(h.count_header_id,#{ids, jdbcType=INTEGER}) > 0
+                and FIND_IN_SET(h.count_header_id,#{ids, jdbcType=VARCHAR}) > 0
             </if>
         </where>
     </select>

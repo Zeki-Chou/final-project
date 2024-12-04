@@ -30,5 +30,8 @@ public class InvCountLineDTO extends InvCountLine {
     private List<UserDTO> counterList;
     @Transient
     private String counterNamesString;
-
+    @Transient
+    private String supervisorIds;
+    @Transient
+    private Boolean isTenantAdmin;
 }
