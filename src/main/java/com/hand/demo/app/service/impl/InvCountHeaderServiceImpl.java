@@ -789,12 +789,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
     public InvCountInfoDTO executeCheck(List<InvCountHeaderDTO> invCountHeaderDTOList) {
 // create invCountHeader map db by id
-        List<Long> headerIds = invCountHeaderDTOList.stream().map(InvCountHeaderDTO::getCountHeaderId).collect(Collectors.toList());
-        String joinHeaderId = String.join(",", headerIds.stream()
-                .map(String::valueOf)
-                .collect(Collectors.toList()));
-        Map<Long, InvCountHeader> invCountHeaderMap = invCountHeaderRepository.selectByIds(joinHeaderId).stream()
-                .collect(Collectors.toMap(InvCountHeader::getCountHeaderId, header -> header));
+        Map<Long, InvCountHeader> invCountHeaderMap = mapCountHeaderDb(invCountHeaderDTOList);
 // create company map db by id
         List<Long> companyIds = invCountHeaderDTOList.stream().map(InvCountHeaderDTO::getCompanyId).collect(Collectors.toList());
         String joinCompanyId = String.join(",", companyIds.stream()
@@ -1087,11 +1082,6 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             invCountInfoDTO.setErrorMessage(errorMessageList);
         }
         return invCountInfoDTO;
-    }
-
-    private boolean isUserInCounterIds(Long userId, String counterIds) {
-        // Menggunakan contains dengan format ",userId,"
-        return counterIds.contains("," + userId + ",") || counterIds.startsWith(userId + ",") || counterIds.endsWith("," + userId) || counterIds.equals(userId);
     }
 
     @Override
