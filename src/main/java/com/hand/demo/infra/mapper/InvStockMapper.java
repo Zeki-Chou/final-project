@@ -21,8 +21,9 @@ public interface InvStockMapper extends BaseMapper<InvStock> {
      * @return 返回值
      */
     List<InvStock> selectList(InvStock invStock);
-    List<InvStock> checkOnHandQuantity(InvCountHeaderDTO invCountHeaderDTO);
+    List<InvStockDTO> checkOnHandQuantity(List<InvCountHeaderDTO> invCountHeaderDTOList);
     List<InvStockDTO> executeBySKU(InvCountHeaderDTO invCountHeaderDTO);
     List<InvStockDTO> executeByLOT(InvCountHeaderDTO invCountHeaderDTO);
+    List<InvStockDTO> execute(List<InvCountHeaderDTO> invCountHeaders);
 }
 

@@ -14,4 +14,5 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class InvStockDTO extends InvStock {
     private BigDecimal snapshotUnitQty;
+    private Long countHeaderId;
 }

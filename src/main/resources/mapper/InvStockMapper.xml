@@ -127,26 +127,30 @@
         </where>
     </select>
 
-    <select id="checkOnHandQuantity" resultType = "com.hand.demo.domain.entity.InvStock">
+    <select id="checkOnHandQuantity" resultType="com.hand.demo.api.controller.v1.DTO.InvStockDTO">
         select
-        <include refid = "BaseSql"/>
+        <include refid="BaseSql"/>
         from fexam_inv_stock fis
         <where>
-            fis.tenant_id = #{tenantId}
-            and fis.company_id = #{companyId}
-            and fis.department_id = #{departmentId}
-            and fis.warehouse_id = #{warehouseId}
-            and fis.material_id in
-            <foreach collection="materialList" index="index" item="item" open= "(" separator= "," close= ")">
-                #{item}
-            </foreach>
-            <if test="batchIdList !=null">
-                and fis.batch_id in
-                <foreach collection="batchIdList" index="index" item="item" open= "(" separator= "," close= ")">
+            <foreach collection="invCountHeaderDTOList" item="invCountHeader" separator="or">
+                (
+                fis.tenant_id = #{invCountHeader.tenantId}
+                and fis.company_id = #{invCountHeader.companyId}
+                and fis.department_id = #{invCountHeader.departmentId}
+                and fis.warehouse_id = #{invCountHeader.warehouseId}
+                and fis.material_id in
+                <foreach collection="invCountHeader.materialList" index="index" item="item" open="(" separator="," close=")">
                     #{item}
                 </foreach>
-            </if>
-            and fis.unit_quantity > 0
+                <if test="invCountHeader.batchIdList != null">
+                    and fis.batch_id in
+                    <foreach collection="batchIdList" index="index" item="item" open="(" separator="," close=")">
+                        #{item}
+                    </foreach>
+                </if>
+                and fis.unit_quantity > 0
+                )
+            </foreach>
         </where>
     </select>
 
@@ -199,6 +203,48 @@
         fis.material_id,
         fis.batch_id,
         fis.unit_code;
+    </select>
+
+    <select id="execute" resultType="com.hand.demo.api.controller.v1.DTO.InvStockDTO">
+        <foreach collection="invCountHeaders" item="invCountHeader" separator="union">
+            select
+            fis.tenant_id,
+            fis.company_id,
+            fis.department_id,
+            fis.warehouse_id,
+            fis.material_id,
+            fim.material_code,
+            <if test="invCountHeader.countDimension == 'SKU'">
+                max(fis.batch_id) as batch_id,
+            </if>
+            <if test="invCountHeader.countDimension == 'LOT'">
+                fis.batch_id,
+            </if>
+            fis.unit_code,
+            SUM(fis.unit_quantity) as snapshotUnitQty
+            from fexam_inv_stock fis
+            inner join fexam_inv_material fim on fis.material_id = fim.material_id
+            <where>
+                fis.tenant_id = #{invCountHeader.tenantId}
+                and fis.company_id = #{invCountHeader.companyId}
+                and fis.department_id = #{invCountHeader.departmentId}
+                and fis.warehouse_id = #{invCountHeader.warehouseId}
+                and fis.material_id in
+                <foreach collection="invCountHeader.materialList" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+                and fis.batch_id in
+                <foreach collection="invCountHeader.batchIdList" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </where>
+            <if test="invCountHeader.countDimension == 'SKU'">
+                group by fis.material_id, fis.unit_code
+            </if>
+            <if test="invCountHeader.countDimension == 'LOT'">
+                group by fis.material_id, fis.batch_id, fis.unit_code
+            </if>
+        </foreach>
     </select>
 </mapper>
 

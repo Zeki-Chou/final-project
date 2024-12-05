@@ -40,8 +40,8 @@ public class InvStockRepositoryImpl extends BaseRepositoryImpl<InvStock> impleme
     }
 
     @Override
-    public List<InvStock> checkOnHandQuantity(InvCountHeaderDTO invCountHeaderDTO) {
-        return invStockMapper.checkOnHandQuantity(invCountHeaderDTO);
+    public List<InvStockDTO> checkOnHandQuantity(List<InvCountHeaderDTO> invCountHeaderDTOList) {
+        return invStockMapper.checkOnHandQuantity(invCountHeaderDTOList);
     }
 
     @Override
@@ -52,6 +52,11 @@ public class InvStockRepositoryImpl extends BaseRepositoryImpl<InvStock> impleme
     @Override
     public List<InvStockDTO> executeByLOT(InvCountHeaderDTO invCountHeaderDTO) {
         return invStockMapper.executeByLOT(invCountHeaderDTO);
+    }
+
+    @Override
+    public List<InvStockDTO> execute(List<InvCountHeaderDTO> invCountHeaders) {
+        return invStockMapper.execute(invCountHeaders);
     }
 }
 

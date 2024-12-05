@@ -29,7 +29,8 @@ public interface InvStockRepository extends BaseRepository<InvStock> {
      * @return 返回值
      */
     InvStock selectByPrimary(Long stockId);
-    List<InvStock> checkOnHandQuantity(InvCountHeaderDTO invCountHeaderDTO);
+    List<InvStockDTO> checkOnHandQuantity(List<InvCountHeaderDTO> invCountHeaderDTO);
     List<InvStockDTO> executeBySKU(InvCountHeaderDTO invCountHeaderDTO);
     List<InvStockDTO> executeByLOT(InvCountHeaderDTO invCountHeaderDTO);
+    List<InvStockDTO> execute(List<InvCountHeaderDTO> invCountHeaders);
 }
