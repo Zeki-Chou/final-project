@@ -28,6 +28,8 @@ public interface InvCountHeaderService {
      */
     Page<InvCountHeaderDTO> selectList(PageRequest pageRequest, InvCountHeaderDTO invCountHeaderDTO);
 
+    InvCountHeader detail(Long countHeaderId);
+
     /**
      * 保存数据
      *
@@ -46,6 +48,8 @@ public interface InvCountHeaderService {
     InvCountHeaderDTO countResultSync(InvCountHeaderDTO invCountHeaderDTO);
 
     List<InvCountHeaderDTO> execute(List<InvCountHeaderDTO> invCountHeaderDTOS);
+
+    List<InvCountHeaderDTO> executeAndCountSyncWMS(List<InvCountHeaderDTO> invCountHeaderDTOS);
 
     List<InvCountHeaderDTO> submit(List<InvCountHeaderDTO> invCountHeaderDTOS);
 

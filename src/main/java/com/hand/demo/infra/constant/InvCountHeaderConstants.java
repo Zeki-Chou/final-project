@@ -41,7 +41,7 @@ public class InvCountHeaderConstants {
                 public final static String KEY_AUTHORIZATION = "Authorization";
                 public final static String KEY_CONTENT_TYPE = "Content-Type";
                 public final static String VALUE_CONTENT_TYPE = "application/json";
-                public final static String VALUE_AUTHORIZATION = "20f6a82f-bb24-4899-9631-25aa8f7f3d91";
+                public final static String VALUE_AUTHORIZATION = "1694e03b-2124-4881-98a3-97dc35179870";
 
 
 
@@ -52,6 +52,7 @@ public class InvCountHeaderConstants {
                 public final static String KEY_CODE = "code";
 
                 public final static String VALUE_STATUS_SUCCESS = "S";
+                public final static String VALUE_STATUS_ERROR = "E";
             }
             }
     }

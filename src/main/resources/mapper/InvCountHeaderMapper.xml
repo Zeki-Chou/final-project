@@ -136,7 +136,7 @@
                 and h.count_mode = #{countMode,jdbcType = VARCHAR}
             </if>
             <if test="supervisorIds != null">
-                and FIND_IN_SET(#{supervisorIds, jdbcType=INTEGER}, h.supervisor_ids) > 0
+                and FIND_IN_SET(#{supervisorIds, jdbcType=VARCHAR}, h.supervisor_ids) > 0
             </if>
             <if test="ids != null">
                 and FIND_IN_SET(h.count_header_id,#{ids, jdbcType=VARCHAR}) > 0

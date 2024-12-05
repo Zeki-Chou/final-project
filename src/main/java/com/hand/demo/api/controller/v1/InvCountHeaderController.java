@@ -13,6 +13,7 @@ import io.choerodon.mybatis.pagehelper.annotation.SortDefault;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 import io.choerodon.mybatis.pagehelper.domain.Sort;
 import io.choerodon.swagger.annotation.Permission;
+import io.seata.common.util.StringUtils;
 import io.swagger.annotations.ApiOperation;
 import org.hzero.boot.platform.lov.adapter.LovAdapter;
 import org.hzero.boot.platform.lov.annotation.ProcessLovValue;
@@ -63,8 +64,8 @@ public class InvCountHeaderController extends BaseController {
         invCountHeaderDTOS.forEach(headerDTO-> validObject(headerDTO, InvCountHeader.Save.class));
         // save check
         InvCountInfoDTO invCountInfoDTO = invCountHeaderService.manualSaveCheck(invCountHeaderDTOS);
-        if(invCountInfoDTO.getErrorList().stream().anyMatch(Objects::nonNull)){
-            throw new CommonException("Validation error: "+invCountInfoDTO.getErrorList());
+        if(StringUtils.isNotBlank(invCountInfoDTO.getCompleteErrMsg())){
+            throw new CommonException("Validation error: "+invCountInfoDTO.getCompleteErrMsg());
         }
         // save
         invCountHeaderService.manualSave(invCountHeaderDTOS);
@@ -81,17 +82,17 @@ public class InvCountHeaderController extends BaseController {
         invCountHeaderDTOS.forEach(headerDTO-> validObject(headerDTO, InvCountHeader.Remove.class));
         // remove check
         InvCountInfoDTO invCountInfoDTO = invCountHeaderService.checkAndRemove(invCountHeaderDTOS);
-        if(invCountInfoDTO.getErrorList().stream().anyMatch(Objects::nonNull)){
-            throw new CommonException("Validation error: "+invCountInfoDTO.getErrorList());
+        if(StringUtils.isNotBlank(invCountInfoDTO.getCompleteErrMsg())){
+            throw new CommonException("Validation error: "+invCountInfoDTO.getCompleteErrMsg());
         }
-        // remove
-        invCountHeaderRepository.batchDeleteByPrimaryKey(invCountHeaderDTOS);
+
         return Results.success();
     }
 
     @ApiOperation(value = "list")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping
+    @ProcessLovValue(targetField = BaseConstants.FIELD_BODY)
     public ResponseEntity<Page<InvCountHeaderDTO>> list(InvCountHeaderDTO invCountHeaderDTO,
                                                         @ApiIgnore @SortDefault(value = InvCountHeader.FIELD_CREATION_DATE,
                                                              direction = Sort.Direction.DESC) PageRequest pageRequest) {
@@ -102,8 +103,9 @@ public class InvCountHeaderController extends BaseController {
     @ApiOperation(value = "detail")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping("/{countHeaderId}/detail")
+    @ProcessLovValue(targetField = BaseConstants.FIELD_BODY)
     public ResponseEntity<InvCountHeader> detail(@PathVariable Long countHeaderId) {
-        InvCountHeader invCountHeader = invCountHeaderRepository.selectByPrimary(countHeaderId);
+        InvCountHeader invCountHeader = invCountHeaderService.detail(countHeaderId);
         return Results.success(invCountHeader);
     }
 
@@ -111,22 +113,13 @@ public class InvCountHeaderController extends BaseController {
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping("/execution")
     public ResponseEntity<List<InvCountHeaderDTO>> orderExecution(@RequestBody List<InvCountHeaderDTO> invCountHeaderDTOS) {
-        // security check
+        // security token
         SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaderDTOS);
         // execute valid object
         invCountHeaderDTOS.forEach(headerDTO-> validObject(headerDTO, InvCountHeader.Execute.class));
-        // execute check
-        InvCountInfoDTO execInvCountInfoDTO = invCountHeaderService.executeCheck(invCountHeaderDTOS);
-        if(execInvCountInfoDTO.getErrorList().stream().anyMatch(Objects::nonNull)){
-            throw new CommonException("Validation error: "+execInvCountInfoDTO.getErrorList());
-        }
-        List<InvCountHeaderDTO> returnedInvCountHeaderDTOS = invCountHeaderService.execute(invCountHeaderDTOS);
-        // sync wms
-        InvCountInfoDTO  syncInvCountInfoDTO = invCountHeaderService.countSyncWMS(invCountHeaderDTOS);
-        if(syncInvCountInfoDTO.getErrorList().stream().anyMatch(Objects::nonNull)){
-            throw new CommonException("Validation error: "+syncInvCountInfoDTO.getErrorList());
-        }
-        return Results.success(invCountHeaderDTOS);
+        // execute and sync
+        List<InvCountHeaderDTO>  executedInvCountHeaderDTOS = invCountHeaderService.executeAndCountSyncWMS(invCountHeaderDTOS);
+        return Results.success(executedInvCountHeaderDTOS);
     }
     @ApiOperation(value = "orderSubmit")
     @Permission(level = ResourceLevel.ORGANIZATION)
@@ -138,7 +131,7 @@ public class InvCountHeaderController extends BaseController {
         invCountHeaderDTOS.forEach(headerDTO-> validObject(headerDTO, InvCountHeader.Submit.class));
         // submit check
         InvCountInfoDTO invCountInfoDTO = invCountHeaderService.submitCheck(invCountHeaderDTOS);
-        if(invCountInfoDTO.getErrorList().stream().anyMatch(Objects::nonNull)){
+        if(StringUtils.isNotBlank(invCountInfoDTO.getCompleteErrMsg())){
             throw new CommonException("Validation error: "+invCountInfoDTO.getErrorList());
         }
         // submit

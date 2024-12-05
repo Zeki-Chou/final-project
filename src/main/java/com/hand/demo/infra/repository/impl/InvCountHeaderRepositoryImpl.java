@@ -41,15 +41,15 @@ public class InvCountHeaderRepositoryImpl extends BaseRepositoryImpl<InvCountHea
         if(isTenantAdmin == null){
             isTenantAdmin = (Boolean) jsonObject.getOrDefault(InvCountHeaderConstants.IamRemoteService.TENANT_SUPER_ADMIN_FLAG,null);
         }
+
         invCountHeaderDTO.setIsTenantAdmin(isTenantAdmin);
         invCountHeaderDTO.setTenantId(DetailsHelper.getUserDetails().getTenantId());
-
         List<InvCountHeaderDTO> resultInvCountHeaderDTOS = invCountHeaderMapper.selectList(invCountHeaderDTO);
         for (InvCountHeaderDTO resultInvCountHeaderDTO:resultInvCountHeaderDTOS){
             InvCountLineDTO lineListParam = new InvCountLineDTO();
             lineListParam.setCountHeaderId(resultInvCountHeaderDTO.getCountHeaderId());
             lineListParam.setSupervisorIds(resultInvCountHeaderDTO.getSupervisorIds());
-            lineListParam.setIsTenantAdmin(invCountHeaderDTO.getIsTenantAdmin());
+            lineListParam.setIsTenantAdmin(isTenantAdmin);
             List<InvCountLineDTO> invCountLineDTOS = invCountLineMapper.selectList(lineListParam);
             resultInvCountHeaderDTO.setInvCountLineDTOList(invCountLineDTOS);
         }
