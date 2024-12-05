@@ -24,6 +24,7 @@ import org.hzero.boot.platform.lov.dto.LovValueDTO;
 import org.hzero.boot.platform.profile.ProfileClient;
 import org.hzero.boot.workflow.WorkflowClient;
 import org.hzero.boot.workflow.dto.RunTaskHistory;
+import org.hzero.core.util.TokenUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.hand.demo.app.service.InvCountHeaderService;
 import org.springframework.dao.CannotAcquireLockException;
@@ -72,7 +73,6 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     private ProfileClient profileClient;
     @Autowired
     private WorkflowClient workflowClient;
-
 
     @Override
     public InvCountInfoDTO manualSaveCheck(List<InvCountHeaderDTO> invCountHeaderDTOS) {
@@ -239,7 +239,6 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                 }
 
                 // c. value set validation
-
                 if (!statusLovValueDTOS.contains(invCountHeaderDTO.getCountStatus())) {
                     throw new CommonException("Invalid status value");
                 }
@@ -308,6 +307,8 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         List<InvCountExtra> invCountExtras = new ArrayList<>();
         for (InvCountHeaderDTO invCountHeaderDTO : invCountHeaderDTOS) {
             String errorMsg = null;
+            InvCountExtra syncStatusExtra = newExtra(invCountHeaderDTO, InvCountExtraConstants.Value.ProgramKey.STATUS);
+            InvCountExtra syncMsgExtra = newExtra(invCountHeaderDTO, InvCountExtraConstants.Value.ProgramKey.ERROR_MESSAGE);
             try {
                 InvCountHeaderDTO oldInvCountHeaderDTO = oldInvCountHeaderDTOMap.get(invCountHeaderDTO.getCountHeaderId().toString());
                 Utils.populateNullFields(oldInvCountHeaderDTO, invCountHeaderDTO);
@@ -321,8 +322,14 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
                 // b. Get the extended table data based on the counting header ID extraRepository.select(sourceId=countHeaderId and enabledFlag=1); if can not get the result, need to initialize
                 List<InvCountExtra> oldInvCountExtras = invCountExtraRepository.selectByHeader(invCountHeaderDTO);
-                InvCountExtra syncStatusExtra = oldInvCountExtras.stream().filter(extra -> extra.getProgramkey().equals(InvCountExtraConstants.Value.ProgramKey.STATUS)).findFirst().orElse(newExtra(invCountHeaderDTO, InvCountExtraConstants.Value.ProgramKey.STATUS));
-                InvCountExtra syncMsgExtra = oldInvCountExtras.stream().filter(extra -> extra.getProgramkey().equals(InvCountExtraConstants.Value.ProgramKey.ERROR_MESSAGE)).findFirst().orElse(newExtra(invCountHeaderDTO, InvCountExtraConstants.Value.ProgramKey.ERROR_MESSAGE));
+                Optional<InvCountExtra> syncStatusExtraOptional = oldInvCountExtras.stream().filter(extra -> extra.getProgramkey().equals(InvCountExtraConstants.Value.ProgramKey.STATUS)).findFirst();
+                Optional<InvCountExtra> syncMsgExtraOptional = oldInvCountExtras.stream().filter(extra -> extra.getProgramkey().equals(InvCountExtraConstants.Value.ProgramKey.ERROR_MESSAGE)).findFirst();
+                if(syncStatusExtraOptional.isPresent()){
+                    syncStatusExtra = syncStatusExtraOptional.get();
+                }
+                if(syncMsgExtraOptional.isPresent()){
+                    syncMsgExtra = syncMsgExtraOptional.get();
+                }
                 invCountExtras.add(syncStatusExtra);
                 invCountExtras.add(syncMsgExtra);
 
@@ -331,9 +338,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                     // call external interface
                     invCountHeaderDTO.setEmployeeNumber(DetailsHelper.getUserDetails().getUsername());
                     Map<String, String> requestHeaderMap = new HashMap<>();
-                    requestHeaderMap.put(InvCountHeaderConstants.InterfaceSDK.WMSCounting.RequestHeader.KEY_AUTHORIZATION, InvCountHeaderConstants.InterfaceSDK.WMSCounting.RequestHeader.VALUE_AUTHORIZATION);
-                    requestHeaderMap.put(InvCountHeaderConstants.InterfaceSDK.WMSCounting.RequestHeader.KEY_CONTENT_TYPE, InvCountHeaderConstants.InterfaceSDK.WMSCounting.RequestHeader.VALUE_CONTENT_TYPE);
-                    requestHeaderMap.put(InvCountHeaderConstants.InterfaceSDK.WMSCounting.RequestHeader.KEY_ORGANIZATION_ID, invCountHeaderDTO.getTenantId().toString());
+                    requestHeaderMap.put(InvCountHeaderConstants.InterfaceSDK.WMSCounting.RequestHeader.KEY_AUTHORIZATION, TokenUtils.getToken());
 
                     String headerJsonString = JSON.toJSONString(invCountHeaderDTO);
                     JSONObject requestPayloadJSON = JSON.parseObject(headerJsonString);
@@ -350,7 +355,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                     JSONObject responsePayloadJSON = JSON.parseObject(responsePayloadDTO.getPayload());
                     if (responsePayloadJSON.getString(InvCountHeaderConstants.InterfaceSDK.WMSCounting.ResponseHeader.KEY_STATUS).equals(InvCountHeaderConstants.InterfaceSDK.WMSCounting.ResponseHeader.VALUE_STATUS_SUCCESS)) {
                         syncStatusExtra.setProgramvalue(InvCountExtraConstants.Value.ProgramValue.SUCCESS);
-                        syncMsgExtra.setProgramvalue("");
+                        syncMsgExtra.setProgramvalue(StringUtils.EMPTY);
                         invCountHeaderDTO.setRelatedWmsOrderCode(responsePayloadJSON.getString(InvCountHeaderConstants.InterfaceSDK.WMSCounting.ResponseHeader.KEY_CODE));
                     } else {
                         syncStatusExtra.setProgramvalue(InvCountExtraConstants.Value.ProgramValue.ERROR);
@@ -362,8 +367,8 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
                     syncMsgExtra.setProgramvalue("");
                 }
             } catch (Exception e) {
-                invCountExtras.get(0).setProgramvalue(InvCountHeaderConstants.InterfaceSDK.WMSCounting.ResponseHeader.VALUE_STATUS_ERROR);
-                invCountExtras.get(1).setProgramvalue(e.getMessage());
+                syncStatusExtra.setProgramvalue(InvCountHeaderConstants.InterfaceSDK.WMSCounting.ResponseHeader.VALUE_STATUS_ERROR);
+                syncMsgExtra.setProgramvalue(e.getMessage());
 
                 errorMsg = e.getMessage();
             }
@@ -436,7 +441,6 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         }
         return  invCountInfoDTO;
     }
-
 
     @Override
     public Page<InvCountHeaderDTO> selectList(PageRequest pageRequest, InvCountHeaderDTO invCountHeaderDTO) {
@@ -614,8 +618,8 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             InvCountHeaderDTO invCountHeaderDTO = invCountHeaderDTOS.get(i);
             invCountHeaderDTO.setTenantId(DetailsHelper.getUserDetails().getTenantId());
             invCountHeaderDTO.setCountNumber(headerNumbers.get(i));
-            invCountHeaderDTO.setDelFlag(InvCountHeaderConstants.Value.DelFlag.DEFAULT);
-            invCountHeaderDTO.setCountStatus(InvCountHeaderConstants.Value.CountStatus.DEFAULT);
+            invCountHeaderDTO.setDelFlag(InvCountHeaderConstants.Value.DelFlag.EXIST);
+            invCountHeaderDTO.setCountStatus(InvCountHeaderConstants.Value.CountStatus.DRAFT);
         }
         return invCountHeaderRepository.batchInsertSelective(invCountHeaderDTOS);
     }
@@ -715,6 +719,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         invCountExtra.setSourceid(invCountHeaderDTO.getCountHeaderId());
         invCountExtra.setEnabledflag(InvCountExtraConstants.Value.EnabledFlag.DEFAULT);
         invCountExtra.setProgramkey(programKey);
+        invCountExtra.setProgramvalue(StringUtils.EMPTY);
         return invCountExtra;
     }
 }

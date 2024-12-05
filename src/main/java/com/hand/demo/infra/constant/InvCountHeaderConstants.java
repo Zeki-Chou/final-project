@@ -72,11 +72,9 @@ public class InvCountHeaderConstants {
     }
     public static class Value {
         public static class DelFlag {
-            public final static Integer DEFAULT =0;
-            public final static Integer EXIST = 0;
+            public final static Integer EXIST =0;
         }
         public static class CountStatus {
-            public final static String DEFAULT = "DRAFT";
 
             public final static String DRAFT = "DRAFT";
             public final static String IN_COUNTING = "INCOUNTING";
