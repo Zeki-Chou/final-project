@@ -70,6 +70,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     private InterfaceInvokeSdk interfaceInvokeSdk;
     @Autowired
     private ProfileClient profileClient;
+
     @Autowired
     private WorkflowClient workflowClient;
 
@@ -155,7 +156,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         }
 
         // Check data consistency
-        Map<String,InvCountLineDTO> oldInvCountLineDTOMap = convertInvCountLineDTOSToMap(oldInvCountHeaderDTO.getInvCountLineDTOList());
+        Map<String,InvCountLineDTO> oldInvCountLineDTOMap = oldInvCountHeaderDTO.getInvCountLineDTOList().stream().collect(Collectors.toMap(lineDTO->lineDTO.getCountLineId().toString(), lineDTO->lineDTO));
         for(InvCountLineDTO invCountLineDTO:invCountHeaderDTO.getInvCountLineDTOList()){
             InvCountLineDTO oldInvCountLineDTO = oldInvCountLineDTOMap.getOrDefault(invCountLineDTO.getCountLineId().toString(),null);
             if(oldInvCountLineDTO == null){
@@ -221,7 +222,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         String oldHeaderIds = invCountHeaderDTOS.stream().filter(headerDTO -> headerDTO.getCountHeaderId() != null).map(headerDTO -> headerDTO.getCountHeaderId().toString()).collect(Collectors.joining(","));
         if (!oldHeaderIds.isEmpty()) {
             List<InvCountHeaderDTO> oldInvCountHeaderDTOS = invCountHeaderRepository.selectByIds(oldHeaderIds);
-            oldInvCountHeaderDTOMap = convertInvCountHeaderDTOSToMap(oldInvCountHeaderDTOS);
+            oldInvCountHeaderDTOMap = oldInvCountHeaderDTOS.stream().collect(Collectors.toMap(headerDTO->headerDTO.getCountHeaderId().toString(),headerDTO->headerDTO));
         }
         for (InvCountHeaderDTO invCountHeaderDTO : invCountHeaderDTOS) {
             String errorMsg = null;
@@ -288,7 +289,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         Map<String, InvCountHeaderDTO> oldInvCountHeaderDTOMap = new HashMap<>();
         if (!oldHeaderIds.isEmpty()) {
             List<InvCountHeaderDTO> oldInvCountHeaderDTOS = invCountHeaderRepository.selectByIds(oldHeaderIds);
-            oldInvCountHeaderDTOMap = convertInvCountHeaderDTOSToMap(oldInvCountHeaderDTOS);
+            oldInvCountHeaderDTOMap = oldInvCountHeaderDTOS.stream().collect(Collectors.toMap(headerDTO->headerDTO.getCountHeaderId().toString(),headerDTO->headerDTO));
         }
 
         for (InvCountHeaderDTO invCountHeaderDTO : invCountHeaderDTOS) {
@@ -335,7 +336,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         Map<String, InvCountHeaderDTO> oldInvCountHeaderDTOMap = new HashMap<>();
         if (!oldHeaderIds.isEmpty()) {
             List<InvCountHeaderDTO> oldInvCountHeaderDTOS = invCountHeaderRepository.selectByIds(oldHeaderIds);
-            oldInvCountHeaderDTOMap = convertInvCountHeaderDTOSToMap(oldInvCountHeaderDTOS);
+            oldInvCountHeaderDTOMap = oldInvCountHeaderDTOS.stream().collect(Collectors.toMap(headerDTO->headerDTO.getCountHeaderId().toString(),headerDTO->headerDTO));
         }
 
         // get company, department, & warehouse db data
@@ -433,11 +434,11 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         InvCountHeaderDTO headerListParam = new InvCountHeaderDTO();
         headerListParam.setIds(invCountHeaderDTOS.stream().map(headerDTO->headerDTO.getCountHeaderId().toString()).collect(Collectors.joining(",")));
         List<InvCountHeaderDTO> oldInvCountHeaderDTOS = invCountHeaderRepository.selectList(headerListParam);
-        Map<String,InvCountHeaderDTO> oldInvCountHeaderDTOMap = convertInvCountHeaderDTOSToMap(oldInvCountHeaderDTOS);
+        Map<String,InvCountHeaderDTO> oldInvCountHeaderDTOMap = oldInvCountHeaderDTOS.stream().collect(Collectors.toMap(headerDTO->headerDTO.getCountHeaderId().toString(),headerDTO->headerDTO));
 
         // get warehouse db
         List<InvWarehouse> invWarehouses = invWarehouseRepository.selectByIds(invCountHeaderDTOS.stream().map(headerDTO ->headerDTO.getWarehouseId().toString()).collect(Collectors.joining(",")));
-        Map<String,InvWarehouse> invWarehouseMap = convertInvWarehouseToMap(invWarehouses);
+        Map<String,InvWarehouse> invWarehouseMap = invWarehouses.stream().collect(Collectors.toMap(warehouse->warehouse.getWarehouseId().toString(),warehouse -> warehouse));
 
         List<InvCountExtra> invCountExtras = new ArrayList<>();
         for (InvCountHeaderDTO invCountHeaderDTO : invCountHeaderDTOS) {
@@ -533,7 +534,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
 
         // get header db data
         List<InvCountHeaderDTO> oldInvCountHeaderDTOS = invCountHeaderRepository.selectByIds(invCountHeaderDTOS.stream().map(headerDTO -> headerDTO.getCountHeaderId().toString()).collect(Collectors.joining(",")));
-        Map<String, InvCountHeaderDTO> oldInvCountHeaderDTOMap = convertInvCountHeaderDTOSToMap(oldInvCountHeaderDTOS);
+        Map<String, InvCountHeaderDTO> oldInvCountHeaderDTOMap = oldInvCountHeaderDTOS.stream().collect(Collectors.toMap(headerDTO->headerDTO.getCountHeaderId().toString(),headerDTO->headerDTO));
         for (InvCountHeaderDTO invCountHeaderDTO : invCountHeaderDTOS) {
             String errorMsg = null;
             try {
@@ -620,7 +621,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         // get header db
         listParam.setIds(invCountHeaderDTOS.stream().map(headerDTO->headerDTO.getCountHeaderId().toString()).collect(Collectors.joining(",")));
         List<InvCountHeaderDTO> oldInvCountHeaderDTOS = invCountHeaderRepository.selectList(listParam);
-        Map<String,InvCountHeaderDTO> oldInvCountHeaderDTOMap = convertInvCountHeaderDTOSToMap(oldInvCountHeaderDTOS);
+        Map<String,InvCountHeaderDTO> oldInvCountHeaderDTOMap = oldInvCountHeaderDTOS.stream().collect(Collectors.toMap(headerDTO->headerDTO.getCountHeaderId().toString(),headerDTO->headerDTO));
         // Get configuration file value
         String workflowFlag = profileClient.getProfileValueByOptions(DetailsHelper.getUserDetails().getTenantId(), null, null,InvCountHeaderConstants.Profile.CountingWorkflow.NAME);
         // Determine whether to start workflow
@@ -662,7 +663,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     private List<InvCountHeaderDTO> updateData(List<InvCountHeaderDTO> invCountHeaderDTOS){
         // Populate header input null values with old ones
         List<InvCountHeaderDTO> oldInvCountHeaderDTOS = invCountHeaderRepository.selectByIds(invCountHeaderDTOS.stream().map(headerDTO->headerDTO.getCountHeaderId().toString()).collect(Collectors.joining(",")));
-        Map<String,InvCountHeaderDTO> oldInvCountHeaderDTOMap = convertInvCountHeaderDTOSToMap(oldInvCountHeaderDTOS);
+        Map<String,InvCountHeaderDTO> oldInvCountHeaderDTOMap = oldInvCountHeaderDTOS.stream().collect(Collectors.toMap(headerDTO->headerDTO.getCountHeaderId().toString(),headerDTO->headerDTO));
         for (InvCountHeaderDTO invCountHeaderDTO:invCountHeaderDTOS){
             InvCountHeaderDTO oldInvCountHeaderDTO = oldInvCountHeaderDTOMap.get(invCountHeaderDTO.getCountHeaderId().toString());
             Utils.populateNullFields(oldInvCountHeaderDTO, invCountHeaderDTO);
@@ -685,7 +686,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         Map<String,InvCountLineDTO> oldInvCountLineDTOMap = new HashMap<>();
         if(!lineIds.isEmpty()){
             List<InvCountLineDTO> oldInvCountLineDTOS = invCountLineRepository.selectByIds(lineIds);
-            oldInvCountLineDTOMap = convertInvCountLineDTOSToMap(oldInvCountLineDTOS);
+            oldInvCountLineDTOMap = oldInvCountLineDTOS.stream().collect(Collectors.toMap(lineDTO->lineDTO.getCountLineId().toString(), lineDTO->lineDTO));
         }
         for (InvCountLineDTO invCountLineDTO:updateLineDTOS){
             InvCountLineDTO oldInvCountLineDTO =oldInvCountLineDTOMap.get(invCountLineDTO.getCountLineId().toString());
@@ -708,30 +709,6 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         // insert & update extras
         invCountExtraRepository.batchInsertSelective(invCountExtras.stream().filter(extra-> extra.getExtrainfoid()==null).collect(Collectors.toList()));
         invCountExtraRepository.batchUpdateByPrimaryKeySelective(invCountExtras.stream().filter(extra-> extra.getExtrainfoid()!=null).collect(Collectors.toList()));
-    }
-
-    private Map<String,InvCountHeaderDTO> convertInvCountHeaderDTOSToMap(List<InvCountHeaderDTO> invCountHeaderDTOS){
-        Map<String,InvCountHeaderDTO> invCountHeaderDTOMap = new HashMap<>();
-        for(InvCountHeaderDTO invCountHeaderDTO: invCountHeaderDTOS){
-            invCountHeaderDTOMap.put(invCountHeaderDTO.getCountHeaderId().toString(),invCountHeaderDTO);
-        }
-        return invCountHeaderDTOMap;
-    }
-
-    private  Map<String,InvCountLineDTO> convertInvCountLineDTOSToMap(List<InvCountLineDTO> invCountLineDTOS){
-        Map<String,InvCountLineDTO> invCountLineDTOMap = new HashMap<>();
-        for(InvCountLineDTO invCountLineDTO: invCountLineDTOS){
-            invCountLineDTOMap.put(invCountLineDTO.getCountLineId().toString(),invCountLineDTO);
-        }
-        return invCountLineDTOMap;
-    }
-
-    private Map<String, InvWarehouse> convertInvWarehouseToMap(List<InvWarehouse> invWarehouses){
-        Map<String,InvWarehouse> invWarehouseMap = new HashMap<>();
-        for(InvWarehouse invWarehouse: invWarehouses){
-            invWarehouseMap.put(invWarehouse.getWarehouseId().toString(),invWarehouse);
-        }
-        return invWarehouseMap;
     }
 
     private InvCountLineDTO newLine(InvCountHeaderDTO invCountHeaderDTO, InvStockDTO invStockDTO, Integer lineNumber) {
