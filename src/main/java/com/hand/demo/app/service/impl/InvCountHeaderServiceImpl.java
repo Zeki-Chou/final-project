@@ -27,7 +27,6 @@ import org.hzero.boot.workflow.dto.RunTaskHistory;
 import org.hzero.core.util.TokenUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.hand.demo.app.service.InvCountHeaderService;
-import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -75,6 +74,145 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
     private WorkflowClient workflowClient;
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
+    public List<InvCountHeaderDTO> orderExecute(List<InvCountHeaderDTO> invCountHeaderDTOS){
+        // save check
+        InvCountInfoDTO invCountInfoDTO = this.manualSaveCheck(invCountHeaderDTOS);
+        if(StringUtils.isNotBlank(invCountInfoDTO.getCompleteErrMsg())){
+            throw new CommonException("Validation error: "+invCountInfoDTO.getCompleteErrMsg());
+        }
+
+        // save
+        List<InvCountHeaderDTO> savedInvCountHeaderDTOS = this.manualSave(invCountHeaderDTOS);
+
+        // execute check
+        InvCountInfoDTO execInvCountInfoDTO = this.executeCheck(savedInvCountHeaderDTOS);
+        if(StringUtils.isNotBlank(execInvCountInfoDTO.getCompleteErrMsg())){
+            throw new CommonException("Validation error: "+execInvCountInfoDTO.getCompleteErrMsg());
+        }
+
+        // execute
+        List<InvCountHeaderDTO> executedInvCountHeaderDTOS = this.execute(savedInvCountHeaderDTOS);
+
+        // sync wms
+        InvCountInfoDTO syncInvCountInfoDTO = this.countSyncWMS(executedInvCountHeaderDTOS);
+        if(StringUtils.isNotBlank(syncInvCountInfoDTO.getCompleteErrMsg())){
+            throw new CommonException("Validation error: "+syncInvCountInfoDTO.getErrorList());
+        }
+
+        return executedInvCountHeaderDTOS;
+    }
+
+    @Override
+    public List<InvCountHeaderDTO> orderSave(List<InvCountHeaderDTO> invCountHeaderDTOS){
+        // save check
+        InvCountInfoDTO invCountInfoDTO = this.manualSaveCheck(invCountHeaderDTOS);
+        if(StringUtils.isNotBlank(invCountInfoDTO.getCompleteErrMsg())){
+            throw new CommonException("Validation error: "+invCountInfoDTO.getCompleteErrMsg());
+        }
+        // save
+        return this.manualSave(invCountHeaderDTOS);
+    }
+
+    @Override
+    public List<InvCountHeaderDTO> orderRemove(List<InvCountHeaderDTO> invCountHeaderDTOS){
+        // remove check
+        InvCountInfoDTO invCountInfoDTO = this.checkAndRemove(invCountHeaderDTOS);
+        if(StringUtils.isNotBlank(invCountInfoDTO.getCompleteErrMsg())){
+            throw new CommonException("Validation error: "+invCountInfoDTO.getCompleteErrMsg());
+        }
+        return invCountHeaderDTOS;
+    }
+
+    @Override
+    public List<InvCountHeaderDTO> orderSubmit(List<InvCountHeaderDTO> invCountHeaderDTOS){
+        // save check
+        InvCountInfoDTO invCountInfoDTO = this.manualSaveCheck(invCountHeaderDTOS);
+        if(StringUtils.isNotBlank(invCountInfoDTO.getCompleteErrMsg())){
+            throw new CommonException("Validation error: "+invCountInfoDTO.getCompleteErrMsg());
+        }
+
+        // save
+        List<InvCountHeaderDTO> savedInvCountHeaderDTOS = this.manualSave(invCountHeaderDTOS);
+
+        // submit check
+        InvCountInfoDTO submitInvCountInfoDTO = this.submitCheck(savedInvCountHeaderDTOS);
+        if(StringUtils.isNotBlank(submitInvCountInfoDTO.getCompleteErrMsg())){
+            throw new CommonException("Validation error: "+submitInvCountInfoDTO.getErrorList());
+        }
+
+        // submit
+        return this.submit(invCountHeaderDTOS);
+    }
+
+    @Override
+    public InvCountHeaderDTO countResultSync(InvCountHeaderDTO invCountHeaderDTO){
+        // Query the database based on counting order header data
+        InvCountHeaderDTO oldInvCountHeaderDTO = invCountHeaderRepository.selectByPrimary(invCountHeaderDTO.getCountHeaderId());
+        // Determine whether the warehouse is a WMS warehouse
+        if(!oldInvCountHeaderDTO.getIsWMSWarehouse()){
+            throw new CommonException("The current warehouse is not a WMS warehouse, operations are not allowed");
+        }
+
+        // Check data consistency
+        Map<String,InvCountLineDTO> oldInvCountLineDTOMap = convertInvCountLineDTOSToMap(oldInvCountHeaderDTO.getInvCountLineDTOList());
+        for(InvCountLineDTO invCountLineDTO:invCountHeaderDTO.getInvCountLineDTOList()){
+            InvCountLineDTO oldInvCountLineDTO = oldInvCountLineDTOMap.getOrDefault(invCountLineDTO.getCountLineId().toString(),null);
+            if(oldInvCountLineDTO == null){
+                throw new CommonException("The counting order line data is inconsistent with the INV system, please check the data");
+            }
+            Utils.populateNullFields(oldInvCountLineDTO,invCountLineDTO);
+            invCountLineDTO.setObjectVersionNumber(oldInvCountLineDTO.getObjectVersionNumber());
+            invCountLineDTO.setUnitDiffQty(invCountLineDTO.getUnitQty().subtract(oldInvCountLineDTO.getSnapshotUnitQty()));
+        }
+
+        // Update the line data
+        invCountLineRepository.batchUpdateOptional(invCountHeaderDTO.getInvCountLineDTOList(),InvCountLineConstants.UpdateOptional.Sync.RESULT);
+        invCountHeaderDTO.setStatus(InvCountHeaderConstants.InterfaceSDK.WMSCounting.SUCCESS_STATUS);
+        return invCountHeaderDTO;
+    }
+
+    @Override
+    public Page<InvCountHeaderDTO> selectList(PageRequest pageRequest, InvCountHeaderDTO invCountHeaderDTO) {
+        return PageHelper.doPageAndSort(pageRequest, () -> invCountHeaderRepository.selectList(invCountHeaderDTO));
+    }
+
+    @Override
+    public InvCountHeader detail(Long countHeaderId) {
+        return invCountHeaderRepository.selectByPrimary(countHeaderId);
+    }
+
+    @Override
+    public InvCountHeaderDTO submitApproval(WorkFlowEventDTO workflowEventDTO) {
+        InvCountHeaderDTO listParam = new InvCountHeaderDTO();
+        listParam.setCountNumber(workflowEventDTO.getBusinessKey());
+        InvCountHeaderDTO invCountHeaderDTO = invCountHeaderRepository.selectOne(listParam);
+        invCountHeaderDTO.setCountStatus(workflowEventDTO.getDocStatus());
+        invCountHeaderDTO.setWorkflowId(workflowEventDTO.getWorkflowId());
+        if(workflowEventDTO.getDocStatus().equals(InvCountHeaderConstants.Value.CountStatus.APPROVED)){
+            invCountHeaderDTO.setApprovedTime(workflowEventDTO.getApprovedTime());
+        }
+        invCountHeaderRepository.updateOptional(invCountHeaderDTO, InvCountHeaderConstants.UpdateOptional.Submit.APPROVE);
+        return  invCountHeaderDTO;
+    }
+
+    @Override
+    public List<InvCountHeaderDTO> countingOrderReportDs(InvCountHeaderDTO invCountHeaderDTO){
+        List<InvCountHeaderDTO> oldInvCountHeaderDTOS = invCountHeaderRepository.selectList(invCountHeaderDTO);
+        for(InvCountHeaderDTO oldInvCountHeaderDTO: oldInvCountHeaderDTOS){
+            List<RunTaskHistory> runTaskHistory = workflowClient.approveHistory(oldInvCountHeaderDTO.getTenantId(),oldInvCountHeaderDTO.getWorkflowId());
+            oldInvCountHeaderDTO.setApprovalHistoryList(runTaskHistory);
+            oldInvCountHeaderDTO.setCounterNamesString(oldInvCountHeaderDTO.getCounterList().stream().map(User::getRealName).collect(Collectors.joining(", ")));
+            oldInvCountHeaderDTO.setSupervisorNamesString(oldInvCountHeaderDTO.getSupervisorList().stream().map(User::getRealName).collect(Collectors.joining(", ")));
+            oldInvCountHeaderDTO.setMaterialCodesString(oldInvCountHeaderDTO.getSnapshotMaterialList().stream().map(InvMaterial::getMaterialCode).collect(Collectors.joining(", ")));
+            oldInvCountHeaderDTO.setBatchCodesString(oldInvCountHeaderDTO.getSnapshotBatchList().stream().map(InvBatch::getBatchCode).collect(Collectors.joining(", ")));
+            for(InvCountLineDTO oldInvCountLineDTO:oldInvCountHeaderDTO.getInvCountLineDTOList()){
+                oldInvCountLineDTO.setCounterNamesString(oldInvCountLineDTO.getCounterList().stream().map(User::getRealName).collect(Collectors.joining(", ")));
+            }
+        }
+        return oldInvCountHeaderDTOS;
+    }
+
     public InvCountInfoDTO manualSaveCheck(List<InvCountHeaderDTO> invCountHeaderDTOS) {
         InvCountInfoDTO invCountInfoDTO = new InvCountInfoDTO();
 
@@ -139,7 +277,6 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         return invCountInfoDTO;
     }
 
-    @Override
     public InvCountInfoDTO checkAndRemove(List<InvCountHeaderDTO> invCountHeaderDTOS) {
         InvCountInfoDTO invCountInfoDTO = new InvCountInfoDTO();
 
@@ -190,7 +327,6 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         return invCountInfoDTO;
     }
 
-    @Override
     public InvCountInfoDTO executeCheck(List<InvCountHeaderDTO> invCountHeaderDTOS){
         InvCountInfoDTO invCountInfoDTO = new InvCountInfoDTO();
 
@@ -290,7 +426,6 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         return invCountInfoDTO;
     }
 
-    @Override
     public InvCountInfoDTO countSyncWMS(List<InvCountHeaderDTO> invCountHeaderDTOS){
         InvCountInfoDTO invCountInfoDTO = new InvCountInfoDTO();
 
@@ -393,7 +528,6 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         return invCountInfoDTO;
     }
 
-    @Override
     public InvCountInfoDTO  submitCheck(List<InvCountHeaderDTO> invCountHeaderDTOS) {
         InvCountInfoDTO invCountInfoDTO= new InvCountInfoDTO();
 
@@ -442,17 +576,6 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         return  invCountInfoDTO;
     }
 
-    @Override
-    public Page<InvCountHeaderDTO> selectList(PageRequest pageRequest, InvCountHeaderDTO invCountHeaderDTO) {
-        return PageHelper.doPageAndSort(pageRequest, () -> invCountHeaderRepository.selectList(invCountHeaderDTO));
-    }
-
-    @Override
-    public InvCountHeader detail(Long countHeaderId) {
-        return invCountHeaderRepository.selectByPrimary(countHeaderId);
-    }
-
-    @Override
     public List<InvCountHeaderDTO> manualSave(List<InvCountHeaderDTO> invCountHeaderDTOS) {
         // extract insert & update data
         List<InvCountHeaderDTO> insertList = invCountHeaderDTOS.stream().filter(headerDTO -> headerDTO.getCountHeaderId() == null).collect(Collectors.toList());
@@ -468,7 +591,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         }
         return resultList;
     }
-    @Override
+
     public List<InvCountHeaderDTO> execute(List<InvCountHeaderDTO> invCountHeaderDTOS){
         Integer lineMaxNumber = invCountLineRepository.selectMaxLineNumber();
         for (InvCountHeaderDTO invCountHeaderDTO: invCountHeaderDTOS) {
@@ -492,66 +615,9 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         return invCountHeaderDTOS;
     }
 
-    @Override
-    public InvCountHeaderDTO countResultSync(InvCountHeaderDTO invCountHeaderDTO){
-        // Query the database based on counting order header data
-        InvCountHeaderDTO oldInvCountHeaderDTO = invCountHeaderRepository.selectByPrimary(invCountHeaderDTO.getCountHeaderId());
-        // Determine whether the warehouse is a WMS warehouse
-        if(!oldInvCountHeaderDTO.getIsWMSWarehouse()){
-            throw new CommonException("The current warehouse is not a WMS warehouse, operations are not allowed");
-        }
-
-        // Check data consistency
-        Map<String,InvCountLineDTO> oldInvCountLineDTOMap = convertInvCountLineDTOSToMap(oldInvCountHeaderDTO.getInvCountLineDTOList());
-        for(InvCountLineDTO invCountLineDTO:invCountHeaderDTO.getInvCountLineDTOList()){
-            InvCountLineDTO oldInvCountLineDTO = oldInvCountLineDTOMap.getOrDefault(invCountLineDTO.getCountLineId().toString(),null);
-            if(oldInvCountLineDTO == null){
-                throw new CommonException("The counting order line data is inconsistent with the INV system, please check the data");
-            }
-            Utils.populateNullFields(oldInvCountLineDTO,invCountLineDTO);
-            invCountLineDTO.setObjectVersionNumber(oldInvCountLineDTO.getObjectVersionNumber());
-            invCountLineDTO.setUnitDiffQty(invCountLineDTO.getUnitQty().subtract(oldInvCountLineDTO.getSnapshotUnitQty()));
-        }
-
-        // Update the line data
-        invCountLineRepository.batchUpdateOptional(invCountHeaderDTO.getInvCountLineDTOList(),InvCountLineConstants.UpdateOptional.Sync.RESULT);
-        invCountHeaderDTO.setStatus(InvCountHeaderConstants.InterfaceSDK.WMSCounting.SUCCESS_STATUS);
-        return invCountHeaderDTO;
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public List<InvCountHeaderDTO> executeAndCountSyncWMS(List<InvCountHeaderDTO> invCountHeaderDTOS){
-        // save check
-        InvCountInfoDTO invCountInfoDTO = manualSaveCheck(invCountHeaderDTOS);
-        if(StringUtils.isNotBlank(invCountInfoDTO.getCompleteErrMsg())){
-            throw new CommonException("Validation error: "+invCountInfoDTO.getCompleteErrMsg());
-        }
-
-        // save
-        List<InvCountHeaderDTO> savedInvCountHeaderDTOS =  manualSave(invCountHeaderDTOS);
-
-        // execute check
-        InvCountInfoDTO execInvCountInfoDTO = executeCheck(savedInvCountHeaderDTOS);
-        if(StringUtils.isNotBlank(execInvCountInfoDTO.getCompleteErrMsg())){
-            throw new CommonException("Validation error: "+execInvCountInfoDTO.getCompleteErrMsg());
-        }
-
-        // execute
-        List<InvCountHeaderDTO> executedInvCountHeaderDTOS = execute(savedInvCountHeaderDTOS);
-
-        // sync wms
-        InvCountInfoDTO syncInvCountInfoDTO = countSyncWMS(executedInvCountHeaderDTOS);
-        if(StringUtils.isNotBlank(syncInvCountInfoDTO.getCompleteErrMsg())){
-            throw new CommonException("Validation error: "+syncInvCountInfoDTO.getErrorList());
-        }
-
-        return executedInvCountHeaderDTOS;
-    }
-
-    @Override
     public List<InvCountHeaderDTO> submit(List<InvCountHeaderDTO> invCountHeaderDTOS){
         InvCountHeaderDTO listParam = new InvCountHeaderDTO();
+        // get header db
         listParam.setIds(invCountHeaderDTOS.stream().map(headerDTO->headerDTO.getCountHeaderId().toString()).collect(Collectors.joining(",")));
         List<InvCountHeaderDTO> oldInvCountHeaderDTOS = invCountHeaderRepository.selectList(listParam);
         Map<String,InvCountHeaderDTO> oldInvCountHeaderDTOMap = convertInvCountHeaderDTOSToMap(oldInvCountHeaderDTOS);
@@ -576,37 +642,6 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             invCountHeaderRepository.batchUpdateOptional(invCountHeaderDTOS,InvCountHeaderConstants.UpdateOptional.Submit.SUBMIT);
         }
         return invCountHeaderDTOS;
-    }
-
-    @Override
-    public InvCountHeaderDTO submitApproval(WorkFlowEventDTO workflowEventDTO) {
-        InvCountHeaderDTO listParam = new InvCountHeaderDTO();
-        listParam.setCountNumber(workflowEventDTO.getBusinessKey());
-        InvCountHeaderDTO invCountHeaderDTO = invCountHeaderRepository.selectList(listParam).get(0);
-        invCountHeaderDTO.setCountStatus(workflowEventDTO.getDocStatus());
-        invCountHeaderDTO.setWorkflowId(workflowEventDTO.getWorkflowId());
-        if(workflowEventDTO.getDocStatus().equals(InvCountHeaderConstants.Value.CountStatus.APPROVED)){
-            invCountHeaderDTO.setApprovedTime(workflowEventDTO.getApprovedTime());
-        }
-        invCountHeaderRepository.updateOptional(invCountHeaderDTO, InvCountHeaderConstants.UpdateOptional.Submit.APPROVE);
-        return  invCountHeaderDTO;
-    }
-
-    @Override
-    public List<InvCountHeaderDTO> countingOrderReportDs(InvCountHeaderDTO invCountHeaderDTO){
-        List<InvCountHeaderDTO> oldInvCountHeaderDTOS = invCountHeaderRepository.selectList(invCountHeaderDTO);
-        for(InvCountHeaderDTO oldInvCountHeaderDTO: oldInvCountHeaderDTOS){
-            List<RunTaskHistory> runTaskHistory = workflowClient.approveHistory(oldInvCountHeaderDTO.getTenantId(),oldInvCountHeaderDTO.getWorkflowId());
-            oldInvCountHeaderDTO.setApprovalHistoryList(runTaskHistory);
-            oldInvCountHeaderDTO.setCounterNamesString(oldInvCountHeaderDTO.getCounterList().stream().map(User::getRealName).collect(Collectors.joining(", ")));
-            oldInvCountHeaderDTO.setSupervisorNamesString(oldInvCountHeaderDTO.getSupervisorList().stream().map(User::getRealName).collect(Collectors.joining(", ")));
-            oldInvCountHeaderDTO.setMaterialCodesString(oldInvCountHeaderDTO.getSnapshotMaterialList().stream().map(InvMaterial::getMaterialCode).collect(Collectors.joining(", ")));
-            oldInvCountHeaderDTO.setBatchCodesString(oldInvCountHeaderDTO.getSnapshotBatchList().stream().map(InvBatch::getBatchCode).collect(Collectors.joining(", ")));
-            for(InvCountLineDTO oldInvCountLineDTO:oldInvCountHeaderDTO.getInvCountLineDTOList()){
-                oldInvCountLineDTO.setCounterNamesString(oldInvCountLineDTO.getCounterList().stream().map(User::getRealName).collect(Collectors.joining(", ")));
-            }
-        }
-        return oldInvCountHeaderDTOS;
     }
 
     private List<InvCountHeaderDTO> insertData(List<InvCountHeaderDTO> invCountHeaderDTOS){
@@ -668,7 +703,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         return combinedInvCountHeaderDTOS;
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional(propagation = Propagation.NEVER)
     private void insertUpdateExtra(List<InvCountExtra> invCountExtras){
         // insert & update extras
         invCountExtraRepository.batchInsertSelective(invCountExtras.stream().filter(extra-> extra.getExtrainfoid()==null).collect(Collectors.toList()));

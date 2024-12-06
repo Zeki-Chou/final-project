@@ -62,14 +62,9 @@ public class InvCountHeaderController extends BaseController {
         SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaderDTOS);
         // save validate object
         invCountHeaderDTOS.forEach(headerDTO-> validObject(headerDTO, InvCountHeader.Save.class));
-        // save check
-        InvCountInfoDTO invCountInfoDTO = invCountHeaderService.manualSaveCheck(invCountHeaderDTOS);
-        if(StringUtils.isNotBlank(invCountInfoDTO.getCompleteErrMsg())){
-            throw new CommonException("Validation error: "+invCountInfoDTO.getCompleteErrMsg());
-        }
-        // save
-        invCountHeaderService.manualSave(invCountHeaderDTOS);
-        return Results.success(invCountHeaderDTOS);
+        // service orderSave
+        List<InvCountHeaderDTO> savedInvCountHeaderDTOS = invCountHeaderService.orderSave(invCountHeaderDTOS);
+        return Results.success(savedInvCountHeaderDTOS);
     }
 
     @ApiOperation(value = "orderRemove")
@@ -80,13 +75,9 @@ public class InvCountHeaderController extends BaseController {
         SecurityTokenHelper.validToken(invCountHeaderDTOS);
         // remove validate object
         invCountHeaderDTOS.forEach(headerDTO-> validObject(headerDTO, InvCountHeader.Remove.class));
-        // remove check
-        InvCountInfoDTO invCountInfoDTO = invCountHeaderService.checkAndRemove(invCountHeaderDTOS);
-        if(StringUtils.isNotBlank(invCountInfoDTO.getCompleteErrMsg())){
-            throw new CommonException("Validation error: "+invCountInfoDTO.getCompleteErrMsg());
-        }
-
-        return Results.success();
+        // service orderRemove
+        List<InvCountHeaderDTO> removerInvCountHeaderDTOS = invCountHeaderService.orderRemove(invCountHeaderDTOS);
+        return Results.success(removerInvCountHeaderDTOS);
     }
 
     @ApiOperation(value = "list")
@@ -96,6 +87,7 @@ public class InvCountHeaderController extends BaseController {
     public ResponseEntity<Page<InvCountHeaderDTO>> list(InvCountHeaderDTO invCountHeaderDTO,
                                                         @ApiIgnore @SortDefault(value = InvCountHeader.FIELD_CREATION_DATE,
                                                              direction = Sort.Direction.DESC) PageRequest pageRequest) {
+        // service selectList
         Page<InvCountHeaderDTO> list = invCountHeaderService.selectList(pageRequest, invCountHeaderDTO);
         return Results.success(list);
     }
@@ -105,6 +97,7 @@ public class InvCountHeaderController extends BaseController {
     @GetMapping("/{countHeaderId}/detail")
     @ProcessLovValue(targetField = BaseConstants.FIELD_BODY)
     public ResponseEntity<InvCountHeader> detail(@PathVariable Long countHeaderId) {
+        // service detail
         InvCountHeader invCountHeader = invCountHeaderService.detail(countHeaderId);
         return Results.success(invCountHeader);
     }
@@ -117,8 +110,8 @@ public class InvCountHeaderController extends BaseController {
         SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaderDTOS);
         // execute valid object
         invCountHeaderDTOS.forEach(headerDTO-> validObject(headerDTO, InvCountHeader.Execute.class));
-        // execute and sync
-        List<InvCountHeaderDTO>  executedInvCountHeaderDTOS = invCountHeaderService.executeAndCountSyncWMS(invCountHeaderDTOS);
+        // service orderExecute
+        List<InvCountHeaderDTO> executedInvCountHeaderDTOS = invCountHeaderService.orderExecute(invCountHeaderDTOS);
         return Results.success(executedInvCountHeaderDTOS);
     }
     @ApiOperation(value = "orderSubmit")
@@ -127,15 +120,12 @@ public class InvCountHeaderController extends BaseController {
     public ResponseEntity<List<InvCountHeaderDTO>> orderSubmit(@RequestBody List<InvCountHeaderDTO> invCountHeaderDTOS) {
         // security token
         SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaderDTOS);
+        // save valid object
+        invCountHeaderDTOS.forEach(headerDTO-> validObject(headerDTO, InvCountHeader.Save.class));
         // submit valid object
         invCountHeaderDTOS.forEach(headerDTO-> validObject(headerDTO, InvCountHeader.Submit.class));
-        // submit check
-        InvCountInfoDTO invCountInfoDTO = invCountHeaderService.submitCheck(invCountHeaderDTOS);
-        if(StringUtils.isNotBlank(invCountInfoDTO.getCompleteErrMsg())){
-            throw new CommonException("Validation error: "+invCountInfoDTO.getErrorList());
-        }
-        // submit
-        List<InvCountHeaderDTO> submittedInvCountHeaderDTOS = invCountHeaderService.submit(invCountHeaderDTOS);
+        // service submit
+        List<InvCountHeaderDTO> submittedInvCountHeaderDTOS = invCountHeaderService.orderSubmit(invCountHeaderDTOS);
         return Results.success(submittedInvCountHeaderDTOS);
     }
 
@@ -145,9 +135,9 @@ public class InvCountHeaderController extends BaseController {
     public ResponseEntity<InvCountHeaderDTO> countResultSync(@RequestBody InvCountHeaderDTO invCountHeaderDTO) {
         // sync result valid object
         validObject(invCountHeaderDTO, InvCountHeader.CountSync.class);
-        // sync result
-        invCountHeaderService.countResultSync(invCountHeaderDTO);
-        return Results.success(invCountHeaderDTO);
+        // service countResultSync
+        InvCountHeaderDTO resultInvCountHeaderDTO = invCountHeaderService.countResultSync(invCountHeaderDTO);
+        return Results.success(resultInvCountHeaderDTO);
     }
 
     @ApiOperation(value = "Report")
@@ -155,14 +145,18 @@ public class InvCountHeaderController extends BaseController {
     @GetMapping("countingOrderReportDs")
     @ProcessLovValue(targetField = BaseConstants.FIELD_BODY)
     public ResponseEntity<List<InvCountHeaderDTO>> countingOrderReportDs(InvCountHeaderDTO invCountHeaderDTO) {
-        return Results.success(invCountHeaderService.countingOrderReportDs(invCountHeaderDTO));
+        // service countingOrderReportDs
+        List<InvCountHeaderDTO> invCountHeaderDTOS = invCountHeaderService.countingOrderReportDs(invCountHeaderDTO);
+        return Results.success(invCountHeaderDTOS);
     }
 
     @ApiOperation(value = "submitApproval")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping("submitApproval")
     public ResponseEntity<InvCountHeaderDTO> submitApproval(@RequestBody WorkFlowEventDTO workflowEventDTO) {
-        return Results.success(invCountHeaderService.submitApproval(workflowEventDTO));
+        // service submitApproval
+        InvCountHeaderDTO invCountHeaderDTO = invCountHeaderService.submitApproval(workflowEventDTO);
+        return Results.success(invCountHeaderDTO);
     }
 }
 

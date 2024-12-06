@@ -141,7 +141,7 @@ public class InvCountHeaderConstants {
         }
         public static class Submit {
             public final static String[] SUBMIT = {
-                    InvCountHeaderDTO.FIELD_RELATED_WMS_ORDER_CODE,
+                    InvCountHeaderDTO.FIELD_COUNT_STATUS,
             };
             public final static String[] APPROVE = {
                     InvCountHeader.FIELD_WORKFLOW_ID,

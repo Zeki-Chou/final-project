@@ -26,6 +26,7 @@ public class InvCountLineConstants {
             public final static String[] RESULT = {
                     InvCountLineDTO.FIELD_UNIT_QTY,
                     InvCountLineDTO.FIELD_UNIT_DIFF_QTY,
+                    InvCountLineDTO.FIELD_REMARK
             };
         }
     }

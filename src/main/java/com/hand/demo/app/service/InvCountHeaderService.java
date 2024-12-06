@@ -6,6 +6,7 @@ import com.hand.demo.api.dto.WorkFlowEventDTO;
 import io.choerodon.core.domain.Page;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 import com.hand.demo.domain.entity.InvCountHeader;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -16,8 +17,6 @@ import java.util.List;
  * @since 2024-11-25 09:59:38
  */
 public interface InvCountHeaderService {
-
-    InvCountInfoDTO  submitCheck(List<InvCountHeaderDTO> invCountHeaderDTOS);
 
     /**
      * 查询数据
@@ -30,28 +29,17 @@ public interface InvCountHeaderService {
 
     InvCountHeader detail(Long countHeaderId);
 
-    /**
-     * 保存数据
-     *
-     * @param invCountHeaderDTOS 数据
-     */
-    List<InvCountHeaderDTO> manualSave(List<InvCountHeaderDTO> invCountHeaderDTOS);
 
-    InvCountInfoDTO manualSaveCheck(List<InvCountHeaderDTO> invCountHeaderDTOS);
+    @Transactional(rollbackFor = Exception.class)
+    List<InvCountHeaderDTO> orderExecute(List<InvCountHeaderDTO> invCountHeaderDTOS);
 
-    InvCountInfoDTO checkAndRemove(List<InvCountHeaderDTO> invCountHeaderDTOS);
+    List<InvCountHeaderDTO> orderSave(List<InvCountHeaderDTO> invCountHeaderDTOS);
 
-    InvCountInfoDTO executeCheck(List<InvCountHeaderDTO> invCountHeaderDTOS);
+    List<InvCountHeaderDTO> orderRemove(List<InvCountHeaderDTO> invCountHeaderDTOS);
 
-    InvCountInfoDTO countSyncWMS(List<InvCountHeaderDTO> invCountHeaderDTOS);
+    List<InvCountHeaderDTO> orderSubmit(List<InvCountHeaderDTO> invCountHeaderDTOS);
 
     InvCountHeaderDTO countResultSync(InvCountHeaderDTO invCountHeaderDTO);
-
-    List<InvCountHeaderDTO> execute(List<InvCountHeaderDTO> invCountHeaderDTOS);
-
-    List<InvCountHeaderDTO> executeAndCountSyncWMS(List<InvCountHeaderDTO> invCountHeaderDTOS);
-
-    List<InvCountHeaderDTO> submit(List<InvCountHeaderDTO> invCountHeaderDTOS);
 
     InvCountHeaderDTO submitApproval(WorkFlowEventDTO workflowEventDTO);
 
