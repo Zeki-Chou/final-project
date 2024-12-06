@@ -787,6 +787,20 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         return invCountHeaderDTOListResult;
     }
 
+    public List<InvStockDTO> filterList(List<InvStockDTO> invStockList, InvCountHeaderDTO invCountHeader) {
+        return invStockList.stream()
+                .filter(invStock -> invStock.getTenantId() == invCountHeader.getTenantId())
+                .filter(invStock -> invStock.getCompanyId() == invCountHeader.getCompanyId())
+                .filter(invStock -> invStock.getDepartmentId() == invCountHeader.getDepartmentId())
+                .filter(invStock -> invStock.getWarehouseId() == invCountHeader.getWarehouseId())
+                .filter(invStock -> invCountHeader.getMaterialList().contains(invStock.getMaterialId()))
+                .filter(invStock ->
+                        invCountHeader.getBatchIdList() == null ||
+                                invCountHeader.getBatchIdList().contains(invStock.getBatchId())
+                )
+                .collect(Collectors.toList());
+    }
+
     public InvCountInfoDTO executeCheck(List<InvCountHeaderDTO> invCountHeaderDTOList) {
     // create invCountHeader map db by id
         Map<Long, InvCountHeader> invCountHeaderMap = mapCountHeaderDb(invCountHeaderDTOList);
@@ -877,13 +891,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             InvCountHeader invCountHeader = invCountHeaderMap.get(invCountHeaderDTO.getCountHeaderId());
             invCountHeaderDTO.setDepartmentId(invCountHeader.getDepartmentId());
 
-            List<InvStockDTO> filteredList = invStockList.stream()
-                    .filter(invStock -> invStock.getTenantId() == invCountHeaderDTO.getTenantId())
-                    .filter(invStock -> invStock.getCompanyId() == invCountHeaderDTO.getCompanyId())
-                    .filter(invStock -> invStock.getDepartmentId() == invCountHeaderDTO.getDepartmentId())
-                    .filter(invStock -> invStock.getWarehouseId() == invCountHeaderDTO.getWarehouseId())
-                    .filter(invStock -> invCountHeaderDTO.getMaterialList().contains(invStock.getMaterialId()))
-                    .collect(Collectors.toList());
+            List<InvStockDTO> filteredList = filterList(invStockList, invCountHeaderDTO);
 
             if (filteredList.isEmpty()) {
                 errorMsg.add("error5");
@@ -986,17 +994,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
             //          set departmentId from db
             invCountHeader.setDepartmentId(invCountHeaderDb.getDepartmentId());
 
-            List<InvStockDTO> filteredList = invStockList.stream()
-                    .filter(invStock -> invStock.getTenantId() == invCountHeader.getTenantId())
-                    .filter(invStock -> invStock.getCompanyId() == invCountHeader.getCompanyId())
-                    .filter(invStock -> invStock.getDepartmentId() == invCountHeader.getDepartmentId())
-                    .filter(invStock -> invStock.getWarehouseId() == invCountHeader.getWarehouseId())
-                    .filter(invStock -> invCountHeader.getMaterialList().contains(invStock.getMaterialId()))
-                    .filter(invStock ->
-                            invCountHeader.getBatchIdList() == null ||
-                                    invCountHeader.getBatchIdList().contains(invStock.getBatchId())
-                    )
-                    .collect(Collectors.toList());
+            List<InvStockDTO> filteredList = filterList(invStockList, invCountHeader);
 
             int i = 1;
             for(InvStockDTO invStock : filteredList) {
@@ -1021,7 +1019,7 @@ public class InvCountHeaderServiceImpl implements InvCountHeaderService {
         invCountLineRepository.batchInsertSelective(invCountLineInsertList);
 
         //      Counting order synchronization
-//        countSyncWms(invCountHeaders);
+        countSyncWms(invCountHeaders);
         return invCountHeaders;
     }
 
