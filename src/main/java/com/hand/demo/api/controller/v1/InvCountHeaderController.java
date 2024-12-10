@@ -87,11 +87,13 @@ public class InvCountHeaderController extends BaseController {
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping("/orderExecution")
     public ResponseEntity<?> orderExecution(@PathVariable Long organizationId, @RequestBody List<InvCountHeaderDTO> invCountHeaders) {
-        validObject(invCountHeaders);
+        invCountHeaders.forEach(item -> {
+            validObject(item, InvCountHeader.execute.class);
+            validObject(item, InvCountHeader.save.class);
+        });
         SecurityTokenHelper.validTokenIgnoreInsert(invCountHeaders);
         invCountHeaders.forEach(item -> item.setTenantId(organizationId));
-        List<InvCountHeaderDTO> returnedHeaderDTO = invCountHeaderService.execute(invCountHeaders);
-        InvCountInfoDTO infoDTO = invCountHeaderService.countSyncWms(invCountHeaders);
+        List<InvCountHeaderDTO> returnedHeaderDTO = invCountHeaderService.orderExecution(invCountHeaders);
         return Results.success(returnedHeaderDTO);
     }
 

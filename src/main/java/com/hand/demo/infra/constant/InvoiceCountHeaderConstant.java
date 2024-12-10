@@ -24,7 +24,7 @@ public class InvoiceCountHeaderConstant {
     }
 
     public static class Workflow {
-        public static final String FLOW_KEY = "FLOW1863520005904252930";
+        public static final String FLOW_KEY = "INV_COUNT61_RESULT_SUBMIT";
     }
 
     public InvoiceCountHeaderConstant(){}

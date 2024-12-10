@@ -27,6 +27,8 @@ public class InvCountHeaderDTO extends InvCountHeader implements Cacheable {
     private String status;
     private String employeeNumber;
 
+    private Boolean tenantAdminFlag;
+
     private String tenantCode;
     private String departmentName;
     private String warehouseCode;

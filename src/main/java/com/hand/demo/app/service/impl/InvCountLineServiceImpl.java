@@ -14,6 +14,7 @@ import com.hand.demo.domain.entity.InvCountLine;
 import com.hand.demo.domain.repository.InvCountLineRepository;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -36,6 +37,7 @@ public class InvCountLineServiceImpl implements InvCountLineService {
 
     @Override
     public void saveData(List<InvCountLine> invCountLines) {
+
         //Get Last Line Number
         Integer lastNumber = invCountLineRepository.selectLastNumber();
         int generateLineNumber = lastNumber + 1;
@@ -49,12 +51,8 @@ public class InvCountLineServiceImpl implements InvCountLineService {
                 .map(String::valueOf)
                 .collect(Collectors.joining(","));
 
-        List<InvCountHeader> existingHeaders = invCountHeaderRepository.selectByIds(countHeaderIdsString);
-
-        Map<Long, InvCountHeader> existingHeaderMap = new HashMap<>();
-        for (InvCountHeader header : existingHeaders) {
-            existingHeaderMap.put(header.getCountHeaderId(), header);
-        }
+        Map<Long, InvCountHeader> existingHeaderMap = invCountHeaderRepository.selectByIds(countHeaderIdsString).stream()
+                .collect(Collectors.toMap(InvCountHeader::getCountHeaderId, Function.identity()));
 
         //Conditioning there request are insert or update
         List<InvCountLine> insertList = new ArrayList<>();
@@ -65,6 +63,9 @@ public class InvCountLineServiceImpl implements InvCountLineService {
                 invCountLine.setUnitDiffQty(invCountLine.getUnitQty().subtract(invCountLine.getSnapshotUnitQty()).abs());
             }
             if (invCountLine.getCountLineId() == null) {
+                //Set counterIds from header
+                InvCountHeader header = existingHeaderMap.get(invCountLine.getCountHeaderId());
+                invCountLine.setCounterIds(header.getCounterIds());
                 invCountLine.setLineNumber(generateLineNumber);
                 insertList.add(invCountLine);
 

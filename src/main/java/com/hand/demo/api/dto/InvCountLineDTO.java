@@ -9,4 +9,5 @@ public class InvCountLineDTO extends InvCountLine {
     private String materialName;
     private String batchCode;
     private String counter;
+    private String supervisorIds;
 }

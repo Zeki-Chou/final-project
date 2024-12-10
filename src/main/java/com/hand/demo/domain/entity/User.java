@@ -33,7 +33,7 @@ import lombok.Setter;
 @VersionAudit
 @ModifyAudit
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
-@Table(name = "iam_user")
+@Table(name = "hzero_platform.iam_user")
 public class User extends AuditDomain {
     private static final long serialVersionUID = 796060992960755400L;
 

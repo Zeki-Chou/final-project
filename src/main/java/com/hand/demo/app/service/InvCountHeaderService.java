@@ -6,6 +6,7 @@ import com.hand.demo.api.dto.WorkFlowEventDTO;
 import io.choerodon.core.domain.Page;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 import com.hand.demo.domain.entity.InvCountHeader;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -37,6 +38,9 @@ public interface InvCountHeaderService {
     List<InvCountHeaderDTO> manualSave(List<InvCountHeaderDTO> invCountHeaders);
 
     InvCountInfoDTO checkAndRemove(List<InvCountHeaderDTO> invCountHeaderDTOS);
+
+    @Transactional(rollbackFor = Exception.class)
+    List<InvCountHeaderDTO> orderExecution(List<InvCountHeaderDTO> invCountHeaderDTOS);
 
     InvCountInfoDTO executeCheck(List<InvCountHeaderDTO> invCountHeaderDTOS);
 

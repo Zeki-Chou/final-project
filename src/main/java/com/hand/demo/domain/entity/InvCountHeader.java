@@ -82,7 +82,7 @@ public class InvCountHeader extends AuditDomain {
 
     @Id
     @GeneratedValue
-    @NotBlank (groups = {InvCountHeader.save.class})
+    @NotBlank (groups = {InvCountHeader.save.class, InvCountHeader.execute.class})
     private Long countHeaderId;
 
     private Date approvedTime;
@@ -119,20 +119,20 @@ public class InvCountHeader extends AuditDomain {
 
     private String attributeCategory;
 
+    @NotNull (groups = {InvCountHeader.save.class, InvCountHeader.execute.class})
     private Long companyId;
 
     @ApiModelProperty(value = "", required = true)
-    @NotBlank
+    @NotBlank (groups = {InvCountHeader.save.class, InvCountHeader.execute.class})
     @LovValue(lovCode = InvoiceCountHeaderConstant.LovCode.COUNT_DIMENSION)
     private String countDimension;
 
     @ApiModelProperty(value = "", required = true)
-    @NotBlank
+    @NotBlank (groups = {InvCountHeader.save.class, InvCountHeader.execute.class})
     @LovValue(lovCode = InvoiceCountHeaderConstant.LovCode.COUNT_MODE)
     private String countMode;
 
     @ApiModelProperty(value = "", required = true)
-    @NotBlank
     private String countNumber;
 
     @ApiModelProperty(value = "", required = true)
@@ -147,6 +147,7 @@ public class InvCountHeader extends AuditDomain {
     @LovValue(lovCode = InvoiceCountHeaderConstant.LovCode.COUNT_TYPE)
     private String countType;
 
+    @NotBlank (groups = {InvCountHeader.save.class, InvCountHeader.execute.class})
     private String counterIds;
 
     private Integer delFlag;
@@ -169,12 +170,14 @@ public class InvCountHeader extends AuditDomain {
 
     private String sourceSystem;
 
+    @NotBlank (groups = {InvCountHeader.save.class, InvCountHeader.execute.class})
     private String supervisorIds;
 
     @ApiModelProperty(value = "", required = true)
-    @NotNull
+    @NotNull(groups = {InvCountHeader.save.class, InvCountHeader.execute.class})
     private Long tenantId;
 
+    @NotNull (groups = {InvCountHeader.save.class, InvCountHeader.execute.class})
     private Long warehouseId;
 
     private Long workflowId;
